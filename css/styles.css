@@ -1,0 +1,252 @@
+:root {
+  --background: #f0f2f5;
+  --text: #333333;
+  --primary: #007acc;
+  --secondary: #555555;
+  --accent: #ff9800;
+  --card-bg: #ffffff;
+  --header-bg: #e0e0e0;
+  --border-color: #cccccc;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+  --text-highlight: #007acc;
+  --section-bg: #f9fafb;
+  --blogs-bg: #f0f4f8;
+  --github-ai-bg: #e8f0fe;
+  --resume-contact-bg: #f3f4f6;
+}
+
+[data-theme="dark"] {
+  --background: #121212;
+  --text: #e0e0e0;
+  --primary: #82b1ff;
+  --secondary: #bbbbbb;
+  --accent: #ff9800;
+  --card-bg: #1e1e1e;
+  --header-bg: #1e1e1e;
+  --border-color: #333333;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+  --text-highlight: #82b1ff;
+  --section-bg: #1a1a1a;
+  --blogs-bg: #1e1e1e;
+  --github-ai-bg: #2a2a2a;
+  --resume-contact-bg: #1f1f1f;
+}
+
+[data-theme="dark"] .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #1e1e1e, #121212) !important;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  transition: all 0.3s ease;
+}
+
+header {
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bg-white {
+  background-color: var(--card-bg) !important;
+}
+
+.bg-section {
+  background-color: var(--section-bg) !important;
+}
+
+.bg-blogs {
+  background-color: var(--blogs-bg) !important;
+}
+
+.bg-github-ai {
+  background-color: var(--github-ai-bg) !important;
+}
+
+.bg-resume-contact {
+  background-color: var(--resume-contact-bg) !important;
+}
+
+.bg-yellow-200,
+.bg-purple-200,
+.bg-blue-200,
+.bg-gray-200 {
+  background-color: var(--card-bg) !important;
+}
+
+.bg-yellow-400 {
+  background-color: var(--accent) !important;
+  color: var(--text) !important;
+}
+
+.border-gray-400 {
+  border-color: var(--border-color) !important;
+}
+
+.text-purple-600,
+.text-blue-600,
+.text-gray-600 {
+  color: var(--primary) !important;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: var(--background);
+  z-index: 100;
+}
+
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  border-radius: 25px;
+  background-color: var(--accent);
+  color: var(--text);
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.theme-toggle:hover {
+  background-color: var(--primary);
+}
+
+.project-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+}
+
+input,
+textarea {
+  background-color: var(--card-bg);
+  color: var(--text);
+  border-color: var(--border-color);
+  transition: all 0.2s ease;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.3);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--secondary);
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+p {
+  line-height: 1.8;
+  color: var(--text);
+}
+
+label,
+.text-highlight {
+  color: var(--text-highlight);
+}
+
+.quote-text {
+  font-style: italic;
+  color: var(--text);
+}
+
+.resume-button {
+  transition: all 0.2s ease;
+}
+
+.resume-button:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .flex {
+    flex-direction: column;
+  }
+
+  .w-1/3,
+  .w-1/4,
+  .w-1/2,
+  .w-2/3 {
+    width: 100%;
+  }
+
+  .space-x-4 {
+    margin-bottom: 1rem;
+  }
+}
+
+.cursor-effect {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  background-color: var(--primary);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: transform 0.1s ease;
+  z-index: 9999;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #007acc; /* Primary color */
+  border-radius: 10px;
+  border: 3px solid #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #005bb5; /* Darker primary color */
+}
+
+/* KPI Scrollbar styles */
+.tableauPlaceholder::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.tableauPlaceholder::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.tableauPlaceholder::-webkit-scrollbar-thumb {
+  background-color: #007acc; /* Primary color */
+  border-radius: 10px;
+  border: 3px solid #f1f1f1;
+}
+
+.tableauPlaceholder::-webkit-scrollbar-thumb:hover {
+  background-color: #005bb5; /* Darker primary color */
+}

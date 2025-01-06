@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mude Charan Naik's Portfolio - Data Analyst and Data Science Professional">
+    <meta name="keywords" content="Data Analysis, Data Science, Portfolio, Data Visualization">
+    <meta name="author" content="Mude Charan Naik">
+    <title>Mude Charan Naik - Data Analyst Portfolio</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/typewriter-effect@latest/dist/core.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Local Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Local Scripts -->
+    <script defer src="js/theme.js"></script>
+    <script defer src="js/realtime.js"></script>
+    <script defer src="js/cursor.js"></script>
+    <script src="js/track.js"></script>
+    
+    <!-- Add theme meta tag for better theme handling -->
+    <meta name="theme-color" content="#ffffff">
+    <style>
+      .quote-text {
+        font-style: italic;
+        color: var(--text);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    </style>
+</head>
+<body class="bg-background">
+    <div class="cursor-effect"></div>
+    <header class="p-4 sticky-header">
+        <div class="flex justify-between items-center">
+            <div class="flex space-x-4 items-center">
+                <img alt="Logo" class="w-12 h-12" src="https://via.placeholder.com/150"/>
+                <a class="text-blue-600 hover:text-blue-800 transition-colors" href="https://www.linkedin.com/in/mude-charan-naik-1b1b1b1b1/" target="_blank">LINKEDIN</a>
+                <a class="text-blue-600 hover:text-blue-800 transition-colors" href="https://github.com/mudecharan" target="_blank">GITHUB</a>
+                <a class="text-blue-600 hover:text-blue-800 transition-colors" href="https://www.kaggle.com/mudecharan" target="_blank">KAGGLE</a>
+            </div>
+            <div class="flex-grow flex justify-center items-center space-x-2">
+                <span class="text-red-600 text-xl font-bold">QUOTE :</span>
+                <span class="border border-gray-400 p-4 w-2/3 bg-white text-center text-lg quote-text">"Loading quote..."</span>
+                <div id="weather-info" class="text-gray-600"></div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div id="real-time-clock" class="text-gray-600"></div>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <svg id="theme-icon" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path id="moon-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 9.003 0 008.354-5.646z" />
+                        <path id="sun-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m0 14v1m8-8h1m-14 0H3m15.364-7.364l-.707.707M6.636 17.364l-.707.707M17.364 17.364l-.707-.707M6.636 6.636l-.707-.707" />
+                        <circle id="sun-icon" class="hidden" cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </button>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button class="bg-yellow-500 text-white px-4 py-2 resume-button">RESUME</button>
+            </div>
+        </div>
+    </header>
+<main class="p-4 font-['Inter']">
+        <div class="flex space-x-4">
+            <div class="w-1/2 bg-section p-4 mb-4">
+                <div class="bg-white p-4 mb-4">
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-2xl font-bold">MUDE CHARAN NAIK</h1>
+                    </div>
+                    <div class="mt-4 flex items-start space-x-4">
+                        <img alt="Profile Picture" class="w-1/3 h-auto" style="aspect-ratio: 4 / 3;" src="https://via.placeholder.com/300x225"/>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">Interests</h3>
+                            <ul class="list-disc list-inside text-purple-600">
+                                <li>Data Analysis</li>
+                                <li>Data Science</li>
+                                <li>Machine Learning</li>
+                                <li>Business Intelligence</li>
+                                <li>Data Visualization</li>
+                                <li>Predictive Modeling</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-4">ABOUT ME</h2>
+                    <p class="text-lg leading-relaxed">
+                        I am a recent graduate in Computer Science from XYZ University, with a strong passion for data analysis and data science. Throughout my academic journey, I have honed my skills in Python programming, SQL, and data visualization tools. I am eager to apply my knowledge to real-world problems and contribute to data-driven decision-making processes. My goal is to leverage data to uncover insights and drive business growth.
+                    </p>
+                </div>
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6">
+                    <h2 class="text-2xl font-bold mb-4">SKILLS</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-medium">Power BI</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 80%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Microsoft Excel</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 80%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">mySQL (Structured Query Language)</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 90%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Python</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 70%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Tableau</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 90%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6">
+                    <h2 class="text-2xl font-bold mb-4">KPI Dashboard</h2>
+                    <div class='tableauPlaceholder' id='viz1736189388805' style='position: relative; overflow: auto;'>
+                        <noscript>
+                            <a href='#'>
+                                <img alt='Superstore Dashboard' src='https://public.tableau.com/static/images/Sa/SampleSuperstoreDashboard_16141402401930/SuperstoreDashboard/1_rss.png' style='border: none' />
+                            </a>
+                        </noscript>
+                        <object class='tableauViz' style='display:none;' id='tableauViz'>
+                            <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                            <param name='embed_code_version' value='3' />
+                            <param name='site_root' value='' />
+                            <param name='name' value='SampleSuperstoreDashboard_16141402401930/SuperstoreDashboard' />
+                            <param name='tabs' value='no' />
+                            <param name='toolbar' value='yes' />
+                            <param name='static_image' value='https://public.tableau.com/static/images/Sa/SampleSuperstoreDashboard_16141402401930/SuperstoreDashboard/1.png' />
+                            <param name='animate_transition' value='yes' />
+                            <param name='display_static_image' value='yes' />
+                            <param name='display_spinner' value='yes' />
+                            <param name='display_overlay' value='yes' />
+                            <param name='display_count' value='yes' />
+                            <param name='language' value='en-US' />
+                        </object>
+                    </div>
+                    <div class="flex justify-center mt-4">
+                        <button class="bg-blue-500 text-white px-4 py-2" id="fullscreen-button">Full Screen</button>
+                    </div>
+                    <script type='text/javascript'>
+                        var divElement = document.getElementById('viz1736189388805');
+                        var vizElement = divElement.getElementsByTagName('object')[0];
+                        if (divElement.offsetWidth > 800) {
+                            vizElement.style.width = '100%';
+                            vizElement.style.height = '600px';
+                        } else if (divElement.offsetWidth > 500) {
+                            vizElement.style.width = '100%';
+                            vizElement.style.height = '600px';
+                        } else {
+                            vizElement.style.width = '100%';
+                            vizElement.style.height = '600px';
+                        }
+                        var scriptElement = document.createElement('script');
+                        scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                        vizElement.parentNode.insertBefore(scriptElement, vizElement);
+
+                        document.getElementById('fullscreen-button').addEventListener('click', function() {
+                            var tableauViz = document.getElementById('tableauViz');
+                            if (tableauViz.requestFullscreen) {
+                                tableauViz.requestFullscreen();
+                            } else if (tableauViz.mozRequestFullScreen) { // Firefox
+                                tableauViz.mozRequestFullScreen();
+                            } else if (tableauViz.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                                tableauViz.webkitRequestFullscreen();
+                            } else if (tableauViz.msRequestFullscreen) { // IE/Edge
+                                tableauViz.msRequestFullscreen();
+                            }
+                        });
+                    </script>
+                </div>
+            </div>
+            <div class="w-1/2 bg-section p-4 mb-4">
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-4">PROJECTS</h2>
+                    <div class="space-y-6">
+                        <div class="project-card p-4 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-2">Festive Campaign Analysis – Sales / Promotions [SQL| Power BI]</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>GitHub Repo | Project Presentation | Live Dashboard</li>
+                                <li>Analyzed sales data during Diwali 2023 and Sankranti 2024 for 50 retail stores in Southern India, driving informed decision-making.</li>
+                                <li>Examined customer behavior and product performance using SQL queries, identifying trends that informed strategic decision-making. Built an interactive Power BI dashboard, enhancing data visualization and accessibility.</li>
+                                <li>Presented actionable insights to the Sales Director, resulting in a remarkable increase of 107.64% in sales during Diwali and 113.58% during Sankranti.</li>
+                            </ul>
+                        </div>
+                        <div class="project-card p-4 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-2">Business Insights 360 - Brick & mortar and ecommerce [Power BI | SQL | Excel | Dax Studio]</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>GitHub Repo | Project Presentation | Live Dashboard</li>
+                                <li>Customized a multi-functional Power BI dashboard to analyze Atliq hardware's sales trends over the global market by gathering data from 2 different sources (Excel/CSV files and a SQL database).</li>
+                                <li>Built data model and visualizations in Power BI and optimized the report with DAX studio which improved the performance of the report by 5%.</li>
+                                <li>The dashboard enabled Atliq hardware to analyze different department sales trends and make data-driven decisions, leading to a projected 10% revenue acceleration and 20% reduction in data-related expenses.</li>
+                            </ul>
+                        </div>
+                        <div class="project-card p-4 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-2">P&L Report - [Excel | Pivot Table | Power Query]</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>GitHub Repo</li>
+                                <li>Enhanced financial reporting by developing a comprehensive P&L report for Atliq Hardware FY 2022, leveraging advanced Excel features including Pivot Tables and DAX calculations to analyze revenue streams and expense categories, facilitating strategic decision-making and optimizing financial performance.</li>
+                                <li>Automated data cleaning using Power Query, which can rescue around 4 hours of repeated manual work.</li>
+                                <li>Implemented DAX measure for calculations, enhancing user experience and providing optimal flexibility; reduced data processing time by 50% and enabled real-time insights for data-driven decision-making.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6">
+                    <h2 class="text-2xl font-bold mb-4">LANGUAGES</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-medium">Telugu</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 90%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Hindi</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 70%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">English</h4>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-blue-600 h-4 rounded-full" style="width: 80%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6">
+                    <h3 class="text-xl font-semibold mb-2">Education</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-medium">Graduation - B.Sc in Computer Science</h4>
+                            <p class="text-sm">XYZ University (2022-2025)</p>
+                            <p class="text-sm">CGPA: 8.9/10</p>
+                            <p class="text-sm">Relevant Courses: Data Structures, Algorithms, Database Management Systems, Machine Learning, Data Mining</p>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">12th Grade</h4>
+                            <p class="text-sm">ABC Junior College (2020-2022)</p>
+                            <p class="text-sm">Percentage: 92%</p>
+                            <p class="text-sm">Relevant Courses: Mathematics, Physics, Chemistry</p>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">10th Grade</h4>
+                            <p class="text-sm">PQR High School (2020)</p>
+                            <p class="text-sm">Percentage: 95%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="p-4 bg-blogs">
+            <h2 class="text-3xl font-bold text-center">Blogs</h2>
+            <div class="grid grid-cols-3 gap-4 mt-4">
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 1</h3>
+                    <p class="mt-2">
+                        As a data analyst, understanding the fundamentals of data analysis is crucial. This blog covers the basics of data analysis, including data cleaning, transformation, and visualization techniques.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">The Algorithms - Python</h4>
+                    <p class="mt-2">
+                        Explore a comprehensive collection of algorithms implemented in Python. This repository is a great resource for learning and understanding various algorithms through practical examples.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://github.com/TheAlgorithms/Python">LINK</a>
+                    </div>
+                </div>
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 2</h3>
+                    <p class="mt-2">
+                        Machine learning is an essential skill for data analysts. This blog explores various machine learning algorithms and their applications in real-world scenarios.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">FireDucks Dev</h4>
+                    <p class="mt-2">
+                        Dive into the world of machine learning with FireDucks Dev. This blog provides tutorials, guides, and insights into machine learning algorithms and their practical applications.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://fireducks-dev.github.io/">LINK</a>
+                    </div>
+                </div>
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 3</h3>
+                    <p class="mt-2">
+                        Data visualization helps in communicating insights effectively. This blog discusses different data visualization tools and techniques to create impactful visualizations.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">Data Scientist Handbook</h4>
+                    <p class="mt-2">
+                        A comprehensive handbook for data scientists, covering various data visualization tools and techniques. Learn how to create impactful visualizations to communicate insights effectively.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://github.com/andresvourakis/data-scientist-handbook">LINK</a>
+                    </div>
+                </div>
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 4</h3>
+                    <p class="mt-2">
+                        Exploring the importance of data quality in data analysis and how to ensure your data is accurate and reliable.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">The Big Book of Data Science</h4>
+                    <p class="mt-2">
+                        Discover the importance of data quality in data analysis with The Big Book of Data Science. This resource provides insights and techniques to ensure your data is accurate and reliable.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://thebigbookofdatascience.com/">LINK</a>
+                    </div>
+                </div>
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 5</h3>
+                    <p class="mt-2">
+                        A comprehensive guide to using SQL for data analysis, including tips and tricks for writing efficient queries.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">AI Data Scientist</h4>
+                    <p class="mt-2">
+                        Explore the intersection of AI and data science with this comprehensive guide. Learn about various AI techniques and how they can be applied to data science projects.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://github.com/nicozumarraga/ai-data-scientist">LINK</a>
+                    </div>
+                </div>
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 6</h3>
+                    <p class="mt-2">
+                        How to leverage Python libraries like Pandas and NumPy for data manipulation and analysis.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">Pandas AI: The Future of Data Analysis</h4>
+                    <p class="mt-2">
+                        Discover the power of Pandas AI, a revolutionary tool that enhances data analysis capabilities. Learn how to integrate AI with Pandas to automate data processing and gain deeper insights.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://docs.pandas-ai.com/intro">LINK</a>
+                    </div>
+                </div>
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 7</h3>
+                    <p class="mt-2">
+                        The role of data visualization in storytelling and how to create compelling visual narratives.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">Data Science Projects</h4>
+                    <p class="mt-2">
+                        Explore a variety of data science projects that showcase the power of data visualization in storytelling. Learn how to create compelling visual narratives to communicate insights effectively.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://www.datascienceportfol.io/data-science-projects/">LINK</a>
+                    </div>
+                </div>
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 8</h3>
+                    <p class="mt-2">
+                        An introduction to machine learning for data analysts, including key concepts and practical applications.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">Data Science by Mehdee</h4>
+                    <p class="mt-2">
+                        Discover key concepts and practical applications of machine learning for data analysts. This repository provides a comprehensive introduction to machine learning techniques and their real-world applications.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://github.com/mehdee81/Data-Science">LINK</a>
+                    </div>
+                </div>
+                <div class="bg-white p-4">
+                    <h3 class="text-xl font-bold">BLOG 9</h3>
+                    <p class="mt-2">
+                        Best practices for data cleaning and preparation to ensure your analysis is based on high-quality data.
+                    </p>
+                    <h4 class="text-lg font-semibold mt-4">Efficient Python Tricks and Tools for Data Scientists</h4>
+                    <p class="mt-2">
+                        Learn best practices for data cleaning and preparation with efficient Python tricks and tools. This repository provides valuable insights and techniques to ensure your data analysis is based on high-quality data.
+                    </p>
+                    <div class="flex justify-between items-center mt-4">
+                        <a class="text-blue-600" href="https://github.com/khuyentran1401/Efficient_Python_tricks_and_tools_for_data_scientists">LINK</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div class="p-4">
+        <div class="grid grid-cols-3 gap-4">
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">EXCEL</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="excel_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="excel_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="excel_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">POWER BI</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="powerbi_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="powerbi_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="powerbi_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">MYSQL</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="mysql_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="mysql_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="mysql_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">PYTHON</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="python_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="python_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="python_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">MATPLOTLIB</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="matplotlib_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="matplotlib_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="matplotlib_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">PANDAS</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="pandas_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="pandas_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="pandas_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">NUMPY</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="numpy_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="numpy_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="numpy_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">TABELAU</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="tableau_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="tableau_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="tableau_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+            <div class="bg-yellow-400 p-4 text-center">
+                <h3 class="text-xl font-bold">EDA</h3>
+                <div class="flex justify-between mt-2">
+                    <a href="eda_cheatsheet.html" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
+                    <a href="eda_practice.html" class="bg-blue-500 text-white px-2 py-1">PRACTICE</a>
+                    <a href="eda_interview.html" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="p-4">
+        <div class="flex space-x-4">
+            <div class="w-2/3 bg-blue-200 p-4 mx-auto">
+                <h2 class="text-2xl font-bold">QUICK REFERENCE</h2>
+                <div class="grid grid-cols-4 gap-4 mt-4">
+                    <a href="https://quickref.me/mysql" class="bg-yellow-400 p-4 text-center">MYSQL</a>
+                    <a href="https://quickref.me/python" class="bg-yellow-400 p-4 text-center">PYTHON</a>
+                    <a href="https://quickref.me/excel" class="bg-yellow-400 p-4 text-center">EXCEL</a>
+                    <a href="https://quickref.me/powerbi" class="bg-yellow-400 p-4 text-center">POWER BI</a>
+                    <a href="https://quickref.me/machinelearning" class="bg-yellow-400 p-4 text-center">MACHINE LEARNING</a>
+                    <a href="https://quickref.me/algorithms" class="bg-yellow-400 p-4 text-center">ALGO</a>
+                    <a href="https://quickref.me/java" class="bg-yellow-400 p-4 text-center">JAVA</a>
+                    <a href="https://quickref.me/cpp" class="bg-yellow-400 p-4 text-center">C++</a>
+                    <a href="https://quickref.me/r" class="bg-yellow-400 p-4 text-center">R</a>
+                    <a href="https://quickref.me/javascript" class="bg-yellow-400 p-4 text-center">JAVASCRIPT</a>
+                    <a href="https://quickref.me/html" class="bg-yellow-400 p-4 text-center">HTML</a>
+                    <a href="https://quickref.me/css" class="bg-yellow-400 p-4 text-center">CSS</a>
+                    <a href="https://quickref.me/ruby" class="bg-yellow-400 p-4 text-center">RUBY</a>
+                    <a href="https://quickref.me/php" class="bg-yellow-400 p-4 text-center">PHP</a>
+                    <a href="https://quickref.me/swift" class="bg-yellow-400 p-4 text-center">SWIFT</a>
+                    <a href="https://quickref.me/kotlin" class="bg-yellow-400 p-4 text-center">KOTLIN</a>
+                    <a href="https://quickref.me/go" class="bg-yellow-400 p-4 text-center">GO</a>
+                    <a href="https://quickref.me/rust" class="bg-yellow-400 p-4 text-center">RUST</a>
+                    <a href="https://quickref.me/typescript" class="bg-yellow-400 p-4 text-center">TYPESCRIPT</a>
+                    <a href="https://quickref.me/sql" class="bg-yellow-400 p-4 text-center">SQL</a>
+                    <a href="https://quickref.me/shell" class="bg-yellow-400 p-4 text-center">SHELL</a>
+                    <a href="https://quickref.me/perl" class="bg-yellow-400 p-4 text-center">PERL</a>
+                    <a href="https://quickref.me/scala" class="bg-yellow-400 p-4 text-center">SCALA</a>
+                    <a href="https://quickref.me/clojure" class="bg-yellow-400 p-4 text-center">CLOJURE</a>
+                    <a href="https://quickref.me/elixir" class="bg-yellow-400 p-4 text-center">ELIXIR</a>
+                    <a href="https://quickref.me/erlang" class="bg-yellow-400 p-4 text-center">ERLANG</a>
+                    <a href="https://quickref.me/haskell" class="bg-yellow-400 p-4 text-center">HASKELL</a>
+                    <a href="https://quickref.me/dart" class="bg-yellow-400 p-4 text-center">DART</a>
+                    <a href="https://quickref.me/fortran" class="bg-yellow-400 p-4 text-center">FORTRAN</a>
+                    <a href="https://quickref.me/lisp" class="bg-yellow-400 p-4 text-center">LISP</a>
+                    <a href="https://quickref.me/prolog" class="bg-yellow-400 p-4 text-center">PROLOG</a>
+                    <a href="https://quickref.me/assembly" class="bg-yellow-400 p-4 text-center">ASSEMBLY</a>
+                    <a href="https://quickref.me/vb" class="bg-yellow-400 p-4 text-center">VB</a>
+                    <a href="https://quickref.me/csharp" class="bg-yellow-400 p-4 text-center">C#</a>
+                    <a href="https://quickref.me/objectivec" class="bg-yellow-400 p-4 text-center">OBJECTIVE-C</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="p-4">
+        <div class="flex space-x-4">
+            <div class="w-1/2 bg-github-ai p-4">
+                <h2 class="text-2xl font-bold">GITHUB</h2>
+                <ul class="mt-4 space-y-2">
+                    <li><a href="https://github.com/TheAlgorithms/Python">1. The Algorithms - Python</a></li>
+                    <li><a href="https://github.com/andresvourakis/data-scientist-handbook">2. Data Scientist Handbook</a></li>
+                    <li><a href="https://github.com/nicozumarraga/ai-data-scientist">3. AI Data Scientist</a></li>
+                    <li><a href="https://github.com/mehdee81/Data-Science">4. Data Science by Mehdee</a></li>
+                    <li><a href="https://github.com/khuyentran1401/Efficient_Python_tricks_and_tools_for_data_scientists">5. Efficient Python Tricks and Tools for Data Scientists</a></li>
+                    <li><a href="https://github.com/Fechin/reference">6. Quick Reference</a></li>
+                </ul>
+            </div>
+            <div class="w-1/2 bg-github-ai p-4">
+                <h2 class="text-2xl font-bold">AI WEBSITES</h2>
+                <ul class="mt-4 space-y-2">
+                    <li><a href="https://ai-website1.com">1. AI Website 1</a></li>
+                    <li><a href="https://ai-website2.com">2. AI Website 2</a></li>
+                    <li><a href="https://ai-website3.com">3. AI Website 3</a></li>
+                    <li><a href="https://ai-website4.com">4. AI Website 4</a></li>
+                    <li><a href="https://ai-website5.com">5. AI Website 5</a></li>
+                    <li><a href="https://ai-website6.com">6. AI Website 6</a></li>
+                    <li><a href="https://ai-website7.com">7. AI Website 7</a></li>
+                    <li><a href="https://ai-website8.com">8. AI Website 8</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="p-4">
+        <div class="flex space-x-4">
+            <div class="w-1/2 bg-resume-contact p-4">
+                <h2 class="text-2xl font-bold">Google Doc of my resume</h2>
+                <div class="mt-4">
+                    <iframe src="https://docs.google.com/document/d/1915qbjFUO7KIgwW6gxkxyMypizPay72B4N8k9umAvlc/preview" width="100%" height="500"></iframe>
+                </div>
+            </div>
+            <div class="w-1/2 bg-resume-contact p-4">
+                <h2 class="text-2xl font-bold">Contact me</h2>
+                <div class="mt-4">
+                    <p class="text-gray-700 text-sm font-bold mb-2 text-highlight">Phone Number: +91 xxxxxxxxx</p>
+                    <p class="text-gray-700 text-sm font-bold mb-2 text-highlight">Email: abcd@gmail.com</p>
+                </div>
+                <form class="mt-4" action="mailto:eziqhyorj@emlpro.com" method="post" enctype="text/plain">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2 text-highlight" for="first-name">First Name</label>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="first-name" name="First Name" type="text" placeholder="First Name">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2 text-highlight" for="last-name">Last Name</label>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="last-name" name="Last Name" type="text" placeholder="Last Name">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2 text-highlight" for="email">Email</label>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" name="Email" type="email" placeholder="Email">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2 text-highlight" for="bio">Bio</label>
+                        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="bio" name="Bio" placeholder="Write a short bio..."></textarea>
+                    </div>
+                    <div class="flex justify-center">
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="p-4">
+        <h2 class="text-2xl font-bold mb-4">Links and APIs Used</h2>
+        <ul class="list-disc list-inside text-lg">
+            <li>
+                <strong>Animechan API:</strong> Used for fetching random anime quotes. 
+                <a href="https://animechan.vercel.app/" class="text-blue-600">LINK</a>
+            </li>
+            <li>
+                <strong>Open-Meteo API:</strong> Used for fetching weather data based on user location. 
+                <a href="https://open-meteo.com/" class="text-blue-600">LINK</a>
+            </li>
+            <li>
+                <strong>Google Fonts:</strong> Used for importing the 'Inter' font family. 
+                <a href="https://fonts.google.com/" class="text-blue-600">LINK</a>
+            </li>
+            <li>
+                <strong>Font Awesome:</strong> Used for social media icons. 
+                <a href="https://fontawesome.com/" class="text-blue-600">LINK</a>
+            </li>
+        </ul>
+    </div>
+    <footer class="bg-gray-800 text-white p-4">
+        <div class="flex justify-center space-x-4">
+            <a href="https://www.linkedin.com/in/mude-charan-naik-1b1b1b1b1/" target="_blank" class="text-blue-400 hover:text-blue-600">
+                <i class="fab fa-linkedin fa-2x"></i>
+            </a>
+            <a href="https://github.com/mudecharan" target="_blank" class="text-gray-400 hover:text-gray-600">
+                <i class="fab fa-github fa-2x"></i>
+            </a>
+            <a href="https://www.kaggle.com/mudecharan" target="_blank" class="text-blue-400 hover:text-blue-600">
+                <i class="fab fa-kaggle fa-2x"></i>
+            </a>
+        </div>
+        <p class="text-center mt-4">&copy; 2023 Mude Charan Naik. All rights reserved.</p>
+    </footer>
+</body>
+</html>
