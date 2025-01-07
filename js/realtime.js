@@ -76,35 +76,45 @@ async function getWeather(city) {
 getLocationWeather();
 setInterval(getLocationWeather, 30 * 60 * 1000);
 
-// Quote API integration using Animechan
-async function getDailyQuote() {
-  try {
-    const response = await fetch('https://animechan.vercel.app/api/random');
-    const data = await response.json();
-    const quoteText = document.querySelector('.quote-text');
-    quoteText.textContent = `"${data.quote}" - ${data.character} (${data.anime})`;
-    adjustFontSizeToFit(quoteText);
-  } catch (error) {
-    console.error('Error fetching quote:', error);
-  }
+// Random quote from a predefined list
+const quotes = [
+  { quote: "I am not in danger, Skyler. I am the danger.", author: "Walter White" },
+  { quote: "Say my name.", author: "Walter White" },
+  { quote: "I did it for me. I liked it. I was good at it. And I was really... I was alive.", author: "Walter White" },
+  { quote: "Yeah, science!", author: "Jesse Pinkman" },
+  { quote: "Tread lightly.", author: "Walter White" }
+];
+
+function getRandomQuote() {
+  const randomIndex = Math.floor(Math.random() * quotes.length);
+  return quotes[randomIndex];
+}
+
+// Display a random quote
+function displayRandomQuote() {
+  const quoteText = document.querySelector('.quote-text');
+  const { quote, author } = getRandomQuote();
+  quoteText.textContent = `"${quote}" - ${author}`;
+  adjustFontSizeToFit(quoteText);
 }
 
 // Adjust font size to fit the quote box
 function adjustFontSizeToFit(element) {
   const parent = element.parentElement;
   let fontSize = parseInt(window.getComputedStyle(element).fontSize);
-  while (element.scrollWidth > parent.clientWidth && fontSize > 10) {
+  while ((element.scrollWidth > parent.clientWidth || element.scrollHeight > parent.clientHeight) && fontSize > 10) {
     fontSize -= 1;
     element.style.fontSize = `${fontSize}px`;
   }
+  element.style.overflowX = 'auto';
 }
 
 // Get new quote whenever the user opens the website
-getDailyQuote();
+document.addEventListener('DOMContentLoaded', displayRandomQuote);
 
 // Resume download functionality
 document.querySelector('.resume-button').addEventListener('click', () => {
-  const resumeUrl = 'https://example.com/path/to/resume.pdf';
+  const resumeUrl = 'https://docs.google.com/document/d/1GSFteTbWVrHDw3NNlsCJ1pa1bSEqD_cXzeTWCIxDkl4/export?format=pdf';
   const link = document.createElement('a');
   link.href = resumeUrl;
   link.download = 'Mude_Charan_Naik_Resume.pdf';
