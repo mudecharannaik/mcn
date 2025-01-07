@@ -1,39 +1,41 @@
 :root {
   --background: #f0f2f5;
   --text: #333333;
-  --primary: #007acc;
-  --secondary: #555555;
-  --accent: #ff9800;
+  --primary: #ff6f61; /* Coral */
+  --secondary: #6b5b95; /* Purple */
+  --accent: #88b04b; /* Green */
   --card-bg: #ffffff;
   --header-bg: #e0e0e0;
   --border-color: #cccccc;
-  --success: #4caf50;
-  --warning: #ff9800;
-  --error: #f44336;
-  --text-highlight: #007acc;
+  --success: #88b04b; /* Green */
+  --warning: #ff6f61; /* Coral */
+  --error: #d62728; /* Red */
+  --text-highlight: #6b5b95; /* Purple */
   --section-bg: #f9fafb;
   --blogs-bg: #f0f4f8;
   --github-ai-bg: #e8f0fe;
   --resume-contact-bg: #f3f4f6;
+  --button-bg: #90f8db; /* Updated color */
 }
 
 [data-theme="dark"] {
   --background: #121212;
   --text: #e0e0e0;
-  --primary: #82b1ff;
-  --secondary: #bbbbbb;
-  --accent: #ff9800;
+  --primary: #ff6f61; /* Coral */
+  --secondary: #6b5b95; /* Purple */
+  --accent: #88b04b; /* Green */
   --card-bg: #1e1e1e;
   --header-bg: #1e1e1e;
   --border-color: #333333;
-  --success: #4caf50;
-  --warning: #ff9800;
-  --error: #f44336;
-  --text-highlight: #82b1ff;
+  --success: #88b04b; /* Green */
+  --warning: #ff6f61; /* Coral */
+  --error: #d62728; /* Red */
+  --text-highlight: #6b5b95; /* Purple */
   --section-bg: #1a1a1a;
   --blogs-bg: #1e1e1e;
   --github-ai-bg: #2a2a2a;
   --resume-contact-bg: #1f1f1f;
+  --button-bg: #90f8db; /* Updated color */
 }
 
 [data-theme="dark"] .bg-gradient-to-br {
@@ -79,7 +81,7 @@ header {
 }
 
 .bg-yellow-400 {
-  background-color: var(--accent) !important;
+  background-color: var(--button-bg) !important; /* Updated color */
   color: var(--text) !important;
 }
 
@@ -138,7 +140,7 @@ textarea {
 input:focus,
 textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.3); /* Coral */
 }
 
 input::placeholder,
@@ -171,6 +173,10 @@ label,
 .quote-text {
   font-style: italic;
   color: var(--text);
+  overflow: hidden; /* Prevent horizontal scrolling */
+  white-space: normal; /* Allow wrapping */
+  text-overflow: ellipsis; /* Keep ellipsis for overflow */
+  font-size: 1.2rem; /* Adjust font size as needed */
 }
 
 .resume-button {
@@ -222,13 +228,13 @@ label,
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #007acc; /* Primary color */
+  background-color: var(--primary); /* Primary color */
   border-radius: 10px;
   border: 3px solid #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #005bb5; /* Darker primary color */
+  background-color: #e63946; /* Darker primary color */
 }
 
 /* KPI Scrollbar styles */
@@ -242,11 +248,11 @@ label,
 }
 
 .tableauPlaceholder::-webkit-scrollbar-thumb {
-  background-color: #007acc; /* Primary color */
+  background-color: var(--primary); /* Primary color */
   border-radius: 10px;
   border: 3px solid #f1f1f1;
 }
 
 .tableauPlaceholder::-webkit-scrollbar-thumb:hover {
-  background-color: #005bb5; /* Darker primary color */
+  background-color: #e63946; /* Darker primary color */
 }
