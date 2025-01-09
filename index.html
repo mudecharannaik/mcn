@@ -23,25 +23,17 @@
     <script defer src="js/theme.js"></script>
     <script defer src="js/realtime.js"></script>
     <script defer src="js/cursor.js"></script>
+    <script defer src="js/animations.js"></script>
     <script src="js/track.js"></script>
     
     <!-- Add theme meta tag for better theme handling -->
     <meta name="theme-color" content="#ffffff">
-    <style>
-      .quote-text {
-        font-style: italic;
-        color: var(--text);
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-    </style>
 </head>
-<body class="bg-background">
+<body class="bg-background page-motion">
     <div class="cursor-effect"></div>
-    <header class="p-4 sticky-header">
+    <header class="p-4 sticky-header hover-scale">
         <div class="flex justify-between items-center">
-            <div class="flex space-x-4 items-center">
+            <div class="flex space-x-4 items-center border-box">
                 <img alt="Logo" class="w-24 h-24" src="IMAGE/logo_resized.png"/>
                 <a class="text-blue-600 hover:text-blue-800 transition-colors" href="http://www.linkedin.com/in/mcharannaik" target="_blank">
                     <i class="fab fa-linkedin fa-lg"></i> LINKEDIN
@@ -54,29 +46,36 @@
                 </a>
             </div>
             <div class="flex-grow flex justify-center items-center space-x-2">
-                <span class="text-red-600 text-xl font-bold">QUOTE :</span>
-                <span class="border border-gray-400 p-4 w-2/3 bg-white text-center text-lg quote-text">"Loading quote..."</span>
-                <div id="weather-info" class="text-gray-600"></div>
+                <div class="border-box">
+                    <span class="text-red-600 text-xl font-bold">QUOTE :</span>
+                    <div class="quote-container">
+                        <span class="quote-text">"Loading quote..."</span>
+                        <span class="quote-author"></span>
+                    </div>
+                </div>
+                <div id="weather-info" class="text-gray-600 border-box flex items-center space-x-2">
+                    <!-- Weather info will be dynamically inserted here -->
+                </div>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2 border-box">
                 <div id="real-time-clock" class="text-gray-600"></div>
                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                     <svg id="theme-icon" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path id="moon-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        <path id="moon-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 9.003 0 008.354-5.646z" />
                         <path id="sun-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m0 14v1m8-8h1m-14 0H3m15.364-7.364l-.707.707M6.636 17.364l-.707.707M17.364 17.364l-.707-.707M6.636 6.636l-.707-.707" />
                         <circle id="sun-icon" class="hidden" cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" />
                         <line id="sun-icon" class="hidden" x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" />
                         <line id="sun-icon" class="hidden" x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" />
-                        <line id="sun-icon" class="hidden" x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="4.22" y1="4.22" x2="5.64" stroke="currentColor" stroke-width="2" />
                         <line id="sun-icon" class="hidden" x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" />
-                        <line id="sun-icon" class="hidden" x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" />
-                        <line id="sun-icon" class="hidden" x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" />
-                        <line id="sun-icon" class="hidden" x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" />
-                        <line id="sun-icon" class="hidden" x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="1" y1="12" x2="3" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="21" y1="12" x2="23" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="4.22" y1="19.78" x2="5.64" stroke="currentColor" stroke-width="2" />
+                        <line id="sun-icon" class="hidden" x1="18.36" y1="5.64" x2="19.78" stroke="currentColor" stroke-width="2" />
                     </svg>
                 </button>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2 border-box">
                 <button class="bg-yellow-500 text-white px-4 py-2 resume-button">
                     <i class="fas fa-file-download"></i> RESUME
                 </button>
@@ -85,8 +84,8 @@
     </header>
 <main class="p-4 font-['Inter']">
         <div class="flex space-x-4">
-            <div class="w-1/2 bg-section p-4 mb-4">
-                <div class="bg-white p-4 mb-4">
+            <div class="w-1/2 bg-section p-4 mb-4 border-box storytelling-motion">
+                <div class="bg-white p-4 mb-4 border-box">
                     <div class="flex items-center space-x-2">
                         <h1 class="text-2xl font-bold">MUDE CHARAN NAIK</h1>
                     </div>
@@ -105,13 +104,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md">
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md border-box storytelling-motion">
                     <h2 class="text-2xl font-bold mb-4">ABOUT ME</h2>
                     <p class="text-lg leading-relaxed">
                         I am a 5th-year Integrated M.Tech student at IIT Roorkee, specializing in Geophysical Technology. Alongside my academic journey, I have personally learned and developed strong skills in data analysis, machine learning, and data visualization tools like Power BI and Tableau. I have successfully completed projects such as Sales Analysis using SQL and Power BI, and Lending Club Loan Data Analysis using Python and Pandas. I am passionate about leveraging data to uncover insights and drive business growth. My goal is to help organizations make informed decisions by providing actionable insights through data analysis and visualization. I am eager to apply my skills to real-world problems and contribute to data-driven decision-making processes.
                     </p>
                 </div>
-                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6">
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6 border-box storytelling-motion">
                     <h2 class="text-2xl font-bold mb-4">SKILLS</h2>
                     <div class="space-y-4">
                         <div>
@@ -146,12 +145,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6">
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6 border-box storytelling-motion">
                     <h2 class="text-2xl font-bold mb-4">KPI Dashboard</h2>
                     <div class="flex justify-center space-x-4 mb-4">
-                        <button class="bg-blue-500 text-white px-4 py-2" onclick="showDashboard('dashboard1')">Dashboard 1</button>
-                        <button class="bg-blue-500 text-white px-4 py-2" onclick="showDashboard('dashboard2')">Dashboard 2</button>
-                        <button class="bg-blue-500 text-white px-4 py-2" onclick="showDashboard('dashboard3')">Dashboard 3</button>
+                        <button class="bg-blue-500 text-white px-4 py-2 hover-scale" onclick="showDashboard('dashboard1')">Dashboard 1</button>
+                        <button class="bg-blue-500 text-white px-4 py-2 hover-scale" onclick="showDashboard('dashboard2')">Dashboard 2</button>
+                        <button class="bg-blue-500 text-white px-4 py-2 hover-scale" onclick="showDashboard('dashboard3')">Dashboard 3</button>
                     </div>
                     <div id="dashboard1" class="dashboard">
                         <div class='tableauPlaceholder' id='viz1736189388805' style='position: relative; overflow: auto;'>
@@ -226,7 +225,7 @@
                         </div>
                     </div>
                     <div class="flex justify-center mt-4">
-                        <button class="bg-blue-500 text-white px-4 py-2" id="fullscreen-button">
+                        <button class="bg-blue-500 text-white px-4 py-2 hover-scale" id="fullscreen-button">
                             <i class="fas fa-expand"></i> Full Screen
                         </button>
                     </div>
@@ -285,11 +284,11 @@
                     </script>
                 </div>
             </div>
-            <div class="w-1/2 bg-section p-4 mb-4">
-                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md">
+            <div class="w-1/2 bg-section p-4 mb-4 border-box storytelling-motion">
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md border-box">
                     <h2 class="text-2xl font-bold mb-4">PROJECTS</h2>
                     <div class="space-y-6">
-                        <div class="project-card p-4 rounded-lg">
+                        <div class="project-card p-4 rounded-lg hover-scale">
                             <h3 class="text-xl font-semibold mb-2">Sales Analysis Project [SQL | Power BI]</h3>
                             <ul class="list-disc list-inside space-y-1">
                                 <li>GitHub Repo: <a href="https://github.com/mudecharannaik/SALES_ANALYSIS" class="text-blue-600">SALES_ANALYSIS</a></li>
@@ -298,7 +297,7 @@
                                 <li>Evaluated the most profitable category and sub-category to provide actionable insights for business decisions.</li>
                             </ul>
                         </div>
-                        <div class="project-card p-4 rounded-lg">
+                        <div class="project-card p-4 rounded-lg hover-scale">
                             <h3 class="text-xl font-semibold mb-2">Lending Club Loan Data Analysis [Python | Pandas | Matplotlib]</h3>
                             <ul class="list-disc list-inside space-y-1">
                                 <li>Kaggle Notebook: <a href="https://www.kaggle.com/code/charan243/lending-club-loan-data" class="text-blue-600">Lending Club Loan Data</a></li>
@@ -307,7 +306,7 @@
                                 <li>Cleaned and preprocessed the data using Pandas to ensure accuracy and reliability of the analysis.</li>
                             </ul>
                         </div>
-                        <div class="project-card p-4 rounded-lg">
+                        <div class="project-card p-4 rounded-lg hover-scale">
                             <h3 class="text-xl font-semibold mb-2">Business Insights 360 - Brick & mortar and ecommerce [Power BI | SQL | Excel | Dax Studio]</h3>
                             <ul class="list-disc list-inside space-y-1">
                                 <li>GitHub Repo | Project Presentation | Live Dashboard</li>
@@ -316,7 +315,7 @@
                                 <li>The dashboard enabled Atliq hardware to analyze different department sales trends and make data-driven decisions, leading to a projected 10% revenue acceleration and 20% reduction in data-related expenses.</li>
                             </ul>
                         </div>
-                        <div class="project-card p-4 rounded-lg">
+                        <div class="project-card p-4 rounded-lg hover-scale">
                             <h3 class="text-xl font-semibold mb-2">Portfolio Website Design [HTML | CSS | JavaScript]</h3>
                             <ul class="list-disc list-inside space-y-1">
                                 <li>Website: <a href="https://mudecharannaik.github.io/mudecharnnaik/" class="text-blue-600">Portfolio Website</a></li>
@@ -327,7 +326,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6">
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6 border-box storytelling-motion">
                     <h2 class="text-2xl font-bold mb-4">LANGUAGES</h2>
                     <div class="space-y-4">
                         <div>
@@ -350,7 +349,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6">
+                <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-lg shadow-md mt-6 border-box storytelling-motion">
                     <h3 class="text-xl font-semibold mb-2">Education</h3>
                     <div class="space-y-4">
                         <div>
@@ -376,10 +375,10 @@
                 </div>
             </div>
         </div>
-        <div class="p-4 bg-blogs">
+        <div class="p-4 bg-blogs border-box">
             <h2 class="text-3xl font-bold text-center">Blogs</h2>
             <div class="grid grid-cols-3 gap-4 mt-4">
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 1</h3>
                     <p class="mt-2">
                         As a data analyst, understanding the fundamentals of data analysis is crucial. This blog covers the basics of data analysis, including data cleaning, transformation, and visualization techniques.
@@ -392,7 +391,7 @@
                         <a class="text-blue-600" href="https://github.com/TheAlgorithms/Python">LINK</a>
                     </div>
                 </div>
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 2</h3>
                     <p class="mt-2">
                         Machine learning is an essential skill for data analysts. This blog explores various machine learning algorithms and their applications in real-world scenarios.
@@ -405,7 +404,7 @@
                         <a class="text-blue-600" href="https://fireducks-dev.github.io/">LINK</a>
                     </div>
                 </div>
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 3</h3>
                     <p class="mt-2">
                         Data visualization helps in communicating insights effectively. This blog discusses different data visualization tools and techniques to create impactful visualizations.
@@ -418,7 +417,7 @@
                         <a class="text-blue-600" href="https://github.com/andresvourakis/data-scientist-handbook">LINK</a>
                     </div>
                 </div>
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 4</h3>
                     <p class="mt-2">
                         Exploring the importance of data quality in data analysis and how to ensure your data is accurate and reliable.
@@ -431,7 +430,7 @@
                         <a class="text-blue-600" href="https://thebigbookofdatascience.com/">LINK</a>
                     </div>
                 </div>
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 5</h3>
                     <p class="mt-2">
                         A comprehensive guide to using SQL for data analysis, including tips and tricks for writing efficient queries.
@@ -444,7 +443,7 @@
                         <a class="text-blue-600" href="https://github.com/nicozumarraga/ai-data-scientist">LINK</a>
                     </div>
                 </div>
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 6</h3>
                     <p class="mt-2">
                         How to leverage Python libraries like Pandas and NumPy for data manipulation and analysis.
@@ -457,7 +456,7 @@
                         <a class="text-blue-600" href="https://docs.pandas-ai.com/intro">LINK</a>
                     </div>
                 </div>
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 7</h3>
                     <p class="mt-2">
                         The role of data visualization in storytelling and how to create compelling visual narratives.
@@ -470,7 +469,7 @@
                         <a class="text-blue-600" href="https://www.datascienceportfol.io/data-science-projects/">LINK</a>
                     </div>
                 </div>
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 8</h3>
                     <p class="mt-2">
                         An introduction to machine learning for data analysts, including key concepts and practical applications.
@@ -483,7 +482,7 @@
                         <a class="text-blue-600" href="https://github.com/mehdee81/Data-Science">LINK</a>
                     </div>
                 </div>
-                <div class="bg-white p-4">
+                <div class="bg-white p-4 border-box">
                     <h3 class="text-xl font-bold">BLOG 9</h3>
                     <p class="mt-2">
                         Best practices for data cleaning and preparation to ensure your analysis is based on high-quality data.
@@ -499,13 +498,9 @@
             </div>
         </div>
     </main>
-    <div id="visitor-count" class="text-center mt-4">
-        <h3 class="text-xl font-bold">Number of Visitors Today: <span id="count">0</span></h3>
-    </div>
-    <script src="js/visitorCount.js"></script>
-    <div class="p-4">
+    <div class="p-4 border-box">
         <div class="grid grid-cols-3 gap-4">
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">EXCEL</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/excel" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -513,7 +508,7 @@
                     <a href="https://quickref.me/excel" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
                 </div>
             </div>
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">POWER BI</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/powerbi" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -521,7 +516,7 @@
                     <a href="https://quickref.me/powerbi" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
                 </div>
             </div>
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">MYSQL</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/mysql" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -529,7 +524,7 @@
                     <a href="https://quickref.me/mysql" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
                 </div>
             </div>
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">PYTHON</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/python" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -537,7 +532,7 @@
                     <a href="https://quickref.me/python" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
                 </div>
             </div>
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">MATPLOTLIB</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/matplotlib" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -545,7 +540,7 @@
                     <a href="https://quickref.me/matplotlib" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
                 </div>
             </div>
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">PANDAS</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/pandas" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -553,7 +548,7 @@
                     <a href="https://quickref.me/pandas" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
                 </div>
             </div>
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">NUMPY</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/numpy" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -561,7 +556,7 @@
                     <a href="https://quickref.me/numpy" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
                 </div>
             </div>
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">TABELAU</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/tableau" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -569,7 +564,7 @@
                     <a href="https://quickref.me/tableau" class="bg-blue-500 text-white px-2 py-1">INTERVIEW</a>
                 </div>
             </div>
-            <div class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">
+            <div class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">
                 <h3 class="text-xl font-bold">EDA</h3>
                 <div class="flex justify-between mt-2">
                     <a href="https://quickref.me/eda" class="bg-blue-500 text-white px-2 py-1">CHEATSHEET</a>
@@ -579,53 +574,53 @@
             </div>
         </div>
     </div>
-    <div class="p-4">
+    <div class="p-4 border-box">
         <div class="flex space-x-4">
-            <div class="w-2/3 bg-blue-200 p-4 mx-auto">
+            <div class="w-2/3 bg-blue-200 p-4 mx-auto border-box">
                 <h2 class="text-2xl font-bold">QUICK REFERENCE</h2>
                 <div class="grid grid-cols-4 gap-4 mt-4">
-                    <a href="https://quickref.me/mysql" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">MYSQL</a>
-                    <a href="https://quickref.me/python" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">PYTHON</a>
-                    <a href="https://quickref.me/excel" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">EXCEL</a>
-                    <a href="https://quickref.me/powerbi" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">POWER BI</a>
-                    <a href="https://quickref.me/machinelearning" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">MACHINE LEARNING</a>
-                    <a href="https://quickref.me/algorithms" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">ALGO</a>
-                    <a href="https://quickref.me/java" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">JAVA</a>
-                    <a href="https://quickref.me/cpp" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">C++</a>
-                    <a href="https://quickref.me/r" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">R</a>
-                    <a href="https://quickref.me/javascript" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">JAVASCRIPT</a>
-                    <a href="https://quickref.me/html" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">HTML</a>
-                    <a href="https://quickref.me/css" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">CSS</a>
-                    <a href="https://quickref.me/ruby" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">RUBY</a>
-                    <a href="https://quickref.me/php" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">PHP</a>
-                    <a href="https://quickref.me/swift" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">SWIFT</a>
-                    <a href="https://quickref.me/kotlin" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">KOTLIN</a>
-                    <a href="https://quickref.me/go" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">GO</a>
-                    <a href="https://quickref.me/rust" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">RUST</a>
-                    <a href="https://quickref.me/typescript" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">TYPESCRIPT</a>
-                    <a href="https://quickref.me/sql" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">SQL</a>
-                    <a href="https://quickref.me/shell" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">SHELL</a>
-                    <a href="https://quickref.me/perl" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">PERL</a>
-                    <a href="https://quickref.me/scala" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">SCALA</a>
-                    <a href="https://quickref.me/clojure" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">CLOJURE</a>
-                    <a href="https://quickref.me/elixir" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">ELIXIR</a>
-                    <a href="https://quickref.me/erlang" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">ERLANG</a>
-                    <a href="https://quickref.me/haskell" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">HASKELL</a>
-                    <a href="https://quickref.me/dart" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">DART</a>
-                    <a href="https://quickref.me/fortran" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">FORTRAN</a>
-                    <a href="https://quickref.me/lisp" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">LISP</a>
-                    <a href="https://quickref.me/prolog" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">PROLOG</a>
-                    <a href="https://quickref.me/assembly" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">ASSEMBLY</a>
-                    <a href="https://quickref.me/vb" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">VB</a>
-                    <a href="https://quickref.me/csharp" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">C#</a>
-                    <a href="https://quickref.me/objectivec" class="bg-yellow-400 p-4 text-center" style="background-color: #90f8db;">OBJECTIVE-C</a>
+                    <a href="https://quickref.me/mysql" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">MYSQL</a>
+                    <a href="https://quickref.me/python" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">PYTHON</a>
+                    <a href="https://quickref.me/excel" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">EXCEL</a>
+                    <a href="https://quickref.me/powerbi" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">POWER BI</a>
+                    <a href="https://quickref.me/machinelearning" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">MACHINE LEARNING</a>
+                    <a href="https://quickref.me/algorithms" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">ALGO</a>
+                    <a href="https://quickref.me/java" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">JAVA</a>
+                    <a href="https://quickref.me/cpp" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">C++</a>
+                    <a href="https://quickref.me/r" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">R</a>
+                    <a href="https://quickref.me/javascript" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">JAVASCRIPT</a>
+                    <a href="https://quickref.me/html" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">HTML</a>
+                    <a href="https://quickref.me/css" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">CSS</a>
+                    <a href="https://quickref.me/ruby" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">RUBY</a>
+                    <a href="https://quickref.me/php" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">PHP</a>
+                    <a href="https://quickref.me/swift" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">SWIFT</a>
+                    <a href="https://quickref.me/kotlin" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">KOTLIN</a>
+                    <a href="https://quickref.me/go" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">GO</a>
+                    <a href="https://quickref.me/rust" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">RUST</a>
+                    <a href="https://quickref.me/typescript" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">TYPESCRIPT</a>
+                    <a href="https://quickref.me/sql" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">SQL</a>
+                    <a href="https://quickref.me/shell" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">SHELL</a>
+                    <a href="https://quickref.me/perl" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">PERL</a>
+                    <a href="https://quickref.me/scala" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">SCALA</a>
+                    <a href="https://quickref.me/clojure" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">CLOJURE</a>
+                    <a href="https://quickref.me/elixir" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">ELIXIR</a>
+                    <a href="https://quickref.me/erlang" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">ERLANG</a>
+                    <a href="https://quickref.me/haskell" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">HASKELL</a>
+                    <a href="https://quickref.me/dart" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">DART</a>
+                    <a href="https://quickref.me/fortran" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">FORTRAN</a>
+                    <a href="https://quickref.me/lisp" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">LISP</a>
+                    <a href="https://quickref.me/prolog" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">PROLOG</a>
+                    <a href="https://quickref.me/assembly" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">ASSEMBLY</a>
+                    <a href="https://quickref.me/vb" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">VB</a>
+                    <a href="https://quickref.me/csharp" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">C#</a>
+                    <a href="https://quickref.me/objectivec" class="bg-yellow-400 p-4 text-center border-box" style="background-color: #90f8db;">OBJECTIVE-C</a>
                 </div>
             </div>
         </div>
     </div>
-    <div class="p-4">
+    <div class="p-4 border-box">
         <div class="flex space-x-4">
-            <div class="w-1/2 bg-github-ai p-4">
+            <div class="w-1/2 bg-github-ai p-4 border-box">
                 <h2 class="text-2xl font-bold">GITHUB</h2>
                 <ul class="mt-4 space-y-2">
                     <li><a href="https://github.com/TheAlgorithms/Python">1. The Algorithms - Python</a></li>
@@ -640,7 +635,7 @@
                     <li><a href="https://github.com/fastai/fastai">10. fastai</a></li>
                 </ul>
             </div>
-            <div class="w-1/2 bg-github-ai p-4">
+            <div class="w-1/2 bg-github-ai p-4 border-box">
                 <h2 class="text-2xl font-bold">AI WEBSITES</h2>
                 <ul class="mt-4 space-y-2">
                     <li><a href="https://www.blackbox.ai/">1. Blackbox AI</a></li>
@@ -655,15 +650,15 @@
             </div>
         </div>
     </div>
-    <div class="p-4">
+    <div class="p-4 border-box">
         <div class="flex space-x-4">
-            <div class="w-1/2 bg-resume-contact p-4">
+            <div class="w-1/2 bg-resume-contact p-4 border-box">
                 <h2 class="text-2xl font-bold">Resume Google Doc Link</h2>
                 <div class="mt-4">
                     <iframe src="https://docs.google.com/document/d/1GSFteTbWVrHDw3NNlsCJ1pa1bSEqD_cXzeTWCIxDkl4/preview" width="100%" height="500"></iframe>
                 </div>
             </div>
-            <div class="w-1/2 bg-resume-contact p-4">
+            <div class="w-1/2 bg-resume-contact p-4 border-box">
                 <h2 class="text-2xl font-bold">Contact me</h2>
                 <div class="mt-4">
                     <p class="text-gray-700 text-sm font-bold mb-2 text-highlight">Phone Number: +91 9391406694</p>
@@ -693,16 +688,16 @@
             </div>
         </div>
     </div>
-    <div class="p-4">
-        <h2 class="text-2xl font-bold mb-4">Links, APIs Used in this website </h2>
+    <div class="p-4 border-box">
+        <h2 class="text-2xl font-bold mb-4">Links, APIs Used in this website</h2>
         <ul class="list-disc list-inside text-lg">
-            <li>
-                <strong>Animechan API:</strong> Used for fetching random anime quotes. 
-                <a href="https://animechan.vercel.app/" class="text-blue-600">LINK</a>
-            </li>
             <li>
                 <strong>Open-Meteo API:</strong> Used for fetching weather data based on user location. 
                 <a href="https://open-meteo.com/" class="text-blue-600">LINK</a>
+            </li>
+            <li>
+                <strong>IP-API:</strong> Used for fetching the user's IP address. 
+                <a href="http://ip-api.com/" class="text-blue-600">LINK</a>
             </li>
             <li>
                 <strong>Google Fonts:</strong> Used for importing the 'Inter' font family. 
@@ -714,7 +709,16 @@
             </li>
         </ul>
     </div>
-    <footer class="bg-gray-800 text-white p-4">
+    <div id="user-info" class="flex justify-center mt-4 space-x-4">
+        <div class="border-box">
+            <h3 class="text-xl font-bold">Your IP Address: <span id="ip-address">Loading...</span></h3>
+        </div>
+        <div class="border-box">
+            <h3 class="text-xl font-bold">Your DNS: <span id="dns">Loading...</span></h3>
+        </div>
+    </div>
+    <script src="js/userInfo.js"></script>
+    <footer class="bg-gray-800 text-white p-4 border-box">
         <div class="flex justify-center space-x-4">
             <a href="http://www.linkedin.com/in/mcharannaik" target="_blank" class="text-blue-400 hover:text-blue-600">
                 <i class="fab fa-linkedin fa-2x"></i>
@@ -728,9 +732,5 @@
         </div>
         <p class="text-center mt-4">&copy; 2023 Mude Charan Naik. All rights reserved.</p>
     </footer>
-    <div id="visitor-count" class="text-center mt-4">
-        <h3 class="text-xl font-bold">Number of Visitors Today: <span id="count">0</span></h3>
-    </div>
-    <script src="js/visitorCount.js"></script>
 </body>
 </html>

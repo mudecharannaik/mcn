@@ -51,6 +51,15 @@ app.post('/track', async (req, res) => {
   res.sendStatus(200);
 });
 
+// Get visitor count for today
+app.get('/visitorCount', async (req, res) => {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const count = await Visitor.countDocuments({ timestamp: { $gte: startOfDay } });
+  res.json({ count });
+});
+
 // Generate and send monthly report
 cron.schedule('0 0 1 * *', async () => {
   const workbook = new ExcelJS.Workbook();
