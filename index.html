@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Analyst Portfolio</title>
+
+  <!-- NEW: Amatic SC Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&display=swap" rel="stylesheet">
+  
+  
+  <!-- Updated CSS Location -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- FontAwesome for standard icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="top-header">
+    
+    <!-- Left: Professional Links -->
+    <div class="logo-section">
+      <a href="#" target="_blank" title="Personal Website"><i class="fa fa-map-signs fa-2x"></i></a>
+      <a href="http://www.linkedin.com/in/mcharannaik" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+      <a href="https://www.kaggle.com/code/charan243/" target="_blank" title="Kaggle"><i class="fab fa-kaggle"></i></a>
+      <a href="https://github.com/mudecharannaik" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+    </div>
+
+    <!-- Middle: Dynamic Quote -->
+    <div class="quote-section">
+      <p id="quote-display">"Loading inspiration..."</p>
+    </div>
+
+    <!-- Right: Theme Toggle, Time, Weather & Resume -->
+    <div class="info-section">
+      <!-- Dark/Light Mode Toggle -->
+      <button id="theme-toggle" title="Toggle Dark/Light Mode">
+        <i class="fas fa-moon"></i>
+      </button>
+
+      <div class="time-weather">
+        <span id="time-display">--:--:--</span>
+        <span id="weather-display"><i class="fas fa-spinner fa-spin"></i> Locating...</span>
+      </div>
+      
+      <a href="https://docs.google.com/document/d/1GSFteTbWVrHDw3NNlsCJ1pa1bSEqD_cXzeTWCIxDkl4/preview" download class="download-btn">
+        <i class="fas fa-file-download"></i> Resume
+      </a>
+    </div>
+
+  </header>
+
+  <!-- ==========================================
+         PART 1: HERO SECTION
+         ========================================== -->
+    <section class="hero-section" id="part-1-hero">
+      
+      <!-- Moved to Left: Profile Image Container -->
+      <div class="hero-image">
+        <div class="profile-image-container">
+          <!-- Updated path to the IMAGE folder and rectangular shape -->
+          <img src="IMAGE/IMAGE.jpg" alt="Profile Picture" class="profile-img">
+        </div>
+      </div>
+
+      <!-- Moved to Right: Hero Content -->
+      <div class="hero-content">
+        <h1>Hi, I'm <span class="highlight">Mude Charan Naik</span></h1>
+        <!-- The text here will be typed out by JavaScript -->
+        <h2 id="typewriter-text" class="typewriter"></h2>
+        
+        <p>An IIT Roorkee graduate with an Integrated M.Tech in Geophysical Technology, currently transitioning into Data Analytics. I specialize in cleaning complex datasets, uncovering hidden trends, and transforming numbers into clear, actionable business stories that drive strategic decisions.</p>
+        
+        <!-- Highly Visible Interests Section -->
+        <div class="hero-interests">
+          <h3>My Interests:</h3>
+          <div class="tags-container">
+            <span class="interest-tag">Data Analysis</span>
+            <span class="interest-tag">Data Science</span>
+            <span class="interest-tag">Machine Learning</span>
+            <span class="interest-tag">Business Intelligence</span>
+            <span class="interest-tag">Data Visualization</span>
+            <span class="interest-tag">Predictive Modeling</span>
+          </div>
+        </div>
+
+        <!-- <div class="hero-buttons">
+          <a href="#projects" class="btn primary-btn">View Projects</a>
+          <a href="#contact" class="btn secondary-btn">Contact Me</a>
+        </div>
+      </div> -->
+      
+    </section>
+    <!-- End of Part 1 -->
+     </section>
+    <!-- End of Part 1 -->
+
+    <!-- Section Divider (Double Line) -->
+    <hr class="section-divider">
+
+    <!-- ==========================================
+         PART 2: CONTENT GOES HERE
+         ========================================== -->
+    <section class="part-2-section" id="part-2">
+      <!-- We will build this next! -->
+    </section>
+
+    <section class="part-2-section" id="part-2">
+      
+      <div class="two-column-layout outlined-box">
+        
+        <div class="education-column">
+          <h2 class="section-title"><i class="fas fa-graduation-cap"></i> Education</h2>
+          
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <h3>Indian Institute of Technology (IIT) Roorkee</h3>
+              <p class="timeline-date">2020 – 2025</p>
+              <p class="timeline-degree">Geophysical Technology</p>
+              <p class="timeline-score">CGPA: <strong>8.54</strong></p>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <h3>Sri Chaitanya Academy</h3>
+              <p class="timeline-date">2018 – 2020</p>
+              <p class="timeline-degree">Class 12 (Higher Secondary)</p>
+              <p class="timeline-score">GPA: <strong>9.0</strong></p>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <h3>Narayana Techno School</h3>
+              <p class="timeline-date">2017 – 2018</p>
+              <p class="timeline-degree">Class 10 (Secondary)</p>
+              <p class="timeline-score">GPA: <strong>9.7</strong></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="skills-column">
+          <h2 class="section-title"><i class="fas fa-laptop-code"></i> Technical Skills</h2>
+          
+          <div class="skill-category">
+            <h4>Programming Languages</h4>
+            <div class="skill-tags">
+              <span><i class="devicon-python-plain colored"></i> Python</span>
+              <span><i class="devicon-azuresqldatabase-plain colored"></i> SQL</span>
+              <span><i class="devicon-matlab-plain"></i> MATLAB</span>
+              <span><i class="devicon-cplusplus-plain colored"></i> C++</span>
+            </div>
+          </div>
+
+          <div class="skill-category">
+            <h4>Packages & Libraries</h4>
+            <div class="skill-tags">
+              <span><i class="devicon-numpy-plain colored"></i> Numpy</span>
+              <span><i class="devicon-pandas-plain colored"></i> Pandas</span>
+              <span><i class="fas fa-chart-line"></i> Matplotlib</span>
+              <span><i class="fas fa-water"></i> Seaborn</span>
+              <span><i class="devicon-plotly-plain colored"></i> Plotly</span>
+            </div>
+          </div>
+
+          <div class="skill-category">
+            <h4>Data Visualization</h4>
+            <div class="skill-tags">
+              <span><i class="fas fa-chart-bar"></i> PowerBI</span>
+              <span><i class="fas fa-project-diagram"></i> Tableau</span>
+            </div>
+          </div>
+
+          <div class="skill-category">
+            <h4>Machine Learning</h4>
+            <div class="skill-tags">
+              <span>Supervised Learning</span>
+              <span>Unsupervised Learning</span>
+              <span>Regression</span>
+              <span>Clustering</span>
+              <span>Classification</span>
+            </div>
+          </div>
+
+          <div class="skill-category">
+            <h4>Statistics</h4>
+            <div class="skill-tags">
+              <span>Predictive Modeling</span>
+              <span>Hypothesis Testing</span>
+              <span>A/B Testing</span>
+              <span>Statistical Analysis</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="animated-divider" id="scroll-divider">
+      <div class="arrow left-arrow"><i class="fas fa-chevron-right"></i><i class="fas fa-chevron-right"></i></div>
+      <div class="divider-center-dot"></div>
+      <div class="arrow right-arrow"><i class="fas fa-chevron-left"></i><i class="fas fa-chevron-left"></i></div>
+    </div>
+
+
+
+    <section class="part-3-section" id="part-3">
+      
+      <div class="two-column-layout outlined-box">
+        
+        <div class="experience-column">
+          <h2 class="section-title"><i class="fas fa-briefcase"></i> Work Experience</h2>
+          
+          <div class="experience-card">
+            <div class="exp-header">
+              <h3>Soul Ai <span class="remote-badge">Remote</span></h3>
+              <p class="exp-date">January 2025 - February 2025</p>
+            </div>
+            <h4 class="exp-role">Ai Trainer | Project Nebula</h4>
+            <ul class="exp-bullets">
+              <li>Comparative Model Evaluation : Conducted side-by-side analysis of multiple AI model responses (e.g., Response A vs. Response B) to determine which better adhered to complex guidelines, prompt context, and factual accuracy.</li>
+              <li>Prompt Refinement and Optimization: Iteratively developed and fine-tuned prompts to reduce [AI hallucinations] , ensuring that generated outputs aligned precisely with user intent and specific project goals.</li>
+              <li>Reinforcement Learning from Human Feedback (RLHF) and Technical Content Review:  Facilitated the fine-tuning of Large Language Models (LLMs) through [Reinforcement Learning from Human Feedback (RLHF) and detailed review of technical content to correct conceptual or computational errors in model responses.</li>
+            </ul>
+          </div>
+
+          <div class="experience-card">
+            <div class="exp-header">
+              <h3>Dissertation, IIT Roorkee</h3>
+              <p class="exp-date">May 2024 - May 2025</p>
+            </div>
+            <h4 class="exp-role">Rheological Modelling of Dynamically Recrystallized Quartz in the High-Strain Purulia Shear Zone</h4>
+            <ul class="exp-bullets">
+              <li>Analyzed Deformation Patterns: Performed advanced rheological modeling using MYflow (MATLAB) to evaluate the behavior of dynamically recrystallized quartz in the Purulia Shear Zone.</li>
+              <li>Microstructural Characterization: Conducted in-depth analysis of quartz mylonites using high-resolution imaging techniques, improving understanding of strain localization mechanisms in high-strain zones.</li>
+              <li>Paleo-Piezometry Techniques: Assessed deformation temperatures and stress-strain rates to interpret geodynamic conditions, contributing to tectonic process analysis.</li>
+              <li>Geodynamic Insights: Provided detailed interpretations of structural changes to better understand crustal deformation and its impact on geotechnical studies.</li>
+            </ul>
+          </div>
+
+          <div class="experience-card">
+            <div class="exp-header">
+              <h3>Earth Science Department, IIT Roorkee</h3>
+              <p class="exp-date">December 2022 - January 2023</p>
+            </div>
+            <h4 class="exp-role">Field Training - Geophysics</h4>
+            <ul class="exp-bullets">
+              <li>Geophysical Surveys: Employed seismic reflection and resistivity methods to investigate subsurface properties, aligning project outcomes with geotechnical objectives.</li>
+              <li>Advanced Data Interpretation: Analyzed geophysical datasets to identify patterns and anomalies, improving project accuracy and efficiency.</li>
+              <li>Report Writing and Presentation: Prepared comprehensive technical reports, emphasizing clarity and adherence to industry standards.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="projects-column">
+          <h2 class="section-title"><i class="fas fa-folder-open"></i> Personal Projects</h2>
+
+          <div class="project-card">
+            <div class="project-header">
+              <h3>Sales Analysis Project</h3>
+              <a href="#sales-project-details" class="project-link-btn"><i class="fas fa-link"></i> Link</a>
+            </div>
+            <div class="project-tech">
+              <span>Python</span><span>Numpy</span><span>Pandas</span><span>Matplotlib</span>
+            </div>
+            <p class="project-desc">Analyzed overall sales trends, sales by category and sub-category, and profit analysis by customer segments. Identified top 10 products by sales, most selling products, and the most preferred ship mode. Evaluated the most profitable category and sub-category to provide actionable insights for business decisions.</p>
+          </div>
+
+          <div class="project-card">
+            <div class="project-header">
+              <h3>Lending Club Loan Data Analysis</h3>
+              <a href="#loan-project-details" class="project-link-btn"><i class="fas fa-link"></i> Link</a>
+            </div>
+            <div class="project-tech">
+              <span>Python</span><span>Numpy</span><span>Pandas</span><span>Matplotlib</span><span>Seaborn</span>
+            </div>
+            <p class="project-desc">Performed exploratory data analysis on Lending Club loan data to uncover insights and trends. Visualized key metrics and patterns using Matplotlib and Seaborn to aid in data-driven decision making. Cleaned and preprocessed the data using Pandas to ensure accuracy and reliability of the analysis.</p>
+          </div>
+
+          <div class="project-card">
+            <div class="project-header">
+              <h3>Customer Churn Prediction</h3>
+              <a href="#churn-project-details" class="project-link-btn"><i class="fas fa-link"></i> Link</a>
+            </div>
+            <div class="project-tech">
+              <span>Machine Learning</span><span>Scikit-Learn</span><span>SQL</span><span>PowerBI</span>
+            </div>
+            <p class="project-desc">Developed a predictive machine learning model to identify at-risk customers before they cancel their subscription. Built an interactive PowerBI dashboard for stakeholders to monitor churn rates across different demographic segments in real-time.</p>
+          </div>
+
+          <div class="project-card">
+            <div class="project-header">
+              <h3>Customer Churn Prediction</h3>
+              <a href="#churn-project-details" class="project-link-btn"><i class="fas fa-link"></i> Link</a>
+            </div>
+            <div class="project-tech">
+              <span>Machine Learning</span><span>Scikit-Learn</span><span>SQL</span><span>PowerBI</span>
+            </div>
+            <p class="project-desc">Developed a predictive machine learning model to identify at-risk customers before they cancel their subscription. Built an interactive PowerBI dashboard for stakeholders to monitor churn rates across different demographic segments in real-time.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="long-animated-divider" id="long-scroll-divider">
+  
+        <div class="long-arrow left-long-arrow">
+          <div class="arrow-line"></div>
+          <i class="fas fa-chevron-right"></i>
+        </div>
+  
+        <div class="divider-center-dot"></div>
+        
+        <div class="long-arrow right-long-arrow">
+          <i class="fas fa-chevron-left"></i>
+          <div class="arrow-line"></div>
+        </div>
+
+      </div>
+      
+    </section>
+    
+
+
+    <section class="part-5-section" id="part-5">
+      <h2 class="section-title"><i class="fas fa-life-ring"></i> Help & Resources</h2>
+      
+      <div class="resource-grid outlined-box">
+        
+        <a href="pages/cheatsheets.html" class="resource-card">
+          <i class="fas fa-file-pdf"></i>
+          <h3>Cheatsheets</h3>
+        </a>
+
+        <a href="pages/quick-reference.html" class="resource-card">
+          <i class="fas fa-bookmark"></i>
+          <h3>Quick Reference</h3>
+        </a>
+
+        <a href="pages/blogs.html" class="resource-card">
+          <i class="fas fa-blog"></i>
+          <h3>Blogs</h3>
+        </a>
+
+        <a href="pages/github-repo.html" class="resource-card">
+          <i class="fab fa-github"></i>
+          <h3>GitHub Repo</h3>
+        </a>
+
+        <a href="pages/ai-websites.html" class="resource-card">
+          <i class="fas fa-robot"></i>
+          <h3>AI Websites</h3>
+        </a>
+
+        <a href="pages/dashboard.html" class="resource-card">
+          <i class="fas fa-chart-pie"></i>
+          <h3>Dashboard</h3>
+        </a>
+
+        <a href="pages/youtube.html" class="resource-card">
+          <i class="fab fa-youtube" style="color: #ff0000;"></i>
+          <h3>YouTube Courses</h3>
+        </a>
+
+        
+
+      </div>
+    </section>
+    <hr class="section-divider">
+
+    <section class="part-6-section" id="part-6">
+      <h2 class="section-title"><i class="fas fa-network-wired"></i> Network & Analytics</h2>
+      
+      <div class="two-column-layout outlined-box">
+        
+        <div class="ip-column">
+          <h3 class="sub-title"><i class="fas fa-map-marker-alt"></i> Your Connection Info</h3>
+          <div class="info-card" id="ip-info-card">
+            <p><i class="fas fa-spinner fa-spin"></i> Fetching your network details...</p>
+          </div>
+        </div>
+
+        <div class="visitor-column">
+          <h3 class="sub-title"><i class="fas fa-users"></i> Global Page Views</h3>
+          <div class="info-card visitor-card">
+            <p>Total Visitors</p>
+            <img src="https://api.visitorbadge.io/api/visitors?path=your-portfolio-website.com&countColor=%230d6efd&style=flat-square" alt="Visitor Count" class="visitor-badge">
+            <p class="small-text">Real-time tracking enabled</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <section class="part-7-section" id="contact">
+      <h2 class="section-title"><i class="fas fa-paper-plane"></i> Contact Me</h2>
+      
+      <div class="two-column-layout outlined-box">
+        
+        <div class="social-column">
+          <h3 class="sub-title"><i class="fas fa-hashtag"></i> Let's Connect</h3>
+          <p class="social-desc">Feel free to reach out to me directly through any of these platforms:</p>
+          
+          <div class="social-grid">
+            <a href="#" target="_blank" class="social-btn telegram"><i class="fab fa-telegram-plane"></i> Telegram</a>
+            <a href="#" target="_blank" class="social-btn instagram"><i class="fab fa-instagram"></i> Instagram</a>
+            <a href="#" target="_blank" class="social-btn twitter"><i class="fab fa-x-twitter"></i> X (Twitter)</a>
+            <a href="#" target="_blank" class="social-btn medium"><i class="fab fa-medium-m"></i> Medium</a>
+            <a href="#" target="_blank" class="social-btn linkedin"><i class="fab fa-linkedin-in"></i> LinkedIn</a>
+            <a href="#" target="_blank" class="social-btn github"><i class="fab fa-github"></i> GitHub</a>
+          </div>
+        </div>
+
+        <div class="form-column">
+          <h3 class="sub-title"><i class="fas fa-envelope-open-text"></i> Send a Message</h3>
+          
+          <form id="contact-form" class="contact-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="first-name">First Name</label>
+                <input type="text" id="first-name" required placeholder="John">
+              </div>
+              <div class="form-group">
+                <label for="last-name">Last Name</label>
+                <input type="text" id="last-name" required placeholder="Doe">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Your Email</label>
+              <input type="email" id="email" required placeholder="john@example.com">
+            </div>
+            
+            <div class="form-group">
+              <label for="bio">Bio / Message</label>
+              <textarea id="bio" rows="5" required placeholder="Hello! I'd like to connect about..."></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Message</button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    </main> <footer class="site-footer">
+    <div class="footer-content">
+      
+      <div class="footer-copyright">
+        <p>&copy; <span id="current-year"></span> Mude Charan Naik. All rights reserved.</p>
+      </div>
+
+      <div class="footer-credits">
+        
+        <div class="credit-column">
+          <h4>APIs Powered By</h4>
+          <ul>
+            <li><a href="https://github.com/lukePeavey/quotable" target="_blank">Quotable (Quotes)</a></li>
+            <li><a href="https://open-meteo.com/" target="_blank">Open-Meteo (Weather)</a></li>
+            <li><a href="https://api.ipify.org/" target="_blank">Ipify (IP Data)</a></li>
+            <li><a href="https://visitorbadge.io/" target="_blank">VisitorBadge (Analytics)</a></li>
+          </ul>
+        </div>
+        
+        <div class="credit-column">
+          <h4>Assets & Libraries</h4>
+          <ul>
+            <li><a href="https://fonts.google.com/" target="_blank">Google Fonts</a></li>
+            <li><a href="https://fontawesome.com/" target="_blank">FontAwesome Icons</a></li>
+            <li><a href="https://devicon.dev/" target="_blank">Devicon Tech Logos</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+  </footer>
+
+    
+
+    
+    
+
+
+
+  <!-- Updated JavaScript Location -->
+  <script src="js/script.js"></script>
+</body>
+</html>
+
