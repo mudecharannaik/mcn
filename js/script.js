@@ -245,7 +245,7 @@ if (contactForm) {
     const bio = document.getElementById('bio').value;
     
     // Your hidden email address
-    const targetEmail = "mcnk@gmail.com"; 
+    const targetEmail = "mcharannaik02@gmail.com"; 
     
     // Create the Email Subject Line
     const subject = encodeURIComponent(`New Portfolio Message from ${firstName} ${lastName}`);
