@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboards - Data Portfolio</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Grid for selecting dashboards */
+    .dash-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .dash-btn {
+      background-color: var(--header-bg);
+      border: 2px solid var(--shadow-color);
+      color: var(--text-color);
+      padding: 15px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px var(--shadow-color);
+    }
+
+    .dash-btn i {
+      color: var(--btn-bg);
+      font-size: 1.4rem;
+    }
+
+    .dash-btn:hover, .dash-btn.active {
+      border-color: var(--btn-bg);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(13, 110, 253, 0.2);
+    }
+
+    .dash-btn.active {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+    }
+
+    .dash-btn.active i {
+      color: var(--btn-text);
+    }
+
+    /* Dashboard Viewer Container */
+    .viewer-wrapper {
+      position: relative;
+      background-color: var(--header-bg);
+      border: 3px solid var(--text-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px var(--shadow-color);
+      display: none; /* Hidden until a dashboard is clicked */
+      flex-direction: column;
+    }
+
+    .viewer-header {
+      background-color: var(--text-color);
+      color: var(--bg-color);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .viewer-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .fullscreen-btn {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .fullscreen-btn:hover {
+      background-color: var(--icon-hover);
+    }
+
+    /* The actual iframe displaying the content */
+    #dashboard-frame {
+      width: 100%;
+      height: 750px; /* Large default height */
+      border: none;
+      background-color: #fff; /* Keeps PDFs and Tableau looking clean */
+    }
+
+    /* Placeholder text before clicking */
+    .placeholder-text {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--quote-color);
+      font-size: 1.2rem;
+      font-style: italic;
+      border: 2px dashed var(--quote-color);
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-header">
+    <div class="logo-section">
+      <a href="../index.html" title="Back to Home"><i class="fas fa-arrow-left"></i> Home</a>
+    </div>
+    <div class="quote-section">
+      <p id="quote-display">"Data really powers everything that we do. – Jeff Weiner"</p>
+    </div>
+    <div class="info-section">
+      <button id="theme-toggle" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+      <div class="time-weather">
+        <span id="time-display">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top: 40px; padding-bottom: 80px; max-width: 1400px; margin: 0 auto;">
+    
+    <div style="text-align: center; margin-bottom: 40px;">
+      <h1 style="font-family: 'Amatic SC', cursive; font-size: 5rem; color: var(--text-color);">Interactive <span style="color: var(--btn-bg);">Dashboards</span></h1>
+      <p style="color: var(--quote-color); font-size: 1.1rem;">Select a project below to view the full analysis or interactive dashboard.</p>
+    </div>
+
+    <div class="dash-selector-grid" id="button-container">
+      </div>
+
+    <div id="viewer-placeholder" class="placeholder-text">
+      <i class="fas fa-chart-pie" style="font-size: 3rem; margin-bottom: 15px; color: var(--btn-bg);"></i><br>
+      Select a dashboard from the list above to view it here.
+    </div>
+
+    <div id="viewer-wrapper" class="viewer-wrapper">
+      <div class="viewer-header">
+        <h3 id="viewer-title" class="viewer-title">Dashboard Title</h3>
+        <button class="fullscreen-btn" onclick="toggleFullScreen()">
+          <i class="fas fa-expand"></i> Full Screen
+        </button>
+      </div>
+      <iframe id="dashboard-frame" src="" allowfullscreen></iframe>
+    </div>
+
+  </main>
+
+  <script src="../js/script.js"></script>
+  
+  <script>
+    // 1. Dashboard Data Array
+    // Easily add 'Dashboard 4, 5, etc.' here!
+    const dashboards = [
+      {
+        id: "dash-1",
+        title: "Supervolcano Phlegraean Fields",
+        icon: "fa-chart-bar", // Tableau icon
+        // Notice the Tableau URL tweak: We add "?:embed=y&:showVizHome=no" to make it an iframe!
+        url: "https://public.tableau.com/views/SupervolcanoPhlegraeanFields/DASHBOARD3?:embed=y&:showVizHome=no"
+      },
+      {
+        id: "dash-2",
+        title: "SuperStore Sales Analysis",
+        icon: "fa-file-pdf", // PDF icon
+        // Your specific GitHub PDF link
+        url: "https://github.com/user-attachments/files/18420861/SuperStore.Sales.Analysis.pdf"
+      },
+      {
+        id: "dash-3",
+        title: "Customer Churn Prediction",
+        icon: "fa-chart-line", // Generic chart icon
+        url: "../pdfs/sample-dashboard.pdf" // Placeholder for your future dashboard
+      }
+    ];
+
+    const btnContainer = document.getElementById('button-container');
+    const viewerWrapper = document.getElementById('viewer-wrapper');
+    const placeholder = document.getElementById('viewer-placeholder');
+    const viewerTitle = document.getElementById('viewer-title');
+    const iframe = document.getElementById('dashboard-frame');
+
+    // 2. Generate Buttons
+    dashboards.forEach((dash) => {
+      const btn = document.createElement('button');
+      btn.className = 'dash-btn';
+      btn.innerHTML = `<i class="fas ${dash.icon}"></i> ${dash.title}`;
+      
+      btn.addEventListener('click', () => {
+        // Remove active class from all buttons
+        document.querySelectorAll('.dash-btn').forEach(b => b.classList.remove('active'));
+        // Add active class to clicked button
+        btn.classList.add('active');
+
+        // Update Viewer Content
+        viewerTitle.textContent = dash.title;
+        iframe.src = dash.url;
+
+        // Hide placeholder, show viewer
+        placeholder.style.display = 'none';
+        viewerWrapper.style.display = 'flex';
+        
+        // Scroll slightly down to the viewer smoothly
+        viewerWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      btnContainer.appendChild(btn);
+    });
+
+    // 3. Full Screen Functionality
+    function toggleFullScreen() {
+      const wrapper = document.getElementById('viewer-wrapper');
+      
+      if (!document.fullscreenElement) {
+        if (wrapper.requestFullscreen) {
+          wrapper.requestFullscreen();
+        } else if (wrapper.webkitRequestFullscreen) { /* Safari */
+          wrapper.webkitRequestFullscreen();
+        } else if (wrapper.msRequestFullscreen) { /* IE11 */
+          wrapper.msRequestFullscreen();
+        }
+        // Increase iframe height when in full screen
+        iframe.style.height = "100vh";
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+        // Revert iframe height
+        iframe.style.height = "750px";
+      }
+    }
+
+    // Listen for exiting fullscreen via "Esc" key to fix height
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+         iframe.style.height = "750px";
+      }
+    });
+  </script>
+</body>
+</html>

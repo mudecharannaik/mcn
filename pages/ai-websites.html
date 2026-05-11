@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Websites - Data Portfolio</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Specific Grid Layout for AI Sites: Exactly 3 per row */
+    .ai-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* Forces exactly 3 columns */
+      gap: 30px;
+    }
+
+    .ai-card {
+      background-color: var(--header-bg);
+      border: 1px solid var(--shadow-color);
+      border-radius: 12px;
+      padding: 30px 25px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .ai-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 20px rgba(13, 110, 253, 0.15);
+      border-color: var(--btn-bg);
+    }
+
+    .ai-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .ai-badge {
+      font-size: 0.8rem;
+      background-color: rgba(13, 110, 253, 0.15);
+      color: var(--btn-bg);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-title {
+      font-size: 1.4rem;
+      color: var(--text-color);
+      margin-bottom: 10px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .ai-intro {
+      font-size: 0.95rem;
+      color: var(--quote-color);
+      margin-bottom: 15px;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    .ai-desc {
+      font-size: 0.95rem;
+      color: var(--text-color);
+      margin-bottom: 25px;
+      line-height: 1.6;
+      flex-grow: 1; /* Pushes the button to the bottom evenly across all cards */
+    }
+
+    .ai-link-btn {
+      background-color: transparent;
+      color: var(--btn-bg);
+      border: 2px solid var(--btn-bg);
+      padding: 8px 0;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: block;
+    }
+
+    .ai-link-btn:hover {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+    }
+
+    /* Responsive Design for smaller screens */
+    @media (max-width: 1024px) {
+      .ai-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 per row on tablets */
+      }
+    }
+
+    @media (max-width: 768px) {
+      .ai-grid {
+        grid-template-columns: 1fr; /* 1 per row on phones */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-header">
+    <div class="logo-section">
+      <a href="../index.html" title="Back to Home"><i class="fas fa-arrow-left"></i> Home</a>
+    </div>
+    <div class="quote-section">
+      <p id="quote-display">"AI is the new electricity. – Andrew Ng"</p>
+    </div>
+    <div class="info-section">
+      <button id="theme-toggle" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+      <div class="time-weather">
+        <span id="time-display">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top: 40px; padding-bottom: 80px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+      <h1 style="font-family: 'Amatic SC', cursive; font-size: 5rem; color: var(--text-color);">Essential <span style="color: var(--btn-bg);">AI Tools</span></h1>
+      <p style="color: var(--quote-color); font-size: 1.1rem;">A curated directory of top machine learning platforms and AI assistants.</p>
+    </div>
+
+    <div id="ai-container" class="ai-grid"></div>
+  </main>
+
+  <script src="../js/script.js"></script>
+  
+  <script>
+    // 1. Your Organized AI Website Data
+    // Easily add 'n' more items here by copying the object format!
+    const aiData = [
+      {
+        id: "PLATFORM 1",
+        title: "Blackbox AI",
+        intro: "AI-powered coding assistant.",
+        desc: "An advanced AI coding assistant designed specifically for developers. It helps you write code faster, search for snippets, and auto-complete complex programming tasks seamlessly.",
+        link: "https://www.blackbox.ai/"
+      },
+      {
+        id: "PLATFORM 2",
+        title: "TensorFlow",
+        intro: "End-to-end open-source ML platform.",
+        desc: "Developed by Google, TensorFlow provides a comprehensive, flexible ecosystem of tools, libraries, and community resources to build and deploy state-of-the-art machine learning models.",
+        link: "https://www.tensorflow.org/"
+      },
+      {
+        id: "PLATFORM 3",
+        title: "PyTorch",
+        intro: "Open-source machine learning framework.",
+        desc: "Developed by Meta's AI Research lab, PyTorch is highly favored by researchers and developers for its flexibility, dynamic computational graphs, and deep, native integration with Python.",
+        link: "https://pytorch.org/"
+      },
+      {
+        id: "PLATFORM 4",
+        title: "Hugging Face",
+        intro: "The AI community building the future.",
+        desc: "Often referred to as the 'GitHub of Machine Learning', Hugging Face is a massive collaborative hub for discovering, testing, and deploying pre-trained AI models and datasets.",
+        link: "https://huggingface.co/"
+      },
+      {
+        id: "PLATFORM 5",
+        title: "OpenAI",
+        intro: "AI research and deployment company.",
+        desc: "The creators of groundbreaking models like ChatGPT, GPT-4, and DALL-E. Their developer platform offers powerful APIs for natural language processing, vision, and more.",
+        link: "https://openai.com/"
+      },
+      {
+        id: "PLATFORM 6",
+        title: "Fast.ai",
+        intro: "Making neural nets uncool again.",
+        desc: "A research institute dedicated to making deep learning more accessible. They offer excellent free, project-based courses and a high-level library built on top of PyTorch.",
+        link: "https://www.fast.ai/"
+      },
+      {
+        id: "PLATFORM 7",
+        title: "Kaggle",
+        intro: "The home of Data Science & ML.",
+        desc: "A subsidiary of Google, Kaggle is the ultimate playground for data professionals. It offers millions of datasets, free interactive notebooks, and competitive ML challenges.",
+        link: "https://www.kaggle.com/"
+      },
+      {
+        id: "PLATFORM 8",
+        title: "Google Colab",
+        intro: "Hosted Jupyter notebook service.",
+        desc: "Write and execute Python directly in your browser with zero configuration required. It offers free access to computing resources, including powerful GPUs and TPUs.",
+        link: "https://colab.research.google.com/"
+      }
+    ];
+
+    const container = document.getElementById('ai-container');
+
+    // 2. Automatically generate the HTML for every AI website in the array
+    aiData.forEach(site => {
+      const card = document.createElement('div');
+      card.className = 'ai-card';
+
+      card.innerHTML = `
+        <div class="ai-header">
+          <span class="ai-badge"><i class="fas fa-robot"></i> ${site.id}</span>
+        </div>
+        <h3 class="ai-title">${site.title}</h3>
+        <p class="ai-intro">"${site.intro}"</p>
+        <p class="ai-desc">${site.desc}</p>
+        <a href="${site.link}" class="ai-link-btn" target="_blank">
+          <i class="fas fa-external-link-alt"></i> Visit Website
+        </a>
+      `;
+
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blogs - Data Portfolio</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Specific Grid Layout for Blogs: Exactly 3 per row */
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* Forces exactly 3 columns */
+      gap: 30px;
+    }
+
+    .blog-card {
+      background-color: var(--header-bg);
+      border: 1px solid var(--shadow-color);
+      border-radius: 12px;
+      padding: 30px 25px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .blog-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 20px rgba(13, 110, 253, 0.15);
+      border-color: var(--btn-bg);
+    }
+
+    .blog-badge {
+      font-size: 0.8rem;
+      background-color: rgba(13, 110, 253, 0.15);
+      color: var(--btn-bg);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      align-self: flex-start;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+
+    .blog-title {
+      font-size: 1.3rem;
+      color: var(--text-color);
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+
+    .blog-intro {
+      font-size: 0.95rem;
+      color: var(--quote-color);
+      margin-bottom: 15px;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    .blog-desc {
+      font-size: 0.95rem;
+      color: var(--text-color);
+      margin-bottom: 25px;
+      line-height: 1.6;
+      flex-grow: 1; /* Pushes the button to the bottom evenly across all cards */
+    }
+
+    .blog-link-btn {
+      background-color: transparent;
+      color: var(--btn-bg);
+      border: 2px solid var(--btn-bg);
+      padding: 8px 0;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: block;
+    }
+
+    .blog-link-btn:hover {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+    }
+
+    /* Responsive Design for smaller screens */
+    @media (max-width: 1024px) {
+      .blog-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 per row on tablets */
+      }
+    }
+
+    @media (max-width: 768px) {
+      .blog-grid {
+        grid-template-columns: 1fr; /* 1 per row on phones */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-header">
+    <div class="logo-section">
+      <a href="../index.html" title="Back to Home"><i class="fas fa-arrow-left"></i> Home</a>
+    </div>
+    <div class="quote-section">
+      <p id="quote-display">"Writing is nature's way of letting you know how sloppy your thinking is. – Richard Guindon"</p>
+    </div>
+    <div class="info-section">
+      <button id="theme-toggle" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+      <div class="time-weather">
+        <span id="time-display">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top: 40px; padding-bottom: 80px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+      <h1 style="font-family: 'Amatic SC', cursive; font-size: 5rem; color: var(--text-color);">Curated <span style="color: var(--btn-bg);">Blogs</span></h1>
+      <p style="color: var(--quote-color); font-size: 1.1rem;">A collection of top data science resources, tutorials, and insights.</p>
+    </div>
+
+    <div id="blogs-container" class="blog-grid"></div>
+  </main>
+
+  <script src="../js/script.js"></script>
+  
+  <script>
+    // 1. Your Organized Blog Data
+    // To add more blogs later, just copy and paste one of these blocks {} and change the text!
+    const blogData = [
+      {
+        id: "BLOG 1",
+        title: "The Algorithms - Python",
+        intro: "As a data analyst, understanding the fundamentals of data analysis is crucial. This blog covers the basics of data analysis, including data cleaning, transformation, and visualization techniques.",
+        desc: "Explore a comprehensive collection of algorithms implemented in Python. This repository is a great resource for learning and understanding various algorithms through practical examples.",
+        link: "#"
+      },
+      {
+        id: "BLOG 2",
+        title: "FireDucks Dev",
+        intro: "Machine learning is an essential skill for data analysts. This blog explores various machine learning algorithms and their applications in real-world scenarios.",
+        desc: "Dive into the world of machine learning with FireDucks Dev. This blog provides tutorials, guides, and insights into machine learning algorithms and their practical applications.",
+        link: "#"
+      },
+      {
+        id: "BLOG 3",
+        title: "Data Scientist Handbook",
+        intro: "Data visualization helps in communicating insights effectively. This blog discusses different data visualization tools and techniques to create impactful visualizations.",
+        desc: "A comprehensive handbook for data scientists, covering various data visualization tools and techniques. Learn how to create impactful visualizations to communicate insights effectively.",
+        link: "#"
+      },
+      {
+        id: "BLOG 4",
+        title: "The Big Book of Data Science",
+        intro: "Exploring the importance of data quality in data analysis and how to ensure your data is accurate and reliable.",
+        desc: "Discover the importance of data quality in data analysis with The Big Book of Data Science. This resource provides insights and techniques to ensure your data is accurate and reliable.",
+        link: "#"
+      },
+      {
+        id: "BLOG 5",
+        title: "AI Data Scientist",
+        intro: "A comprehensive guide to using SQL for data analysis, including tips and tricks for writing efficient queries.",
+        desc: "Explore the intersection of AI and data science with this comprehensive guide. Learn about various AI techniques and how they can be applied to data science projects.",
+        link: "#"
+      },
+      {
+        id: "BLOG 6",
+        title: "Pandas AI: The Future of Data Analysis",
+        intro: "How to leverage Python libraries like Pandas and NumPy for data manipulation and analysis.",
+        desc: "Discover the power of Pandas AI, a revolutionary tool that enhances data analysis capabilities. Learn how to integrate AI with Pandas to automate data processing and gain deeper insights.",
+        link: "#"
+      },
+      {
+        id: "BLOG 7",
+        title: "Data Science Projects",
+        intro: "The role of data visualization in storytelling and how to create compelling visual narratives.",
+        desc: "Explore a variety of data science projects that showcase the power of data visualization in storytelling. Learn how to create compelling visual narratives to communicate insights effectively.",
+        link: "#"
+      },
+      {
+        id: "BLOG 8",
+        title: "Data Science by Mehdee",
+        intro: "An introduction to machine learning for data analysts, including key concepts and practical applications.",
+        desc: "Discover key concepts and practical applications of machine learning for data analysts. This repository provides a comprehensive introduction to machine learning techniques and their real-world applications.",
+        link: "#"
+      },
+      {
+        id: "BLOG 9",
+        title: "Efficient Python Tricks and Tools",
+        intro: "Best practices for data cleaning and preparation to ensure your analysis is based on high-quality data.",
+        desc: "Learn best practices for data cleaning and preparation with efficient Python tricks and tools for Data Scientists. This repository provides valuable insights and techniques.",
+        link: "#"
+      }
+    ];
+
+    const container = document.getElementById('blogs-container');
+
+    // 2. Automatically generate the HTML for every blog in the array
+    blogData.forEach(blog => {
+      const card = document.createElement('div');
+      card.className = 'blog-card';
+
+      card.innerHTML = `
+        <span class="blog-badge">${blog.id}</span>
+        <h3 class="blog-title">${blog.title}</h3>
+        <p class="blog-intro">"${blog.intro}"</p>
+        <p class="blog-desc">${blog.desc}</p>
+        <a href="${blog.link}" class="blog-link-btn" target="_blank"><i class="fas fa-external-link-alt"></i> Read More</a>
+      `;
+
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>

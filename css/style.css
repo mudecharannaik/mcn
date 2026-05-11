@@ -1,0 +1,1214 @@
+/* ==========================================
+   1. CSS VARIABLES (DARK/LIGHT MODE)
+   ========================================== */
+:root {
+  --bg-color: #f8f9fa;
+  --text-color: #212529;
+  --header-bg: #ffffff;
+  --icon-color: #495057;
+  --icon-hover: #0d6efd;
+  --quote-color: #6c757d;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --btn-bg: #0d6efd;
+  --btn-hover: #0b5ed7;
+  --btn-text: #ffffff;
+}
+
+body.dark-mode {
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --header-bg: #1e1e1e;
+  --icon-color: #b0b0b0;
+  --icon-hover: #6ea8fe;
+  --quote-color: #a0a0a0;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --btn-bg: #0d6efd;
+  --btn-hover: #0b5ed7;
+  --btn-text: #ffffff;
+}
+
+/* ==========================================
+   2. BASE RESET
+   ========================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* ==========================================
+   3. HEADER STYLES
+   ========================================== */
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--header-bg);
+  padding: 15px 40px;
+  box-shadow: 0 4px 6px -1px var(--shadow-color);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo-section {
+  display: flex;
+  gap: 24px;
+}
+
+.logo-section a {
+  color: var(--icon-color);
+  font-size: 1.6rem;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.logo-section a:hover {
+  color: var(--icon-hover);
+  transform: translateY(-2px);
+}
+
+.quote-section {
+  flex: 1;
+  text-align: center;
+  padding: 0 20px;
+  font-style: italic;
+  color: var(--quote-color);
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.info-section {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+#theme-toggle {
+  background: none;
+  border: none;
+  color: var(--icon-color);
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#theme-toggle:hover {
+  color: var(--icon-hover);
+  transform: scale(1.1);
+}
+
+.time-weather {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--icon-color);
+  gap: 4px;
+  transition: color 0.3s ease;
+}
+
+.download-btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  padding: 10px 24px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.download-btn:hover {
+  background-color: var(--btn-hover);
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* ==========================================
+   4. PART 1: HERO SECTION STYLES
+   ========================================== */
+main {
+  padding: 60px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px; /* Increased gap for better spacing between image and text */
+  min-height: 60vh;
+}
+
+/* Image on Left */
+.hero-image {
+  flex: 0 0 auto; /* Keeps the image container from shrinking */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-image-container {
+  width: 300px;
+  height: 385px; /* Standard passport/portrait ratio */
+  border-radius: 12px; /* Soft rectangular corners instead of a circle */
+  overflow: hidden; 
+  box-shadow: 0 10px 30px var(--shadow-color);
+  border: 4px solid var(--btn-bg); 
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-image-container:hover {
+  transform: scale(1.03);
+  box-shadow: 0 15px 40px rgba(13, 110, 253, 0.2);
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+  display: block;
+}
+
+/* Text Content on Right */
+.hero-content {
+  flex: 1;
+}
+
+.hero-content h1 {
+  font-family: 'Amatic SC', cursive; /* Applied new font */
+  font-weight: 700;
+  font-size: 5.5rem; /* Increased size because Amatic SC runs small */
+  margin-bottom: 0px;
+  color: var(--text-color);
+  transition: color 0.3s ease;
+}
+
+.hero-content h1 .highlight {
+  color: var(--btn-bg);
+}
+
+.hero-content h2 {
+  font-family: 'Amatic SC', cursive; /* Applied new font */
+  font-weight: 700;
+  font-size: 3rem; /* Increased size */
+  color: var(--quote-color);
+  margin-bottom: 20px;
+  min-height: 40px;
+}
+
+.hero-content p {
+  /* It automatically uses the Poppins font we set earlier */
+  font-family: 'Smooch Sans', cursive;
+  font-size: 1.3rem; /* Increased size for better readability */
+  line-height: 1.7; /* Adds nice breathing room between lines */
+  color: var(--text-color);
+  margin-bottom: 30px;
+  max-width: 600px;
+  text-align: right; 
+}
+
+/* Added specific paragraph alignment */
+.hero-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--text-color);
+  margin-bottom: 30px;
+  max-width: 600px;
+  text-align: left; 
+}
+
+.typewriter::after {
+  content: '|';
+  color: var(--btn-bg);
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.hero-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--text-color);
+  margin-bottom: 30px;
+  max-width: 600px;
+}
+
+/* Highly Highlighted Interests Tags */
+.hero-interests {
+  margin-bottom: 30px;
+}
+
+.hero-interests h3 {
+  font-size: 1.1rem;
+  color: var(--text-color);
+  margin-bottom: 15px;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* Highly Highlighted Interests Tags */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.interest-tag {
+  /* THIS IS THE MAGIC LINE: Forces exactly 3 items per row */
+  width: calc((100% - 24px) / 3);
+  
+  background-color: rgba(13, 110, 253, 0.1); 
+  color: var(--btn-bg);
+  padding: 8px 12px;
+  border-radius: 6px; 
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid var(--btn-bg);
+  transition: all 0.3s ease;
+  cursor: default;
+  
+  /* Centers the text perfectly inside the box */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Dark mode adjustment for tags */
+body.dark-mode .interest-tag {
+  background-color: rgba(110, 168, 254, 0.15);
+}
+
+.interest-tag:hover {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+/* Buttons */
+.hero-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.btn {
+  padding: 12px 28px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.primary-btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+}
+
+.primary-btn:hover {
+  background-color: var(--btn-hover);
+  transform: translateY(-2px);
+}
+
+.secondary-btn {
+  background-color: transparent;
+  color: var(--text-color);
+  border: 2px solid var(--btn-bg);
+}
+
+.secondary-btn:hover {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  transform: translateY(-2px);
+}
+/* ==========================================
+   PART 3: EXPERIENCE & PROJECTS STYLES
+   ========================================== */
+.part-3-section {
+  padding: 40px 0;
+}
+
+/* The Black Outline Box */
+.outlined-box {
+  border: 3px solid var(--text-color); /* Black in light mode, white in dark mode */
+  border-radius: 12px;
+  padding: 40px;
+  background-color: transparent;
+}
+
+/* --- Experience Section --- */
+.experience-card {
+  margin-bottom: 35px;
+  padding-bottom: 25px;
+  border-bottom: 1px dashed var(--quote-color);
+}
+
+.experience-card:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.exp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.exp-header h3 {
+  font-size: 1.3rem;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.remote-badge {
+  font-size: 0.75rem;
+  background-color: rgba(13, 110, 253, 0.15);
+  color: var(--btn-bg);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.exp-date {
+  font-size: 0.9rem;
+  color: var(--btn-bg);
+  font-weight: 600;
+}
+
+.exp-role {
+  font-size: 1.05rem;
+  color: var(--quote-color);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.exp-bullets {
+  list-style-type: disc;
+  padding-left: 20px;
+  color: var(--text-color);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.exp-bullets li {
+  margin-bottom: 6px;
+}
+
+/* --- Projects Section --- */
+.project-card {
+  background-color: var(--header-bg);
+  border: 1px solid var(--shadow-color);
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+  border-color: var(--btn-bg);
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.project-header h3 {
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
+
+/* Specific Link Button Styling */
+.project-link-btn {
+  background-color: transparent;
+  color: var(--btn-bg);
+  border: 2px solid var(--btn-bg);
+  padding: 6px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.project-link-btn:hover {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+}
+
+.project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.project-tech span {
+  font-size: 0.8rem;
+  background-color: rgba(13, 110, 253, 0.08);
+  color: var(--text-color);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.project-desc {
+  font-size: 0.95rem;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* ==========================================
+   PART 4: LONG ANIMATED ARROW DIVIDER STYLES
+   ========================================== */
+.long-animated-divider { 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  margin: 80px 0; 
+  position: relative; 
+  overflow: hidden; 
+  height: 50px; 
+  width: 100%; 
+}
+
+.long-arrow { 
+  display: flex; 
+  align-items: center; 
+  width: 50%; 
+  color: var(--btn-bg, #0d6efd); 
+  font-size: 2rem; 
+  opacity: 0; 
+  transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1); 
+}
+
+.arrow-line { 
+  flex: 1; 
+  height: 4px; 
+  background-color: var(--btn-bg, #0d6efd); 
+  border-radius: 2px; 
+}
+
+/* Starting positions off-screen */
+.left-long-arrow { transform: translateX(-100%); }
+.left-long-arrow .arrow-line { margin-right: -5px; }
+
+.right-long-arrow { transform: translateX(100%); }
+.right-long-arrow .arrow-line { margin-left: -5px; }
+
+/* The center collision dot */
+.divider-center-dot { 
+  width: 10px; 
+  height: 10px; 
+  background-color: var(--btn-bg, #0d6efd); 
+  border-radius: 50%; 
+  opacity: 0; 
+  transition: opacity 0.3s ease; 
+  z-index: 2;
+}
+
+/* When the JavaScript adds the 'collide' class */
+.long-animated-divider.collide .long-arrow { 
+  transform: translateX(0); 
+  opacity: 1; 
+}
+
+.long-animated-divider.collide .divider-center-dot { 
+  opacity: 1; 
+  transition-delay: 0.8s; 
+  box-shadow: 0 0 15px var(--btn-bg, rgba(13, 110, 253, 0.8)); 
+  min-width: 10px;
+}
+
+
+/* part 4 */
+/* ==========================================
+   PART 5: HELP & RESOURCES STYLES
+   ========================================== */
+.part-5-section {
+  padding: 40px 0 100px 0; /* Extra padding at the bottom of the page */
+}
+
+/* Creates a responsive grid that automatically fits the buttons */
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 25px;
+  text-align: center;
+}
+
+.resource-card {
+  background-color: var(--header-bg);
+  border: 1px solid var(--shadow-color);
+  border-radius: 12px;
+  padding: 30px 20px;
+  text-decoration: none;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+.resource-card i {
+  font-size: 2.5rem;
+  color: var(--btn-bg);
+  transition: transform 0.3s ease;
+}
+
+.resource-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Hover Animations */
+.resource-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--btn-bg);
+  box-shadow: 0 10px 20px rgba(13, 110, 253, 0.15);
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+}
+
+.resource-card:hover i {
+  color: var(--btn-text);
+  transform: scale(1.2);
+}
+
+/* ==========================================
+   PART 6: VISITOR ANALYTICS STYLES
+   ========================================== */
+.part-6-section {
+  padding: 0 0 60px 0;
+}
+
+.sub-title {
+  font-size: 1.3rem;
+  color: var(--text-color);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sub-title i {
+  color: var(--btn-bg);
+}
+
+.info-card {
+  background-color: var(--header-bg);
+  border: 1px solid var(--shadow-color);
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden; /* CRITICAL: Stops the image/text from bleeding out of the box */
+}
+
+/* IP Grid Layout */
+.ip-data-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.ip-data-item {
+  background-color: rgba(13, 110, 253, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid var(--btn-bg);
+  transition: transform 0.3s ease;
+}
+
+/* This is the magic rule that allows the columns to shrink and forces text to wrap */
+.ip-column, .visitor-column {
+  flex: 1;
+  min-width: 0; 
+}
+
+
+.ip-data-item:hover {
+  transform: translateX(5px);
+}
+
+.ip-data-label {
+  font-size: 0.8rem;
+  color: var(--quote-color);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.ip-data-value {
+  color: var(--text-color);
+  font-weight: 600;
+  word-wrap: break-word; /* Forces long numbers to wrap */
+  word-break: break-all;
+}
+
+/* Visitor Counter Card Layout */
+.visitor-card {
+  align-items: center;
+  text-align: center;
+  gap: 15px;
+}
+
+.visitor-card p {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* Updated badge sizing to prevent breaking out of the box */
+.visitor-badge {
+  width: 180px; 
+  max-width: 100%; 
+  height: auto;
+  margin: 15px 0;
+}
+
+.small-text {
+  font-size: 0.85rem !important;
+  color: var(--quote-color) !important;
+  font-weight: 500 !important;
+}
+
+
+/* ==========================================
+   FOOTER STYLES
+   ========================================== */
+.site-footer {
+  background-color: var(--header-bg);
+  border-top: 1px solid var(--shadow-color);
+  padding: 40px 20px;
+  margin-top: 40px;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.footer-copyright {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.footer-credits {
+  display: flex;
+  gap: 60px;
+}
+
+.credit-column h4 {
+  color: var(--quote-color);
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.credit-column ul {
+  list-style: none;
+  padding: 0;
+}
+
+.credit-column ul li {
+  margin-bottom: 8px;
+}
+
+.credit-column ul li a {
+  color: var(--btn-bg);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-weight: 500;
+}
+
+.credit-column ul li a:hover {
+  color: var(--icon-hover);
+  text-decoration: underline;
+}
+
+/* ==========================================
+   PART 7: CONTACT ME STYLES
+   ========================================== */
+.part-7-section {
+  padding: 0 0 60px 0;
+}
+
+/* Social Buttons */
+.social-desc {
+  font-size: 0.95rem;
+  color: var(--quote-color);
+  margin-bottom: 20px;
+}
+
+.social-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two buttons per row */
+  gap: 15px;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  background-color: var(--header-bg);
+  color: var(--text-color);
+  border: 1px solid var(--shadow-color);
+  transition: all 0.3s ease;
+}
+
+.social-btn i {
+  font-size: 1.3rem;
+  color: var(--btn-bg);
+}
+
+.social-btn:hover {
+  transform: translateY(-3px);
+  border-color: var(--btn-bg);
+  box-shadow: 0 5px 15px rgba(13, 110, 253, 0.15);
+}
+
+/* Contact Form */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--quote-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input, 
+.form-group textarea {
+  padding: 12px 15px;
+  border-radius: 6px;
+  border: 1px solid var(--shadow-color);
+  background-color: var(--bg-color); /* Matches theme */
+  color: var(--text-color);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus, 
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--btn-bg);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+}
+
+.submit-btn {
+  padding: 14px 20px;
+  border-radius: 6px;
+  border: none;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  margin-top: 5px;
+}
+
+.submit-btn:hover {
+  background-color: var(--btn-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+}
+
+
+/* ==========================================
+   5. RESPONSIVE DESIGN (Media Queries)
+   ========================================== */
+
+/* --- TABLETS & SMALLER LAPTOPS (Under 1024px) --- */
+@media (max-width: 1024px) {
+  .hero-section {
+    gap: 30px; /* Reduce space between image and text */
+  }
+  
+  .hero-content h1 {
+    font-size: 2.8rem; /* Make the main text slightly smaller */
+  }
+  
+  .profile-image-container {
+    width: 260px;
+    height: 335px; /* Scale down the image slightly */
+  }
+  
+  .quote-section {
+    display: none; /* Hide the random quote to save space in the header */
+  }
+}
+
+/* --- MOBILE PHONES (Under 768px) --- */
+@media (max-width: 768px) {
+  /* Fix the Header for Mobile */
+  .top-header {
+    flex-direction: column; /* Stack header items vertically */
+    gap: 15px;
+    padding: 15px 20px;
+  }
+  
+  .info-section {
+    width: 100%;
+    justify-content: space-between; /* Spread time/weather and button out */
+  }
+
+  /* Fix the Body (Hero Section) for Mobile */
+  main {
+    padding: 30px 20px;
+  }
+
+  .hero-section {
+    flex-direction: column; /* Stack the image ON TOP of the text */
+    text-align: center; /* Center all text */
+    padding-top: 10px;
+  }
+
+  .hero-image {
+    margin-bottom: 10px;
+  }
+
+  .hero-content h1 {
+    font-size: 2.2rem; /* Mobile-friendly heading size */
+  }
+
+  .hero-content h2 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+  }
+
+  .hero-content p {
+    margin: 0 auto 25px auto; /* Centers the paragraph block */
+  }
+
+  /* Center the Interests and Buttons */
+  .tags-container, .hero-buttons {
+    justify-content: center;
+  }
+}
+
+/* --- VERY SMALL PHONES (Under 480px) --- */
+@media (max-width: 480px) {
+  .logo-section {
+    gap: 15px;
+  }
+  
+  .profile-image-container {
+    width: 220px;
+    height: 285px; /* Make image fit perfectly on tiny screens */
+  }
+
+  .hero-buttons {
+    flex-direction: column; /* Stack buttons on top of each other */
+    width: 100%;
+  }
+  
+  .btn {
+    width: 100%; /* Make buttons stretch across the screen */
+    text-align: center;
+  }
+}
+
+/* ==========================================
+   SECTION DIVIDER STYLES
+   ========================================== */
+.section-divider {
+  border: none;
+  border-top: 4px double var(--quote-color); 
+  width: 100%; /* Changed from 70% to 100% to stretch across the page */
+  margin: 60px 0; /* Adjusted margin to fit the full width smoothly */
+  opacity: 0.3; 
+  transition: border-color 0.3s ease;
+}
+
+/* ==========================================
+   PART 2: EDUCATION & SKILLS STYLES
+   ========================================== */
+.part-2-section {
+  padding: 40px 0;
+}
+
+.two-column-layout {
+  display: flex;
+  justify-content: space-between;
+  gap: 60px;
+}
+
+.education-column, .skills-column {
+  flex: 1;
+}
+
+/* Reusing your clean Poppins font for headers here */
+.section-title {
+  font-size: 2rem;
+  color: var(--text-color);
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title i {
+  color: var(--btn-bg); /* Blue icon */
+}
+
+/* --- Timeline (Education) --- */
+.timeline {
+  border-left: 3px solid rgba(13, 110, 253, 0.2);
+  padding-left: 25px;
+  margin-left: 10px;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -35px; /* Centers dot on the line */
+  top: 5px;
+  width: 16px;
+  height: 16px;
+  background-color: var(--btn-bg);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+}
+
+.timeline-item h3 {
+  font-size: 1.3rem;
+  color: var(--text-color);
+  margin-bottom: 5px;
+}
+
+.timeline-date {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--btn-bg);
+  margin-bottom: 5px;
+}
+
+.timeline-degree {
+  font-size: 1rem;
+  color: var(--quote-color);
+  margin-bottom: 5px;
+}
+
+.timeline-score {
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+/* --- Skills Tags --- */
+.skill-category {
+  margin-bottom: 25px;
+}
+
+.skill-category h4 {
+  font-size: 1.1rem;
+  color: var(--quote-color);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-tags span {
+  background-color: var(--header-bg);
+  color: var(--text-color);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid var(--shadow-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.skill-tags span i {
+  font-size: 1.1rem;
+}
+
+.skill-tags span:hover {
+  border-color: var(--btn-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
+}
+
+/* ==========================================
+   ANIMATED ARROW DIVIDER STYLES
+   ========================================== */
+.animated-divider {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 80px 0;
+  position: relative;
+  overflow: hidden;
+  height: 50px;
+}
+
+.divider-center-dot {
+  width: 10px;
+  height: 10px;
+  background-color: var(--btn-bg);
+  border-radius: 50%;
+  opacity: 0; /* Hidden until collision */
+  transition: opacity 0.3s ease;
+}
+
+.arrow {
+  font-size: 2rem;
+  color: var(--btn-bg);
+  position: absolute;
+  opacity: 0;
+  transition: all 1s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth spring-like motion */
+}
+
+/* Starting positions */
+.left-arrow { left: 10%; transform: translateX(-50px); }
+.right-arrow { right: 10%; transform: translateX(50px); }
+
+/* When animation is triggered by JS */
+.animated-divider.collide .left-arrow {
+  left: 50%;
+  transform: translateX(-20px);
+  opacity: 1;
+}
+
+.animated-divider.collide .right-arrow {
+  right: 50%;
+  transform: translateX(20px);
+  opacity: 1;
+}
+
+.animated-divider.collide .divider-center-dot {
+  opacity: 1;
+  transition-delay: 0.8s; /* Appears exactly when arrows hit */
+  box-shadow: 0 0 15px var(--btn-bg);
+}
+
+/* ==========================================
+   CHEATSHEET PAGE STYLES
+   ========================================== */
+.cs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.cs-btn {
+  background-color: rgba(13, 110, 253, 0.08);
+  border: 1px solid var(--shadow-color);
+  color: var(--text-color);
+  padding: 12px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cs-btn:hover {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
+  border-color: var(--btn-bg);
+}
+
+/* Dark mode adjustment for the buttons */
+body.dark-mode .cs-btn {
+  background-color: var(--header-bg);
+}
+
+body.dark-mode .cs-btn:hover {
+  background-color: var(--btn-bg);
+}

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Repos - Data Portfolio</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Specific Grid Layout for Repos: Exactly 3 per row */
+    .repo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* Forces exactly 3 columns */
+      gap: 30px;
+    }
+
+    .repo-card {
+      background-color: var(--header-bg);
+      border: 1px solid var(--shadow-color);
+      border-radius: 12px;
+      padding: 30px 25px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .repo-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 20px rgba(13, 110, 253, 0.15);
+      border-color: var(--btn-bg);
+    }
+
+    .repo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .repo-badge {
+      font-size: 0.8rem;
+      background-color: rgba(13, 110, 253, 0.15);
+      color: var(--btn-bg);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .repo-title {
+      font-size: 1.3rem;
+      color: var(--text-color);
+      margin-bottom: 10px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .repo-intro {
+      font-size: 0.95rem;
+      color: var(--quote-color);
+      margin-bottom: 15px;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    .repo-desc {
+      font-size: 0.95rem;
+      color: var(--text-color);
+      margin-bottom: 25px;
+      line-height: 1.6;
+      flex-grow: 1; /* Pushes the button to the bottom evenly across all cards */
+    }
+
+    .repo-link-btn {
+      background-color: var(--header-bg);
+      color: var(--text-color);
+      border: 2px solid var(--shadow-color);
+      padding: 8px 0;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: block;
+    }
+
+    .repo-link-btn:hover {
+      background-color: var(--btn-bg);
+      border-color: var(--btn-bg);
+      color: var(--btn-text);
+    }
+
+    /* Responsive Design for smaller screens */
+    @media (max-width: 1024px) {
+      .repo-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 per row on tablets */
+      }
+    }
+
+    @media (max-width: 768px) {
+      .repo-grid {
+        grid-template-columns: 1fr; /* 1 per row on phones */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-header">
+    <div class="logo-section">
+      <a href="../index.html" title="Back to Home"><i class="fas fa-arrow-left"></i> Home</a>
+    </div>
+    <div class="quote-section">
+      <p id="quote-display">"Talk is cheap. Show me the code. – Linus Torvalds"</p>
+    </div>
+    <div class="info-section">
+      <button id="theme-toggle" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+      <div class="time-weather">
+        <span id="time-display">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top: 40px; padding-bottom: 80px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+      <h1 style="font-family: 'Amatic SC', cursive; font-size: 5rem; color: var(--text-color);">Open Source <span style="color: var(--btn-bg);">Repositories</span></h1>
+      <p style="color: var(--quote-color); font-size: 1.1rem;">My curated collection of the best Data Science and Python GitHub repos.</p>
+    </div>
+
+    <div id="repos-container" class="repo-grid"></div>
+  </main>
+
+  <script src="../js/script.js"></script>
+  
+  <script>
+    // 1. Your Organized GitHub Data
+    const repoData = [
+      {
+        id: "REPO 1",
+        title: "The Algorithms - Python",
+        intro: "All algorithms implemented in Python.",
+        desc: "A massive open-source repository for learning data structures and algorithms in Python. A must-have reference for coding interviews and computational problem solving.",
+        link: "https://github.com/TheAlgorithms/Python"
+      },
+      {
+        id: "REPO 2",
+        title: "Data Scientist Handbook",
+        intro: "A curated list of data science resources.",
+        desc: "A comprehensive guide encompassing everything from coding best practices to math, statistics, and machine learning principles needed to succeed as a Data Scientist.",
+        link: "https://github.com/jacobzelko/data-scientist-handbook"
+      },
+      {
+        id: "REPO 3",
+        title: "AI Data Scientist",
+        intro: "Roadmap to becoming an AI Data Scientist.",
+        desc: "An extensive collection of tools, concepts, cheat sheets, and learning paths designed for mastering modern Artificial Intelligence and Data Science workflows.",
+        link: "https://github.com/"
+      },
+      {
+        id: "REPO 4",
+        title: "Data Science by Mehdee",
+        intro: "A personal data science journey and guide.",
+        desc: "A highly practical repository containing detailed notes, project codes, and guides covering the complete end-to-end data science lifecycle.",
+        link: "https://github.com/"
+      },
+      {
+        id: "REPO 5",
+        title: "Efficient Python Tricks and Tools",
+        intro: "Level up your Python coding efficiency.",
+        desc: "A hand-picked collection of advanced, efficient Python tricks, libraries, and tools specifically curated to make Data Scientists write cleaner, faster code.",
+        link: "https://github.com/khuyentran1401/Efficient-Python-tricks-and-tools-for-data-scientists"
+      },
+      {
+        id: "REPO 6",
+        title: "Quick Reference",
+        intro: "Cheat sheets for developers.",
+        desc: "The open-source code behind the QuickRef.me project. Contains community-driven syntax guides and cheat sheets for hundreds of programming languages.",
+        link: "https://github.com/jaywcjlove/reference"
+      },
+      {
+        id: "REPO 7",
+        title: "Python Data Science Handbook",
+        intro: "The definitive guide by Jake VanderPlas.",
+        desc: "Interactive Jupyter Notebooks containing the entire text, tutorials, and code of the famous Python Data Science Handbook. Excellent for Pandas and NumPy.",
+        link: "https://github.com/jakevdp/PythonDataScienceHandbook"
+      },
+      {
+        id: "REPO 8",
+        title: "Hands-On Machine Learning",
+        intro: "Code for Aurélien Géron's famous book.",
+        desc: "Accompanying Jupyter notebooks for the bestselling Hands-On ML book. Features practical examples using Scikit-Learn, Keras, and TensorFlow.",
+        link: "https://github.com/ageron/handson-ml3"
+      },
+      {
+        id: "REPO 9",
+        title: "Python Machine Learning Book",
+        intro: "Sebastian Raschka's deep dive into ML.",
+        desc: "The official code repository for the 'Python Machine Learning' book. It dives deep into predictive analytics, PyTorch, and deep learning architectures.",
+        link: "https://github.com/rasbt/python-machine-learning-book-3rd-edition"
+      },
+      {
+        id: "REPO 10",
+        title: "fastai",
+        intro: "Making neural nets uncool again.",
+        desc: "The fastai library simplifies training fast and accurate neural networks using modern best practices. Built on top of PyTorch for rapid prototyping.",
+        link: "https://github.com/fastai/fastai"
+      }
+    ];
+
+    const container = document.getElementById('repos-container');
+
+    // 2. Automatically generate the HTML for every repo in the array
+    repoData.forEach(repo => {
+      const card = document.createElement('div');
+      card.className = 'repo-card';
+
+      card.innerHTML = `
+        <div class="repo-header">
+          <span class="repo-badge"><i class="fab fa-github"></i> ${repo.id}</span>
+        </div>
+        <h3 class="repo-title">${repo.title}</h3>
+        <p class="repo-intro">"${repo.intro}"</p>
+        <p class="repo-desc">${repo.desc}</p>
+        <a href="${repo.link}" class="repo-link-btn" target="_blank"><i class="fas fa-code-branch"></i> View Repository</a>
+      `;
+
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>

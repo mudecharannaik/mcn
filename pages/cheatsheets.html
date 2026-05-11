@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cheatsheets - Data Portfolio</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    .cs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+    }
+
+    .cs-btn {
+      background-color: rgba(13, 110, 253, 0.08);
+      border: 1px solid var(--shadow-color);
+      color: var(--text-color);
+      padding: 12px 15px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cs-btn:hover {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
+      border-color: var(--btn-bg);
+    }
+
+    body.dark-mode .cs-btn {
+      background-color: var(--header-bg);
+    }
+
+    body.dark-mode .cs-btn:hover {
+      background-color: var(--btn-bg);
+    }
+
+    /* Styling for your personal Google Drive links */
+    .personal-btn {
+      border: 1px dashed var(--btn-bg);
+      background-color: transparent;
+    }
+    
+    body.dark-mode .personal-btn {
+      background-color: transparent;
+    }
+
+    .personal-badge {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.75rem;
+      background: var(--btn-bg);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-left: 10px;
+      vertical-align: middle;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-header">
+    <div class="logo-section">
+      <a href="../index.html" title="Back to Home"><i class="fas fa-arrow-left"></i> Home</a>
+    </div>
+    <div class="quote-section">
+      <p id="quote-display">"Never memorize something that you can look up. – Albert Einstein"</p>
+    </div>
+    <div class="info-section">
+      <button id="theme-toggle" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+      <div class="time-weather">
+        <span id="time-display">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top: 40px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+      <h1 style="font-family: 'Amatic SC', cursive; font-size: 5rem; color: var(--text-color);">Developer <span style="color: var(--btn-bg);">Cheatsheets</span></h1>
+      <p style="color: var(--quote-color); font-size: 1.1rem;">Your personal Data Science drive & external reference guides.</p>
+    </div>
+
+    <div id="cheatsheets-container"></div>
+  </main>
+
+  <script src="../js/script.js"></script>
+  
+  <script>
+    // 1. Your Organized Data
+    const cheatsheetData = {
+      // --- YOUR PERSONAL DATA SCIENCE DRIVE FOLDERS ---
+      "📊 Math and Statistics (Personal)": ["Descriptive statistics", "Probability", "Distributions", "Hypothesis testing", "Correlation", "Regression basics"],
+      "🐍 Python Basics (Personal)": ["Variables", "Data types", "Loops", "Conditionals", "Functions", "Modules"],
+      "🐼 Core Python for Data Science (Personal)": ["NumPy", "Pandas", "DataFrames", "Missing values", "Merging", "GroupBy", "Visualization"],
+      "📈 Data Visualization (Personal)": ["Matplotlib", "Seaborn", "Plotly", "Histograms, boxplots, heatmaps", "Dashboards"],
+      "🧹 Data Wrangling (Personal)": ["Cleaning", "Outlier detection", "Feature engineering", "Encoding", "Scaling"],
+      "🔍 Exploratory Data Analysis (EDA) (Personal)": ["Univariate analysis", "Bivariate analysis", "Stats summary", "Correlation analysis"],
+      "💾 SQL for Data Science (Personal)": ["MySQL","SQL Server"],
+      "🤖 Machine Learning Basics (Personal)": ["Supervised vs unsupervised", "Train test split", "Cross validation", "Metrics"],
+      "🎯 Supervised Learning (Personal)": ["Linear regression", "Logistic regression", "Decision trees", "Random forest", "Gradient boosting", "SVM", "KNN"],
+      "💡 Unsupervised Learning (Personal)": ["K-Means", "Hierarchical clustering", "PCA", "Dimensionality reduction"],
+      "⭐️ Model Evaluation (Personal)": ["Accuracy", "Precision", "Recall", "F1", "ROC AUC", "MSE, RMSE, MAE"],
+      "🛠️ Feature Engineering (Personal)": ["One hot encoding", "Binning", "Scaling", "Interaction terms"],
+      "⏳ Time Series (Personal)": ["Trends", "Seasonality", "ARIMA", "Prophet", "Forecasting steps"],
+      "🧠 Deep Learning Basics (Personal)": ["Neural networks", "Activation functions", "Loss functions", "Backprop basics"],
+      "🚀 Deep Learning Libraries (Personal)": ["TensorFlow", "Keras", "PyTorch"],
+      "💬 NLP (Personal)": ["Tokenization", "Stemming", "Lemmatization", "TF-IDF", "Word embeddings"],
+      "🌐 Big Data Tools (Personal)": ["Hadoop", "Spark", "PySpark"],
+      "⚙️ Data Engineering Basics (Personal)": ["ETL", "Pipelines", "Scheduling", "Cloud concepts"],
+      "☁️ Cloud Platforms (Personal)": ["AWS (S3, Lambda, SageMaker)", "GCP (BigQuery)", "Azure ML"],
+      "📦 MLOps (Personal)": ["Model deployment", "CI/CD", "Monitoring", "Docker", "APIs (FastAPI, Flask)"],
+      "📊 Dashboards (Personal)": ["Power BI", "Tableau", "Streamlit"],
+      "🏗️ Real-World Projects (Personal)": ["Classification", "Regression", "Time series", "NLP", "Recommendation systems"],
+      "🧑‍💻 Version Control (Personal)": ["Git", "GitHub", "Branching", "Pull requests"],
+      "🗣️ Soft Skills (Personal)": ["Problem framing", "Business communication", "Storytelling"],
+      "📝 Interview Prep (Personal)": ["SQL practice", "Python challenges", "ML theory", "Case studies"],
+
+      // --- EXTERNAL CHEATSHEETS ---
+      "Quick Links": ["ChatGPT", "Bash", "Python", "JavaScript", "Go", "Vim", "RegEX", "Awk"],
+      "AI": ["ChatGPT", "Codex CLI", "Gemma 4", "OpenClaw", "Claude Code", "Cursor CLI", "Gemini CLI", "Grok CLI", "OpenCode"],
+      "Programming": ["Bash", "PowerShell", "Markdown", "Go", "Sass", "Python", "JavaScript", "npm", "jQuery", "CSS 3", "YAML", "TOML", "Docker", "PHP", "Java", "C++", "GraphQL", "HTML", "JSON", "Dart", "Laravel", "C#", "Rust", "C", "INI", "LaTeX", "MATLAB", "ES6", "Kubernetes", "Express", "Kotlin", "Swift", "EJS", "React", "Hook", "Terraform", "Ruby", "Selenium", "Django", "Perl", "TypeScript", "HTML Canvas", "Arduino Programming", "Unity Shader Graph", "OCaml", "FastAPI", "Flask", "HTMX", "Vue", "Windows Cmd", "Symfony", "Svelte", "Nix", "Lua", "VHDL", "Nim", "Socket io"],
+      "Toolkit": ["RegEX", "Vim", "Emmet", "Emacs", "XPath", "Mitmproxy", "VSCode", "Alan AI", "Homebrew", "Github Actions", "Github CLI", "Color Picker"],
+      "Operating System": ["Alpine Linux"],
+      "Linux Command": ["Git", "Grep", "Netcat", "OpenSSL", "Cron", "Sed", "Find", "Awk", "Screen", "Netstat", "SSH", "Lsof", "Tmux", "Chmod", "PM2", "Curl", "Pandoc", "Taskset", "SDKMAN!", "Systemd", "Nmap", "Telnet", "Nginx", "GnuPG"],
+      "Python": ["Numpy", "Pandas", "Matplotlib"],
+      "Database": ["MySQL", "Redis", "PostgreSQL", "Neo4j", "MongoDB"],
+      "Keyboard Shortcuts": ["IntelliJ IDEA", "WebStorm", "Unity 3D", "Finder", "GitLab", "Guitar Pro", "Roam Research", "SketchUp Pro", "Affinity Photo", "Monday.com", "Proto.io", "Superhuman", "Vivaldi Browser", "Missive", "Origami Studio", "Sublime Text", "Transmit", "Chrome Developer Tools", "GIMP", "Google Chrome", "TickTick", "Todoist", "VLC Player", "Arduino IDE", "Asana", "Code Editor for iOS", "Jira", "Quip.com", "WordPress", "Brave Browser", "KanbanMail", "Microsoft Outlook", "Principle", "Skype", "Airtable", "Bitbucket", "Fortnite", "Gmail", "Sketch", "Spotify", "Apple Music", "Blender", "Obsidian", "Telegram Desktop", "YouTube", "Audacity", "Framer X", "Google Drive", "PuTTy", "Sequel Pro", "Adobe Lightroom CC", "1Password", "Affinity Designer", "Pocket", "Trello", "Adobe XD", "Firefox", "PhpStorm", "Postman", "Webflow", "Android Studio", "Github", "Shopify", "Zoom", "Bear", "Feedly", "FileZilla", "Reddit", "Slack", "SoundCloud", "Twitter", "Adobe Photoshop", "Apex Legends", "Figma", "Microsoft Teams", "TablePlus", "Gnome Desktop", "Unreal Engine", "Zed"],
+      "Game": ["Minecraft Java Edition", "Minecraft Bedrock Edition"],
+      "Other": ["MIME types", "CheatSheets", "Emoji", "HTTP Status Code", "Resolutions", "ISO 639-1 Language Code", "HTML Characters Entities", "Aspect Ratio", "ASCII Code", "Google Search", "AI Directory", "PyTorch", "Conventional Commits", "NetworkPorts", "Tensorflow", "GoSpinWheel", "ColorScreen", "SBTI"]
+    };
+
+    const container = document.getElementById('cheatsheets-container');
+
+    // 2. Loop through and build the HTML automatically
+    for (const [category, items] of Object.entries(cheatsheetData)) {
+      
+      const section = document.createElement('div');
+      section.className = 'outlined-box';
+      section.style.marginBottom = '40px';
+      section.style.padding = '30px';
+
+      const title = document.createElement('h2');
+      title.className = 'section-title';
+      title.style.marginBottom = '20px';
+      
+      // If it is a personal category, add a nice badge and remove the "(Personal)" text from the UI
+      if(category.includes("(Personal)")) {
+        const cleanName = category.replace(" (Personal)", "");
+        title.innerHTML = `${cleanName} <span class="personal-badge"><i class="fab fa-google-drive"></i> DRIVE</span>`;
+      } else {
+        title.innerHTML = `<i class="fas fa-folder-open" style="color: var(--btn-bg);"></i> ${category}`;
+      }
+      
+      section.appendChild(title);
+
+      const grid = document.createElement('div');
+      grid.className = 'cs-grid';
+
+      items.forEach((item) => {
+        const link = document.createElement('a');
+        link.className = 'cs-btn';
+        link.textContent = item;
+        link.target = "_blank"; 
+        
+        if (category.includes("(Personal)")) {
+          // Rule for Personal Files: Links directly to your Google Drive folder
+          link.href = "https://drive.google.com/drive/folders/1y1Koty8V6odEi7sDW1W9EV5CMWcU4oZn?usp=sharing";
+          link.classList.add('personal-btn'); 
+        } else {
+          // Rule for External APIs: Removes ALL spaces making "CSS 3" into "css3"
+          const urlSafeName = item.toLowerCase().replace(/\s+/g, '');
+          link.href = `https://cheatsheets.zip/${urlSafeName}`;
+        }
+
+        grid.appendChild(link);
+      });
+
+      section.appendChild(grid);
+      container.appendChild(section);
+    }
+  </script>
+</body>
+</html>
