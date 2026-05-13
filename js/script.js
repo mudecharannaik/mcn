@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const bio = document.getElementById('bio').value;
         
         // Target email address
-        const targetEmail = "mcnk@gmail.com"; 
+        const targetEmail = "mcharannaik02@gmail.com"; 
         
         // Format Email
         const subject = encodeURIComponent(`New Portfolio Message from ${firstName} ${lastName}`);
