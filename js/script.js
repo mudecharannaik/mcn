@@ -11,16 +11,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateQuote() {
       const quoteEl = document.getElementById('quote-display');
+      if (!quoteEl) return;
+
       try {
-        const response = await fetch('https://api.quotable.io/random');
+        // Switched to DummyJSON because Quotable is permanently offline
+        const response = await fetch('https://dummyjson.com/quotes/random');
         if (!response.ok) throw new Error('API Offline');
+        
         const data = await response.json();
-        quoteEl.textContent = `"${data.content}" – ${data.author}`;
+        
+        // Note: DummyJSON uses data.quote instead of data.content
+        quoteEl.textContent = `"${data.quote}" – ${data.author}`; 
       } catch (error) {
+        // If the internet is down, it instantly falls back to your Data Science quotes!
         const randomIndex = Math.floor(Math.random() * localQuotes.length);
         quoteEl.textContent = localQuotes[randomIndex];
       }
     }
+
     updateQuote();
     setInterval(updateQuote, 15000);
 
