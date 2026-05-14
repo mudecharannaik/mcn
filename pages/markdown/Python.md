@@ -211,7 +211,7 @@ q , type(q), hex(id(q))
 r , type(r), hex(id(r))
 >>> (20, int, '0x7fff6d71a3f0')
 ```
-![[../1. PYTHON3/Z.Attachments/Z.Attachments/Pasted image 20260504214000.png]]
+![[Z.Attachments/Pasted image 20260504214000.png]]
 
 ```python
 p = 20 
@@ -349,7 +349,7 @@ len(mystr2) # Length of string
 >>> 35
 ```
 ### 2.3.2 String Indexing
-![[../1. PYTHON3/Z.Attachments/Z.Attachments/Pasted image 20260504220822.png]]
+![[Z.Attachments/Pasted image 20260504220822.png]]
 
 ```python
 str1
@@ -702,7 +702,7 @@ len(list6) #Length of list
 >>> 3
 ```
 ### 2.4.2 List Indexing
-![[../1. PYTHON3/Z.Attachments/Z.Attachments/Pasted image 20260505092357.png]]
+![[Z.Attachments/Pasted image 20260505092357.png]]
 ```python
 list2[0] # Retreive first element of the list
 >>> 10
@@ -931,7 +931,7 @@ mylist3 = [num**2 for num in range(10)] # calculate square of all numbers betwee
 mylist3
 >>> [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
 ```
-![[../1. PYTHON3/Z.Attachments/Z.Attachments/Pasted image 20260505111052.png]]
+![[Z.Attachments/Pasted image 20260505111052.png]]
 ```python
 # Multiple whole list by 10
 list1 = [2,3,4,5,6,7,8]
