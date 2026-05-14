@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Notes - Data Portfolio</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    /* ==========================================
+       GRID VIEW (Selection)
+       ========================================== */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    .note-card {
+      background-color: var(--header-bg);
+      border: 1px solid var(--shadow-color);
+      border-radius: 12px;
+      padding: 30px 25px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .note-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 20px rgba(13, 110, 253, 0.15);
+      border-color: var(--btn-bg);
+    }
+
+    .note-badge {
+      font-size: 0.8rem;
+      background-color: rgba(13, 110, 253, 0.1);
+      color: var(--btn-bg);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      align-self: flex-start;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .note-title {
+      font-size: 1.4rem;
+      color: var(--text-color);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .note-desc {
+      font-size: 0.95rem;
+      color: var(--quote-color);
+      line-height: 1.6;
+    }
+
+    /* ==========================================
+       READING MODE & TABLE OF CONTENTS
+       ========================================== */
+    .reader-wrapper {
+      display: none; /* Hidden by default */
+      background-color: var(--header-bg);
+      border: 1px solid var(--shadow-color);
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 900px;
+      margin: 0 auto;
+      box-shadow: 0 10px 30px var(--shadow-color);
+    }
+
+    .back-btn {
+      background-color: transparent;
+      color: var(--text-color);
+      border: 2px solid var(--shadow-color);
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      border-color: var(--btn-bg);
+    }
+
+    /* Table of Contents Styles */
+    .toc-wrapper {
+      background-color: rgba(13, 110, 253, 0.05);
+      border: 1px solid var(--shadow-color);
+      border-left: 4px solid var(--btn-bg);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+
+    .toc-wrapper h3 {
+      color: var(--text-color);
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toc-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .toc-btn {
+      background-color: var(--header-bg);
+      color: var(--btn-bg);
+      border: 1px solid var(--btn-bg);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .toc-btn:hover {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+    }
+
+    /* Markdown Rendered Styles */
+    .markdown-body {
+      color: var(--text-color);
+      font-family: 'Poppins', sans-serif;
+      line-height: 1.7;
+    }
+
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+      color: var(--text-color);
+      margin-top: 30px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--shadow-color);
+      padding-bottom: 8px;
+    }
+
+    .markdown-body h1 { font-size: 2.2rem; color: var(--btn-bg); }
+    
+    .markdown-body h2 { 
+      font-size: 1.8rem; 
+      /* This stops the header from hiding under your top navigation when scrolling! */
+      scroll-margin-top: 100px; 
+    }
+    
+    .markdown-body p { margin-bottom: 15px; }
+
+    /* Code Block Styling */
+    .markdown-body pre {
+      background-color: #1e1e1e; /* Dark code block */
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+      font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+      font-size: 0.9rem;
+      border: 1px solid #333;
+    }
+
+    .markdown-body code {
+      background-color: rgba(13, 110, 253, 0.1);
+      color: var(--btn-bg);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+
+    .markdown-body pre code {
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .markdown-body blockquote {
+      border-left: 4px solid var(--btn-bg);
+      padding-left: 15px;
+      color: var(--quote-color);
+      margin-left: 0;
+      font-style: italic;
+    }
+
+    .markdown-body ul, .markdown-body ol {
+      margin-bottom: 20px;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-header">
+    <div class="logo-section">
+      <a href="../index.html" title="Back to Home"><i class="fas fa-arrow-left"></i> Home</a>
+    </div>
+    <div class="quote-section">
+      <p id="quote-display">"Documentation is a love letter that you write to your future self. – Damian Conway"</p>
+    </div>
+    <div class="info-section">
+      <button id="theme-toggle" title="Toggle Dark/Light Mode"><i class="fas fa-moon"></i></button>
+      <div class="time-weather">
+        <span id="time-display">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top: 40px; padding-bottom: 80px; max-width: 1200px; margin: 0 auto;">
+    
+    <div id="page-headers" style="text-align: center; margin-bottom: 50px;">
+      <h1 style="font-family: 'Amatic SC', cursive; font-size: 5rem; color: var(--text-color);">Developer <span style="color: var(--btn-bg);">Notebook</span></h1>
+      <p style="color: var(--quote-color); font-size: 1.1rem;">A collection of my personal programming notes, snippets, and references.</p>
+    </div>
+
+    <div id="notes-grid" class="notes-grid"></div>
+
+    <div id="reader-view" class="reader-wrapper">
+      <button class="back-btn" onclick="closeReader()">
+        <i class="fas fa-arrow-left"></i> Back to Notes
+      </button>
+      
+      <div id="toc-container"></div>
+
+      <div id="markdown-content" class="markdown-body">
+        </div>
+    </div>
+
+  </main>
+
+  <script src="../js/script.js"></script>
+  
+  <script>
+    // 1. NOTEBOOK DIRECTORY
+    const notesData = [
+      {
+        title: "1. Python Master Cheat Sheet",
+        desc: "Comprehensive guide to Python keywords, data types, lists, dictionaries, strings, and fundamental syntax.",
+        icon: "fab fa-python",
+        filepath: "markdown/Python.md" 
+      },
+      {
+        title: "2. Python Star Patterns",
+        desc: "Logic and code snippets for generating various geometric star and number patterns using nested loops.",
+        icon: "fas fa-star",
+        filepath: "markdown/Patterns.md"
+      }
+    ];
+
+    const gridContainer = document.getElementById('notes-grid');
+    const readerView = document.getElementById('reader-view');
+    const pageHeaders = document.getElementById('page-headers');
+    const markdownContent = document.getElementById('markdown-content');
+    const tocContainer = document.getElementById('toc-container');
+
+    // Build the Grid
+    notesData.forEach((note, index) => {
+      const card = document.createElement('div');
+      card.className = 'note-card';
+      
+      card.innerHTML = `
+        <span class="note-badge"><i class="${note.icon}"></i> Note ${index + 1}</span>
+        <h3 class="note-title">${note.title}</h3>
+        <p class="note-desc">${note.desc}</p>
+        <div style="margin-top: auto; color: var(--btn-bg); font-weight: 600; font-size: 0.9rem; padding-top: 15px;">
+          Read Document <i class="fas fa-arrow-right"></i>
+        </div>
+      `;
+
+      // Click Event to FETCH the file and Open Reader
+      card.addEventListener('click', async () => {
+        // Prepare view
+        markdownContent.innerHTML = "<p><i class='fas fa-spinner fa-spin'></i> Loading file...</p>";
+        tocContainer.innerHTML = ""; // Clear old Table of Contents
+        gridContainer.style.display = 'none';
+        pageHeaders.style.display = 'none';
+        readerView.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        try {
+          const response = await fetch(note.filepath);
+          if (!response.ok) throw new Error('File not found');
+          
+          const mdText = await response.text();
+          markdownContent.innerHTML = marked.parse(mdText);
+
+          // =========================================================
+          // NEW FEATURE: Generate Clickable Sections from H2 Tags (##)
+          // =========================================================
+          const h2Elements = markdownContent.querySelectorAll('h2');
+          
+          if (h2Elements.length > 0) {
+            const tocWrapper = document.createElement('div');
+            tocWrapper.className = 'toc-wrapper';
+            
+            const tocTitle = document.createElement('h3');
+            tocTitle.innerHTML = '<i class="fas fa-list-ul" style="color: var(--btn-bg);"></i> Document Sections';
+            tocWrapper.appendChild(tocTitle);
+            
+            const tocGrid = document.createElement('div');
+            tocGrid.className = 'toc-grid';
+            
+            h2Elements.forEach((h2, i) => {
+              // Give the physical H2 tag on the page a unique ID
+              const sectionId = 'doc-section-' + i;
+              h2.id = sectionId;
+              
+              // Create a button for the section
+              const btn = document.createElement('button');
+              btn.className = 'toc-btn';
+              btn.textContent = h2.textContent.replace('#', '').trim(); // Cleans up the text
+              
+              // When clicked, smoothly scroll down to the exact section!
+              btn.addEventListener('click', () => {
+                document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+              });
+              
+              tocGrid.appendChild(btn);
+            });
+            
+            tocWrapper.appendChild(tocGrid);
+            tocContainer.appendChild(tocWrapper);
+          }
+          // =========================================================
+
+        } catch (error) {
+          console.error("Error loading markdown:", error);
+          markdownContent.innerHTML = `
+            <h3 style="color: #ff4444;"><i class="fas fa-exclamation-triangle"></i> Cannot Load File</h3>
+            <p>Make sure the file exists exactly at <strong>${note.filepath}</strong>.</p>
+          `;
+        }
+      });
+
+      gridContainer.appendChild(card);
+    });
+
+    // Function to close the reader and go back to the grid
+    function closeReader() {
+      readerView.style.display = 'none';
+      gridContainer.style.display = 'grid'; 
+      pageHeaders.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
