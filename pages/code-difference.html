@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeDiff — Visual Code Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --transition-speed: 0.35s;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0e0f13;
+    --bg-secondary: #16171d;
+    --bg-tertiary: #1c1e26;
+    --fg: #e2e0df;
+    --fg-muted: #6b6e7b;
+    --fg-dim: #44475a;
+    --accent: #f0a830;
+    --accent-glow: rgba(240, 168, 48, 0.15);
+    --accent-hover: #f5be5a;
+    --card: #1a1b22;
+    --card-hover: #1f2029;
+    --border: #2a2c38;
+    --border-active: #3d3f50;
+    --added-bg: rgba(46, 204, 113, 0.1);
+    --added-line-bg: rgba(46, 204, 113, 0.15);
+    --added-fg: #2ecc71;
+    --added-gutter: rgba(46, 204, 113, 0.08);
+    --removed-bg: rgba(231, 76, 60, 0.1);
+    --removed-line-bg: rgba(231, 76, 60, 0.15);
+    --removed-fg: #e74c3c;
+    --removed-gutter: rgba(231, 76, 60, 0.08);
+    --gutter-bg: #13141a;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+    --code-bg: #13141a;
+    --scrollbar-track: #1a1b22;
+    --scrollbar-thumb: #2a2c38;
+    --toast-bg: #1c1e26;
+  }
+
+  [data-theme="light"] {
+    --bg: #f5f3f0;
+    --bg-secondary: #edeae6;
+    --bg-tertiary: #e6e2dd;
+    --fg: #1a1b22;
+    --fg-muted: #7c7a76;
+    --fg-dim: #b0ada8;
+    --accent: #d4912a;
+    --accent-glow: rgba(212, 145, 42, 0.12);
+    --accent-hover: #c07f1a;
+    --card: #ffffff;
+    --card-hover: #faf8f6;
+    --border: #d9d5d0;
+    --border-active: #c4bfb8;
+    --added-bg: rgba(46, 204, 113, 0.08);
+    --added-line-bg: rgba(46, 204, 113, 0.14);
+    --added-fg: #1a9e54;
+    --added-gutter: rgba(46, 204, 113, 0.06);
+    --removed-bg: rgba(231, 76, 60, 0.08);
+    --removed-line-bg: rgba(231, 76, 60, 0.14);
+    --removed-fg: #c0392b;
+    --removed-gutter: rgba(231, 76, 60, 0.06);
+    --gutter-bg: #f0ede9;
+    --shadow: 0 8px 32px rgba(0,0,0,0.08);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --code-bg: #faf8f6;
+    --scrollbar-track: #edeae6;
+    --scrollbar-thumb: #d0ccc7;
+    --toast-bg: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    transition: background var(--transition-speed), color var(--transition-speed);
+    overflow-x: hidden;
+  }
+
+  /* Background atmosphere */
+  .bg-atmosphere {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .bg-atmosphere .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.3;
+    animation: blobFloat 20s ease-in-out infinite;
+  }
+  .bg-atmosphere .blob:nth-child(1) {
+    width: 500px; height: 500px;
+    background: var(--accent);
+    top: -15%; left: -10%;
+    opacity: 0.08;
+    animation-duration: 25s;
+  }
+  .bg-atmosphere .blob:nth-child(2) {
+    width: 400px; height: 400px;
+    background: var(--added-fg);
+    bottom: -10%; right: -5%;
+    opacity: 0.05;
+    animation-duration: 30s;
+    animation-delay: -10s;
+  }
+  .bg-atmosphere .blob:nth-child(3) {
+    width: 300px; height: 300px;
+    background: var(--removed-fg);
+    top: 50%; left: 50%;
+    opacity: 0.04;
+    animation-duration: 22s;
+    animation-delay: -5s;
+  }
+
+  @keyframes blobFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(30px, -40px) scale(1.05); }
+    50% { transform: translate(-20px, 20px) scale(0.95); }
+    75% { transform: translate(40px, 30px) scale(1.02); }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--fg-dim); }
+
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    transition: background var(--transition-speed), border-color var(--transition-speed);
+  }
+  .header-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: -0.5px;
+  }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0e0f13;
+    font-size: 0.9rem;
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+  }
+  .logo-icon::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+    animation: shimmer 3s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) rotate(25deg); }
+    100% { transform: translateX(100%) rotate(25deg); }
+  }
+  .logo span { color: var(--accent); }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    position: relative;
+    width: 56px;
+    height: 30px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+  }
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .theme-toggle-knob {
+    width: 22px;
+    height: 22px;
+    background: var(--accent);
+    border-radius: 50%;
+    transition: transform var(--transition-speed) cubic-bezier(0.68, -0.3, 0.32, 1.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: #0e0f13;
+  }
+  [data-theme="light"] .theme-toggle-knob {
+    transform: translateX(26px);
+  }
+  .theme-toggle-icon {
+    transition: opacity 0.2s;
+  }
+
+  /* View toggle */
+  .view-toggle {
+    display: flex;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all var(--transition-speed);
+  }
+  .view-toggle-btn {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    color: var(--fg-muted);
+    cursor: pointer;
+    transition: all 0.25s;
+    white-space: nowrap;
+  }
+  .view-toggle-btn.active {
+    background: var(--accent);
+    color: #0e0f13;
+  }
+  .view-toggle-btn:hover:not(.active) {
+    color: var(--fg);
+    background: var(--accent-glow);
+  }
+
+  /* Main layout */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* Editor section */
+  .editor-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .editor-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all var(--transition-speed);
+    box-shadow: var(--shadow-sm);
+  }
+  .editor-panel:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow), var(--shadow);
+  }
+
+  .editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+    transition: all var(--transition-speed);
+  }
+  .editor-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .editor-label .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .editor-label.original .dot { background: var(--removed-fg); }
+  .editor-label.changed .dot { background: var(--added-fg); }
+
+  .editor-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .editor-action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-tertiary);
+    color: var(--fg-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    transition: all 0.2s;
+  }
+  .editor-action-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .editor-textarea {
+    width: 100%;
+    min-height: 240px;
+    padding: 16px;
+    background: var(--code-bg);
+    color: var(--fg);
+    border: none;
+    outline: none;
+    resize: vertical;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    tab-size: 2;
+    transition: all var(--transition-speed);
+  }
+  .editor-textarea::placeholder {
+    color: var(--fg-dim);
+  }
+
+  /* Action bar */
+  .action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .compare-btn {
+    padding: 12px 32px;
+    background: var(--accent);
+    color: #0e0f13;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .compare-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+  .compare-btn:hover::before { transform: translateX(100%); }
+  .compare-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px var(--accent-glow);
+  }
+  .compare-btn:active { transform: translateY(0); }
+
+  .swap-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.25s;
+  }
+  .swap-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: rotate(180deg);
+  }
+
+  .clear-btn {
+    padding: 12px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--fg-muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .clear-btn:hover {
+    color: var(--removed-fg);
+    border-color: var(--removed-fg);
+    background: var(--removed-bg);
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    transition: all var(--transition-speed);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .stats-bar.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+  .stat-item .stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .stat-item.added .stat-dot { background: var(--added-fg); }
+  .stat-item.removed .stat-dot { background: var(--removed-fg); }
+  .stat-item.unchanged .stat-dot { background: var(--fg-dim); }
+  .stat-item .stat-count {
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-item.added .stat-count { color: var(--added-fg); }
+  .stat-item.removed .stat-count { color: var(--removed-fg); }
+  .stat-item.unchanged .stat-count { color: var(--fg-muted); }
+
+  .stat-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+  }
+
+  /* Diff output */
+  .diff-section {
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .diff-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .diff-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: all var(--transition-speed);
+  }
+
+  .diff-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+    transition: all var(--transition-speed);
+  }
+  .diff-header-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .diff-file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--fg-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Side by side diff */
+  .diff-side-by-side {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .diff-side-by-side .diff-pane {
+    overflow-x: auto;
+  }
+  .diff-side-by-side .diff-pane:first-child {
+    border-right: 1px solid var(--border);
+  }
+  .diff-pane-header {
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--fg-muted);
+    background: var(--gutter-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Unified diff */
+  .diff-unified {
+    overflow-x: auto;
+  }
+
+  /* Diff lines */
+  .diff-line {
+    display: flex;
+    min-height: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    transition: background 0.15s;
+  }
+  .diff-line:hover {
+    filter: brightness(1.1);
+  }
+  .diff-line-num {
+    min-width: 48px;
+    padding: 0 10px;
+    text-align: right;
+    color: var(--fg-dim);
+    background: var(--gutter-bg);
+    user-select: none;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    border-right: 1px solid var(--border);
+  }
+  .diff-line-sign {
+    min-width: 28px;
+    padding: 0 6px;
+    text-align: center;
+    font-weight: 700;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .diff-line-content {
+    padding: 0 12px;
+    white-space: pre;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  /* Line types */
+  .diff-line.added {
+    background: var(--added-line-bg);
+  }
+  .diff-line.added .diff-line-sign { color: var(--added-fg); }
+  .diff-line.added .diff-line-content { color: var(--added-fg); }
+
+  .diff-line.removed {
+    background: var(--removed-line-bg);
+  }
+  .diff-line.removed .diff-line-sign { color: var(--removed-fg); }
+  .diff-line.removed .diff-line-content { color: var(--removed-fg); }
+
+  .diff-line.unchanged {
+    background: transparent;
+  }
+  .diff-line.unchanged .diff-line-content { color: var(--fg); }
+
+  .diff-line.diff-separator {
+    background: var(--accent-glow);
+    min-height: 32px;
+    cursor: pointer;
+  }
+  .diff-line.diff-separator:hover {
+    background: rgba(240, 168, 48, 0.2);
+  }
+  .diff-line.diff-separator .diff-line-content {
+    color: var(--accent);
+    font-weight: 500;
+    font-size: 0.72rem;
+    font-style: italic;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Inline highlight for changed characters */
+  .char-added {
+    background: rgba(46, 204, 113, 0.25);
+    border-radius: 2px;
+    padding: 1px 0;
+  }
+  .char-removed {
+    background: rgba(231, 76, 60, 0.25);
+    border-radius: 2px;
+    padding: 1px 0;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--fg-dim);
+  }
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    color: var(--fg-dim);
+    opacity: 0.5;
+  }
+  .empty-state h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--fg-muted);
+  }
+  .empty-state p {
+    font-size: 0.85rem;
+  }
+
+  /* Toast */
+  .toast-container {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    padding: 12px 20px;
+    background: var(--toast-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    font-size: 0.82rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s;
+  }
+  .toast.leaving {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  .toast.success { border-left: 3px solid var(--added-fg); }
+  .toast.error { border-left: 3px solid var(--removed-fg); }
+  .toast.info { border-left: 3px solid var(--accent); }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(60px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* No differences banner */
+  .no-diff-banner {
+    padding: 40px;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .no-diff-banner i {
+    font-size: 2.5rem;
+    color: var(--added-fg);
+    margin-bottom: 12px;
+  }
+  .no-diff-banner h3 {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+  .no-diff-banner p {
+    color: var(--fg-muted);
+    font-size: 0.85rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .editor-section {
+      grid-template-columns: 1fr;
+    }
+    .diff-side-by-side {
+      grid-template-columns: 1fr;
+    }
+    .diff-side-by-side .diff-pane:first-child {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner { padding: 0 16px; }
+    main { padding: 16px; }
+    .action-bar { flex-wrap: wrap; }
+    .stats-bar { flex-wrap: wrap; gap: 10px; }
+    .view-toggle { display: none; }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Focus visible */
+  *:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Mini map style line diff indicators */
+  .diff-minimap {
+    position: absolute;
+    right: 8px;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 4px 0;
+    opacity: 0.6;
+  }
+  .minimap-segment {
+    flex: 1;
+    border-radius: 2px;
+    min-height: 2px;
+  }
+  .minimap-segment.added { background: var(--added-fg); }
+  .minimap-segment.removed { background: var(--removed-fg); }
+  .minimap-segment.unchanged { background: var(--fg-dim); opacity: 0.3; }
+</style>
+</head>
+<body>
+
+<div class="bg-atmosphere">
+  <div class="blob"></div>
+  <div class="blob"></div>
+  <div class="blob"></div>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-code-compare"></i></div>
+      Code<span>Diff</span>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle" role="tablist" aria-label="Diff view mode">
+        <button class="view-toggle-btn active" data-view="split" role="tab" aria-selected="true">
+          <i class="fas fa-columns"></i>&nbsp; Split
+        </button>
+        <button class="view-toggle-btn" data-view="unified" role="tab" aria-selected="false">
+          <i class="fas fa-list"></i>&nbsp; Unified
+        </button>
+      </div>
+      <div class="theme-toggle" role="switch" aria-label="Toggle dark/light mode" tabindex="0">
+        <div class="theme-toggle-knob">
+          <i class="fas fa-moon theme-toggle-icon" id="themeIcon"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Editor section -->
+  <section class="editor-section" aria-label="Code input">
+    <div class="editor-panel">
+      <div class="editor-header">
+        <div class="editor-label original">
+          <span class="dot"></span>
+          Original Code
+        </div>
+        <div class="editor-actions">
+          <button class="editor-action-btn" onclick="pasteCode('original')" title="Paste from clipboard" aria-label="Paste original code">
+            <i class="fas fa-paste"></i>
+          </button>
+          <button class="editor-action-btn" onclick="clearEditor('original')" title="Clear" aria-label="Clear original code">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <textarea id="originalCode" class="editor-textarea" placeholder="Paste your original code here..." spellcheck="false" aria-label="Original code input"></textarea>
+    </div>
+    <div class="editor-panel">
+      <div class="editor-header">
+        <div class="editor-label changed">
+          <span class="dot"></span>
+          Changed Code
+        </div>
+        <div class="editor-actions">
+          <button class="editor-action-btn" onclick="pasteCode('changed')" title="Paste from clipboard" aria-label="Paste changed code">
+            <i class="fas fa-paste"></i>
+          </button>
+          <button class="editor-action-btn" onclick="clearEditor('changed')" title="Clear" aria-label="Clear changed code">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <textarea id="changedCode" class="editor-textarea" placeholder="Paste your changed code here..." spellcheck="false" aria-label="Changed code input"></textarea>
+    </div>
+  </section>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <button class="swap-btn" onclick="swapCode()" title="Swap code" aria-label="Swap original and changed code">
+      <i class="fas fa-arrows-rotate"></i>
+    </button>
+    <button class="compare-btn" onclick="runDiff()" aria-label="Compare code">
+      <i class="fas fa-bolt"></i>
+      Compare Code
+    </button>
+    <button class="clear-btn" onclick="clearAll()" aria-label="Clear all">
+      <i class="fas fa-trash-can"></i>
+      Clear All
+    </button>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-item added">
+      <span class="stat-dot"></span>
+      <span>Added:</span>
+      <span class="stat-count" id="addedCount">0</span>
+    </div>
+    <div class="stat-separator"></div>
+    <div class="stat-item removed">
+      <span class="stat-dot"></span>
+      <span>Removed:</span>
+      <span class="stat-count" id="removedCount">0</span>
+    </div>
+    <div class="stat-separator"></div>
+    <div class="stat-item unchanged">
+      <span class="stat-dot"></span>
+      <span>Unchanged:</span>
+      <span class="stat-count" id="unchangedCount">0</span>
+    </div>
+    <div class="stat-separator"></div>
+    <div class="stat-item" style="color: var(--fg-muted);">
+      <i class="fas fa-file-lines" style="font-size:0.75rem;"></i>
+      <span>Total lines:</span>
+      <span class="stat-count" id="totalCount" style="color:var(--fg);">0</span>
+    </div>
+  </div>
+
+  <!-- Diff output -->
+  <section class="diff-section" id="diffSection" aria-label="Diff result">
+    <div class="diff-container" id="diffContainer">
+      <!-- Content injected by JS -->
+    </div>
+  </section>
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  // ============ State ============
+  let currentView = 'split';
+  let diffResult = null;
+
+  // ============ Sample Data ============
+  const sampleOriginal = `function calculateTotal(items) {
+  let total = 0;
+  for (let i = 0; i < items.length; i++) {
+    total += items[i].price;
+  }
+  return total;
+}
+
+function formatCurrency(amount) {
+  return '$' + amount.toFixed(2);
+}
+
+function processOrder(order) {
+  const total = calculateTotal(order.items);
+  console.log('Order total: ' + total);
+  return formatCurrency(total);
+}`;
+
+  const sampleChanged = `function calculateTotal(items, taxRate = 0.08) {
+  let subtotal = 0;
+  for (const item of items) {
+    subtotal += item.price * item.quantity;
+  }
+  const tax = subtotal * taxRate;
+  return subtotal + tax;
+}
+
+function formatCurrency(amount, currency = 'USD') {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency
+  }).format(amount);
+}
+
+function processOrder(order, options = {}) {
+  const { taxRate = 0.08, currency } = options;
+  const total = calculateTotal(order.items, taxRate);
+  console.log(\`Order total: \${formatCurrency(total, currency)}\`);
+  return formatCurrency(total, currency);
+}`;
+
+  // Pre-fill with sample data
+  document.getElementById('originalCode').value = sampleOriginal;
+  document.getElementById('changedCode').value = sampleChanged;
+
+  // ============ Theme Toggle ============
+  const themeToggle = document.querySelector('.theme-toggle');
+  const themeIcon = document.getElementById('themeIcon');
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('diff-theme', theme);
+    if (theme === 'dark') {
+      themeIcon.className = 'fas fa-moon theme-toggle-icon';
+    } else {
+      themeIcon.className = 'fas fa-sun theme-toggle-icon';
+    }
+  }
+
+  // Load saved theme
+  const savedTheme = localStorage.getItem('diff-theme') || 'dark';
+  setTheme(savedTheme);
+
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  themeToggle.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      themeToggle.click();
+    }
+  });
+
+  // ============ View Toggle ============
+  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-toggle-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      currentView = btn.dataset.view;
+      if (diffResult) {
+        renderDiff(diffResult);
+      }
+    });
+  });
+
+  // ============ LCS-based Diff Algorithm ============
+  function computeDiff(original, changed) {
+    const origLines = original.split('\n');
+    const changedLines = changed.split('\n');
+
+    // Build LCS table
+    const m = origLines.length;
+    const n = changedLines.length;
+
+    // Optimize: use rolling array for large files
+    const maxLines = 5000;
+    if (m * n > maxLines * maxLines) {
+      // Simple line-by-line diff for very large inputs
+      return simpleDiff(origLines, changedLines);
+    }
+
+    const dp = [];
+    for (let i = 0; i <= m; i++) {
+      dp[i] = new Array(n + 1).fill(0);
+    }
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (origLines[i - 1] === changedLines[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1] + 1;
+        } else {
+          dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+      }
+    }
+
+    // Backtrack to find diff
+    const result = [];
+    let i = m, j = n;
+
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && origLines[i - 1] === changedLines[j - 1]) {
+        result.unshift({
+          type: 'unchanged',
+          originalLineNum: i,
+          changedLineNum: j,
+          content: origLines[i - 1]
+        });
+        i--; j--;
+      } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+        result.unshift({
+          type: 'added',
+          changedLineNum: j,
+          content: changedLines[j - 1]
+        });
+        j--;
+      } else {
+        result.unshift({
+          type: 'removed',
+          originalLineNum: i,
+          content: origLines[i - 1]
+        });
+        i--;
+      }
+    }
+
+    return result;
+  }
+
+  function simpleDiff(origLines, changedLines) {
+    const result = [];
+    const maxLen = Math.max(origLines.length, changedLines.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (i < origLines.length && i < changedLines.length && origLines[i] === changedLines[i]) {
+        result.push({
+          type: 'unchanged',
+          originalLineNum: i + 1,
+          changedLineNum: i + 1,
+          content: origLines[i]
+        });
+      } else {
+        if (i < origLines.length) {
+          result.push({ type: 'removed', originalLineNum: i + 1, content: origLines[i] });
+        }
+        if (i < changedLines.length) {
+          result.push({ type: 'added', changedLineNum: i + 1, content: changedLines[i] });
+        }
+      }
+    }
+    return result;
+  }
+
+  // ============ Character-level diff for modified lines ============
+  function charDiff(oldStr, newStr) {
+    // Find common prefix
+    let prefixLen = 0;
+    while (prefixLen < oldStr.length && prefixLen < newStr.length && oldStr[prefixLen] === newStr[prefixLen]) {
+      prefixLen++;
+    }
+    // Find common suffix
+    let suffixLen = 0;
+    while (
+      suffixLen < (oldStr.length - prefixLen) &&
+      suffixLen < (newStr.length - prefixLen) &&
+      oldStr[oldStr.length - 1 - suffixLen] === newStr[newStr.length - 1 - suffixLen]
+    ) {
+      suffixLen++;
+    }
+
+    const oldMiddle = oldStr.slice(prefixLen, oldStr.length - suffixLen);
+    const newMiddle = newStr.slice(prefixLen, newStr.length - suffixLen);
+
+    if (oldMiddle || newMiddle) {
+      return {
+        oldHtml: escapeHtml(oldStr.slice(0, prefixLen)) +
+          '<span class="char-removed">' + escapeHtml(oldMiddle) + '</span>' +
+          escapeHtml(oldStr.slice(oldStr.length - suffixLen)),
+        newHtml: escapeHtml(newStr.slice(0, prefixLen)) +
+          '<span class="char-added">' + escapeHtml(newMiddle) + '</span>' +
+          escapeHtml(newStr.slice(newStr.length - suffixLen))
+      };
+    }
+    return null;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ============ Group consecutive removed+added for inline char diff ============
+  function groupDiffLines(lines) {
+    const groups = [];
+    let i = 0;
+    while (i < lines.length) {
+      if (lines[i].type === 'unchanged') {
+        groups.push([lines[i]]);
+        i++;
+      } else {
+        // Collect consecutive non-unchanged lines
+        const group = [];
+        while (i < lines.length && lines[i].type !== 'unchanged') {
+          group.push(lines[i]);
+          i++;
+        }
+        groups.push(group);
+      }
+    }
+    return groups;
+  }
+
+  function enhanceDiffWithCharDiff(lines) {
+    const groups = groupDiffLines(lines);
+    const result = [];
+
+    for (const group of groups) {
+      if (group.length === 1 && group[0].type === 'unchanged') {
+        result.push(group[0]);
+        continue;
+      }
+
+      const removed = group.filter(l => l.type === 'removed');
+      const added = group.filter(l => l.type === 'added');
+
+      // Try to pair removed and added lines for character diff
+      const paired = Math.min(removed.length, added.length);
+      for (let p = 0; p < paired; p++) {
+        const charResult = charDiff(removed[p].content, added[p].content);
+        if (charResult) {
+          result.push({
+            ...removed[p],
+            htmlContent: charResult.oldHtml
+          });
+          result.push({
+            ...added[p],
+            htmlContent: charResult.newHtml
+          });
+        } else {
+          result.push(removed[p]);
+          result.push(added[p]);
+        }
+      }
+      // Add remaining unpaired lines
+      for (let p = paired; p < removed.length; p++) result.push(removed[p]);
+      for (let p = paired; p < added.length; p++) result.push(added[p]);
+    }
+
+    return result;
+  }
+
+  // ============ Render Diff ============
+  function renderDiff(lines) {
+    const container = document.getElementById('diffContainer');
+
+    const addedCount = lines.filter(l => l.type === 'added').length;
+    const removedCount = lines.filter(l => l.type === 'removed').length;
+    const unchangedCount = lines.filter(l => l.type === 'unchanged').length;
+
+    // Update stats
+    document.getElementById('addedCount').textContent = addedCount;
+    document.getElementById('removedCount').textContent = removedCount;
+    document.getElementById('unchangedCount').textContent = unchangedCount;
+    document.getElementById('totalCount').textContent = lines.length;
+    document.getElementById('statsBar').classList.add('visible');
+
+    // Check if no differences
+    if (addedCount === 0 && removedCount === 0) {
+      container.innerHTML = `
+        <div class="no-diff-banner">
+          <i class="fas fa-check-circle"></i>
+          <h3>Identical Code</h3>
+          <p>Both code snippets are exactly the same. No differences found.</p>
+        </div>
+      `;
+      document.getElementById('diffSection').classList.add('visible');
+      return;
+    }
+
+    if (currentView === 'split') {
+      renderSplitView(container, lines);
+    } else {
+      renderUnifiedView(container, lines);
+    }
+
+    document.getElementById('diffSection').classList.add('visible');
+  }
+
+  function renderSplitView(container, lines) {
+    const leftLines = [];
+    const rightLines = [];
+
+    // Add separator markers for groups of changes
+    const groups = groupDiffLines(lines);
+    let origLine = 0;
+    let chLine = 0;
+
+    for (const group of groups) {
+      if (group.length === 1 && group[0].type === 'unchanged') {
+        const line = group[0];
+        origLine = line.originalLineNum;
+        chLine = line.changedLineNum;
+        leftLines.push(line);
+        rightLines.push(line);
+      } else {
+        const removed = group.filter(l => l.type === 'removed');
+        const added = group.filter(l => l.type === 'added');
+
+        for (const r of removed) {
+          leftLines.push(r);
+          // Empty placeholder on right
+          rightLines.push({ type: 'placeholder', content: '' });
+        }
+        for (const a of added) {
+          // Empty placeholder on left
+          leftLines.push({ type: 'placeholder', content: '' });
+          rightLines.push(a);
+        }
+      }
+    }
+
+    let leftHtml = '';
+    let rightHtml = '';
+    let lNum = 0;
+    let rNum = 0;
+
+    for (let i = 0; i < leftLines.length; i++) {
+      const ll = leftLines[i];
+      const rl = rightLines[i];
+
+      // Left
+      if (ll.type === 'unchanged') {
+        lNum++;
+        leftHtml += buildDiffLine('unchanged', lNum, '', escapeHtml(ll.content));
+      } else if (ll.type === 'removed') {
+        lNum++;
+        leftHtml += buildDiffLine('removed', lNum, '-', ll.htmlContent || escapeHtml(ll.content));
+      } else {
+        leftHtml += buildDiffLine('placeholder', '', '', '');
+      }
+
+      // Right
+      if (rl.type === 'unchanged') {
+        rNum++;
+        rightHtml += buildDiffLine('unchanged', rNum, '', escapeHtml(rl.content));
+      } else if (rl.type === 'added') {
+        rNum++;
+        rightHtml += buildDiffLine('added', rNum, '+', rl.htmlContent || escapeHtml(rl.content));
+      } else {
+        rightHtml += buildDiffLine('placeholder', '', '', '');
+      }
+    }
+
+    container.innerHTML = `
+      <div class="diff-header">
+        <div class="diff-header-label">
+          <i class="fas fa-code-compare"></i> Diff Result
+        </div>
+        <div class="diff-file-info">
+          <i class="fas fa-file-code"></i>
+          Split View
+        </div>
+      </div>
+      <div class="diff-side-by-side">
+        <div class="diff-pane">
+          <div class="diff-pane-header">
+            <span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--removed-fg);display:inline-block;"></span>
+            Original
+          </div>
+          ${leftHtml}
+        </div>
+        <div class="diff-pane">
+          <div class="diff-pane-header">
+            <span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--added-fg);display:inline-block;"></span>
+            Changed
+          </div>
+          ${rightHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderUnifiedView(container, lines) {
+    let html = '';
+    let lastType = null;
+    let origLine = 0;
+    let chLine = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Add separator between change groups
+      if (line.type !== 'unchanged' && lastType === 'unchanged' && i > 0) {
+        // Count context
+        const nextChangeEnd = findChangeEnd(lines, i);
+        const changeLines = lines.slice(i, nextChangeEnd);
+        const remCount = changeLines.filter(l => l.type === 'removed').length;
+        const addCount = changeLines.filter(l => l.type === 'added').length;
+        html += `<div class="diff-line diff-separator">
+          <div class="diff-line-num"></div>
+          <div class="diff-line-sign"></div>
+          <div class="diff-line-content">${remCount} removed & ${addCount} added</div>
+        </div>`;
+      }
+
+      if (line.type === 'unchanged') {
+        origLine = line.originalLineNum;
+        chLine = line.changedLineNum;
+        html += buildDiffLine('unchanged', origLine, '', escapeHtml(line.content), chLine);
+      } else if (line.type === 'removed') {
+        origLine = line.originalLineNum;
+        html += buildDiffLine('removed', origLine, '-', line.htmlContent || escapeHtml(line.content));
+      } else if (line.type === 'added') {
+        chLine = line.changedLineNum;
+        html += buildDiffLine('added', chLine, '+', line.htmlContent || escapeHtml(line.content));
+      }
+
+      lastType = line.type;
+    }
+
+    container.innerHTML = `
+      <div class="diff-header">
+        <div class="diff-header-label">
+          <i class="fas fa-code-compare"></i> Diff Result
+        </div>
+        <div class="diff-file-info">
+          <i class="fas fa-file-code"></i>
+          Unified View
+        </div>
+      </div>
+      <div class="diff-unified">
+        ${html}
+      </div>
+    `;
+  }
+
+  function findChangeEnd(lines, start) {
+    let i = start;
+    while (i < lines.length && lines[i].type !== 'unchanged') i++;
+    return i;
+  }
+
+  function buildDiffLine(type, lineNum, sign, content, secondaryLineNum) {
+    const contentStyle = type === 'placeholder'
+      ? 'style="min-height:24px;"'
+      : '';
+    const lineNumStr = lineNum !== '' && lineNum !== undefined ? lineNum : '';
+    const secondaryStr = secondaryLineNum ? `<span style="opacity:0.4;font-size:0.65rem;margin-left:2px;">${secondaryLineNum}</span>` : '';
+
+    return `<div class="diff-line ${type}">
+      <div class="diff-line-num">${lineNumStr}${secondaryStr}</div>
+      <div class="diff-line-sign">${sign}</div>
+      <div class="diff-line-content" ${contentStyle}>${content}</div>
+    </div>`;
+  }
+
+  // ============ Actions ============
+  function runDiff() {
+    const original = document.getElementById('originalCode').value;
+    const changed = document.getElementById('changedCode').value;
+
+    if (!original.trim() && !changed.trim()) {
+      showToast('Please enter code in both editors to compare.', 'error');
+      return;
+    }
+
+    const rawDiff = computeDiff(original, changed);
+    diffResult = enhanceDiffWithCharDiff(rawDiff);
+    renderDiff(diffResult);
+    showToast('Comparison complete!', 'success');
+
+    // Scroll to diff
+    setTimeout(() => {
+      document.getElementById('diffSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
+  function swapCode() {
+    const origEl = document.getElementById('originalCode');
+    const chEl = document.getElementById('changedCode');
+    const temp = origEl.value;
+    origEl.value = chEl.value;
+    chEl.value = temp;
+    showToast('Code swapped!', 'info');
+  }
+
+  function clearEditor(type) {
+    if (type === 'original') {
+      document.getElementById('originalCode').value = '';
+    } else {
+      document.getElementById('changedCode').value = '';
+    }
+  }
+
+  function clearAll() {
+    document.getElementById('originalCode').value = '';
+    document.getElementById('changedCode').value = '';
+    document.getElementById('diffContainer').innerHTML = '';
+    document.getElementById('diffSection').classList.remove('visible');
+    document.getElementById('statsBar').classList.remove('visible');
+    diffResult = null;
+    showToast('All cleared.', 'info');
+  }
+
+  async function pasteCode(type) {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (type === 'original') {
+        document.getElementById('originalCode').value = text;
+      } else {
+        document.getElementById('changedCode').value = text;
+      }
+      showToast('Pasted from clipboard!', 'success');
+    } catch {
+      showToast('Unable to access clipboard. Please paste manually.', 'error');
+    }
+  }
+
+  // ============ Toast ============
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+    const colors = { success: 'var(--added-fg)', error: 'var(--removed-fg)', info: 'var(--accent)' };
+    toast.innerHTML = `<i class="fas ${icons[type]}" style="color:${colors[type]}"></i> ${message}`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('leaving');
+      setTimeout(() => toast.remove(), 300);
+    }, 2500);
+  }
+
+  // ============ Auto-compare on load ============
+  window.addEventListener('DOMContentLoaded', () => {
+    // Small delay for visual effect
+    setTimeout(runDiff, 400);
+  });
+
+  // ============ Keyboard shortcut ============
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      runDiff();
+    }
+  });
+</script>
+
+</body>
+</html>
