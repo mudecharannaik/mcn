@@ -489,8 +489,13 @@
         // --- 4. State & Preview Logic ---
         function updateState(path, value) {
             const keys = path.split('.');
-            if (keys.length === 2) resumeData[keys[0]][keys[1]] = value;
-            else if (keys.length === 3) resumeData[keys[0]][parseInt(keys[1])][keys[2]] = value;
+            if (keys.length === 1) {
+                resumeData[keys[0]] = value;
+            } else if (keys.length === 2) {
+                resumeData[keys[0]][keys[1]] = value;
+            } else if (keys.length === 3) {
+                resumeData[keys[0]][parseInt(keys[1])][keys[2]] = value;
+            }
             renderPreview();
         }
 
