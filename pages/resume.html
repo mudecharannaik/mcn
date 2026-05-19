@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealResume Pro - Advanced Builder</title>
+    
+    <!-- Google Fonts (Preloaded for instant switching) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Raleway:wght@400;600;700&family=Roboto:wght@400;500;700&family=Source+Sans+Pro:wght@400;600;700&family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* --- CSS Variables --- */
+        :root {
+            --bg-body: #f3f4f6;
+            --bg-panel: #ffffff;
+            --bg-input: #f9fafb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --primary: #2563eb;
+            --accent: #1d4ed8;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --danger: #ef4444;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #111827;
+            --bg-panel: #1f2937;
+            --bg-input: #374151;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border-color: #4b5563;
+            --primary: #60a5fa;
+            --accent: #3b82f6;
+            --shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* --- Header --- */
+        header {
+            height: 70px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            flex-shrink: 0;
+            box-shadow: var(--shadow);
+        }
+
+        .brand { font-weight: 700; font-size: 1.3rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        
+        .header-controls { display: flex; gap: 10px; align-items: center; }
+
+        select {
+            padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);
+            background: var(--bg-input); color: var(--text-main); font-family: inherit; cursor: pointer;
+        }
+
+        .btn-group { display: flex; gap: 5px; }
+        .btn {
+            padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);
+            cursor: pointer; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;
+            background: var(--bg-panel); color: var(--text-main); transition: all 0.2s; white-space: nowrap;
+        }
+        .btn:hover { background: var(--bg-input); border-color: var(--primary); }
+        .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-primary:hover { background: var(--accent); }
+        .btn-icon { padding: 8px; border-radius: 50%; width: 36px; height: 36px; justify-content: center; }
+
+        /* --- Layout --- */
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+
+        /* --- Editor (Left) --- */
+        .editor {
+            width: 480px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto; 
+            padding: 20px;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        /* Accordion */
+        .accordion { border-bottom: 1px solid var(--border-color); margin-bottom: 5px; }
+        .accordion-header { padding: 15px 0; cursor: pointer; font-weight: 600; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .accordion-header:hover { color: var(--primary); }
+        .accordion-header i { transition: transform 0.2s; font-size: 0.8rem; }
+        .accordion.active .accordion-header i { transform: rotate(180deg); }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .accordion.active .accordion-content { max-height: 5000px; }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+        .form-row { display: flex; gap: 10px; align-items: flex-start; }
+        .form-row > * { flex: 1; }
+        
+        input, textarea {
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border-color);
+            border-radius: 6px; background: var(--bg-input); color: var(--text-main);
+            font-family: inherit; font-size: 0.9rem; transition: border 0.2s;
+        }
+        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); outline: none; }
+        textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+        
+        .icon-input-wrapper { display: flex; align-items: center; gap: 8px; background: var(--bg-input); padding: 2px 10px; border: 1px solid var(--border-color); border-radius: 6px; }
+        .icon-input-wrapper i { color: var(--text-muted); font-size: 0.9rem; }
+        .icon-input-wrapper input { border: none; background: transparent; padding: 8px 0; box-shadow: none; }
+        .icon-input-wrapper input:focus { box-shadow: none; }
+
+        /* Dynamic Items */
+        .item-card { background: var(--bg-input); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 15px; position: relative; }
+        .item-card-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); }
+        .btn-remove { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 0.9rem; }
+        .btn-remove:hover { color: #b91c1c; }
+        .btn-add { width: 100%; padding: 10px; border: 1px dashed var(--primary); background: rgba(37, 99, 235, 0.05); color: var(--primary); border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 20px; }
+        .btn-add:hover { background: rgba(37, 99, 235, 0.1); }
+
+        /* --- Preview (Right) --- */
+        .preview { flex: 1; background: #525659; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; position: relative; }
+
+        #preview-wrapper { transform-origin: top center; transition: transform 0.3s ease; }
+
+        #a4-paper {
+            width: 210mm; min-height: 297mm; background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 20mm; color: #000;
+            line-height: 1.5; 
+            font-size: 11pt; /* Base font size - THIS IS WHAT CHANGES */
+            font-family: 'Merriweather', serif;
+        }
+
+        /* PDF Loading Overlay */
+        #pdf-loading { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; border-radius: 8px; }
+        .spinner { border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 4px solid white; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Resume Internal Styling - USING EM UNITS SO IT SCALES WITH BASE SIZE */
+        .res-name { text-align: center; font-size: 2.2em; font-weight: 900; text-transform: uppercase; margin-bottom: 0.1em; letter-spacing: 1px; }
+        .res-title { text-align: center; font-size: 0.95em; font-weight: 700; color: #444; margin-bottom: 1em; text-transform: uppercase; }
+        
+        /* Single Line Contact Styling (Web View) */
+        .res-contact { 
+            text-align: center; 
+            font-size: 0.8em; 
+            font-family: 'Inter', sans-serif; 
+            margin-bottom: 1.5em; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            gap: 0.5em; 
+            flex-wrap: nowrap; /* Force single line on screen */
+            white-space: nowrap; 
+        }
+        .res-contact a { text-decoration: none; color: #333; display: inline-flex; align-items: center; gap: 4px; }
+        .res-contact a:hover { text-decoration: underline; color: var(--primary); }
+        .res-contact .separator { color: #888; font-size: 0.8em; }
+
+        .res-sec { margin-bottom: 1em; }
+        .res-sec-head { font-size: 1em; font-weight: 700; border-bottom: 1px solid #000; padding-bottom: 0.2em; margin-bottom: 0.6em; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .res-entry { margin-bottom: 0.8em; }
+        .res-entry-head { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.95em; }
+        .res-entry-head a { text-decoration: none; color: #000; }
+        .res-entry-head a:hover { color: var(--primary); text-decoration: underline; }
+        .res-entry-sub { display: flex; justify-content: space-between; font-style: italic; font-size: 0.9em; margin-bottom: 0.3em; color: #555; }
+        .res-desc { font-size: 0.9em; text-align: justify; white-space: pre-wrap; }
+        .res-desc ul { padding-left: 1.2em; margin-top: 3px; margin-bottom: 3px; }
+        .res-desc li { margin-bottom: 2px; }
+        .res-tech { font-size: 0.85em; font-family: 'Inter', sans-serif; color: #555; margin-top: 0.2em; }
+        .res-tech strong { color: #333; }
+
+        .res-skills { display: flex; flex-wrap: wrap; gap: 0.4em; }
+        .skill-tag { background: #eee; padding: 0.1em 0.5em; font-size: 0.8em; font-family: 'Inter', sans-serif; border-radius: 3px; }
+
+        /* --- Toast --- */
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 20px; border-radius: 6px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1000; }
+        .toast.show { opacity: 1; }
+        .hidden { display: none !important; }
+
+        /* --- Print & PDF --- */
+        @media print {
+            body { height: auto; overflow: visible; background: white; }
+            header, .editor, .toast, #pdf-loading { display: none !important; }
+            .preview { padding: 0; background: white; display: block; overflow: visible; }
+            #a4-paper { box-shadow: none; width: 100%; padding: 0; margin: 0; min-height: auto; }
+            
+            /* Print Specific Contact Layout - WRAPS NICELY FOR FULL URLS */
+            .res-contact {
+                flex-wrap: wrap; /* Allow wrapping */
+                white-space: normal; /* Allow text wrap */
+                font-size: 0.85em; /* Slightly smaller for print readability */
+                gap: 0.6em; /* Space between items */
+            }
+            .res-contact a { white-space: nowrap; margin-bottom: 0.3em; } /* Prevent single link from breaking */
+            
+            /* Expand links to show full URL text for Print/PDF-Print version */
+            .res-contact a, .res-entry-head a { text-decoration: none; color: black; }
+            .res-contact a[href]::after, .res-entry-head a[href]::after { content: " (" attr(href) ")"; font-size: 0.9em; color: #555; font-weight: normal; }
+            .res-contact a i, .res-entry-head a i { display: none; } /* Hide icons in print */ 
+            .res-contact .separator { display: none; } /* Hide dots in print, let URLs space naturally */
+            @page { margin: 10mm; size: auto; }
+        }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; overflow-y: auto; }
+            .editor { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .preview { padding: 20px; height: auto; }
+            #a4-paper { width: 100%; height: auto; }
+            .btn span { display: none; } 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand"><i class="fa-solid fa-file-contract"></i> RealResume Pro</div>
+        
+        <div class="header-controls">
+            <!-- Font Selector -->
+            <select id="font-selector" onchange="changeFont(this.value)" title="Change Resume Font">
+                <option value="Merriweather">Merriweather</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Lato">Lato</option>
+                <option value="Open Sans">Open Sans</option>
+                <option value="Montserrat">Montserrat</option>
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Source Sans Pro">Source Sans Pro</option>
+                <option value="Raleway">Raleway</option>
+                <option value="Crimson Text">Crimson Text</option>
+                <option value="Ubuntu">Ubuntu</option>
+            </select>
+
+            <!-- Font Size Selector -->
+            <select id="font-size-selector" onchange="changeFontSize(this.value)" title="Change Font Size">
+                <option value="9">Size: Small (9pt)</option>
+                <option value="10">Size: Medium (10pt)</option>
+                <option value="11" selected>Size: Default (11pt)</option>
+                <option value="12">Size: Large (12pt)</option>
+            </select>
+
+            <div class="btn-group">
+                <button class="btn" onclick="exportMarkdown()" title="Export Markdown"><i class="fa-brands fa-markdown"></i> <span>MD</span></button>
+                <button class="btn" onclick="exportJSON()" title="Export JSON"><i class="fa-solid fa-code"></i> <span>JSON</span></button>
+                <button class="btn" onclick="exportTeX()" title="Export LaTeX Source Code"><i class="fa-solid fa-file-code"></i> <span>TeX</span></button>
+                
+                <!-- Split PDF Buttons -->
+                <button class="btn" onclick="printPDF()" title="Print / Save as Printable PDF (Shows full URLs)">
+                    <i class="fa-solid fa-print"></i> <span>PDF Print</span>
+                </button>
+                <button class="btn btn-primary" onclick="exportPDF()" title="Export High-Quality PDF (Active Hyperlinks)">
+                    <i class="fa-solid fa-file-export"></i> <span>PDF Export</span>
+                </button>
+            </div>
+
+            <button class="btn btn-icon" onclick="toggleTheme()" title="Toggle Theme">
+                <i class="fa-solid fa-moon" id="theme-icon"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- LEFT: EDITOR -->
+        <div class="editor" id="editor-container"></div>
+
+        <!-- RIGHT: PREVIEW -->
+        <div class="preview">
+            <div id="pdf-loading" class="hidden">
+                <div class="spinner"></div>
+                <div>Generating High-Quality PDF...</div>
+            </div>
+            <div id="preview-wrapper">
+                <div id="a4-paper"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Action Successful</div>
+
+    <script>
+        // --- 1. State Management ---
+        const defaultData = {
+            personal: { 
+                name: "Arjun Patel", title: "Junior Data Analyst", email: "arjun.patel@email.com", 
+                phone: "(987) 654-3210", location: "Mumbai, India", 
+                linkedin: "linkedin.com/in/arjunpatel", github: "github.com/arjunpatel",
+                kaggle: "kaggle.com/arjunpatel", website: "" 
+            },
+            summary: "Motivated and detail-oriented recent graduate with a B.Tech in Computer Science. Proficient in SQL, Python, and data visualization tools like Tableau. Proven ability to transform raw data into actionable insights through academic projects and internships. Eager to leverage analytical skills to drive business success.",
+            experience: [
+                { 
+                    role: "Data Analyst Intern", 
+                    company: "FinTech Solutions Pvt. Ltd.", 
+                    date: "Jan 2023 - May 2023", 
+                    description: "• Cleaned and preprocessed large financial datasets using Python (Pandas).\n• Created interactive dashboards in Tableau to track weekly KPIs for the marketing team.\n• Automated daily reporting tasks, saving 4 hours of manual work per week." 
+                },
+                { 
+                    role: "Research Assistant (Data)", 
+                    company: "University Data Analytics Lab", 
+                    date: "Aug 2022 - Dec 2022", 
+                    description: "• Conducted statistical analysis on survey data for urban planning research.\n• Visualized geographic data using Python (Matplotlib/Seaborn) for academic publications.\n• Maintained SQL databases to ensure data integrity for ongoing longitudinal studies." 
+                }
+            ],
+            education: [
+                { 
+                    school: "Vellore Institute of Technology", 
+                    degree: "Bachelor of Technology in Computer Science", 
+                    date: "2019 - 2023", 
+                    details: "GPA: 8.7/10 | Data Science Specialization" 
+                }
+            ],
+            skills: "Python, SQL, Tableau, Power BI, Advanced Excel, Pandas, NumPy, Statistical Analysis, Data Cleaning",
+            projects: [
+                { 
+                    name: "Customer Churn Prediction", 
+                    link: "github.com/arjunpatel/churn-prediction", 
+                    tech: "Python, Scikit-Learn, Pandas", 
+                    description: "Built a logistic regression model to predict customer churn with 85% accuracy. Performed EDA and feature engineering on a telecom dataset to identify key retention factors." 
+                },
+                { 
+                    name: "Superstore Sales Dashboard", 
+                    link: "public.tableau.com/views/superstore-dashboard", 
+                    tech: "Tableau, SQL", 
+                    description: "Designed an interactive dashboard analyzing 3 years of sales data. Identified top-performing regions and seasonal trends, presenting actionable insights via story points." 
+                },
+                { 
+                    name: "Real Estate Web Scraper", 
+                    link: "github.com/arjunpatel/property-scraper", 
+                    tech: "Python, BeautifulSoup, Selenium", 
+                    description: "Scraped property listings from multiple real estate websites. Cleaned data and built a basic linear regression model to predict housing prices based on location and amenities." 
+                }
+            ],
+            awards: [
+                { name: "Google Data Analytics Professional Certificate", date: "2022", giver: "Coursera" }
+            ]
+        };
+
+        let resumeData = JSON.parse(JSON.stringify(defaultData));
+
+        // --- 2. Initialization ---
+        window.addEventListener('DOMContentLoaded', () => {
+            buildEditor();
+            renderPreview();
+        });
+
+        // Helper to ensure http prefix for links
+        function formatHref(url) {
+            if (!url) return '';
+            if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('tel:')) return url;
+            return `https://${url}`;
+        }
+
+        // --- 3. UI Logic: Build Editor ---
+        function buildEditor() {
+            const editor = document.getElementById('editor-container');
+            editor.innerHTML = '';
+
+            // Personal
+            editor.appendChild(createSection('Personal Information', `
+                <div class="form-row">
+                    <div class="form-group"><label>Full Name</label><input type="text" data-path="personal.name" value="${resumeData.personal.name}"></div>
+                    <div class="form-group"><label>Job Title</label><input type="text" data-path="personal.title" value="${resumeData.personal.title}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Email</label><div class="icon-input-wrapper"><i class="fa-solid fa-envelope"></i><input type="text" data-path="personal.email" value="${resumeData.personal.email}"></div></div>
+                    <div class="form-group"><label>Phone</label><div class="icon-input-wrapper"><i class="fa-solid fa-phone"></i><input type="text" data-path="personal.phone" value="${resumeData.personal.phone}"></div></div>
+                </div>
+                <div class="form-group"><label>Location</label><input type="text" data-path="personal.location" value="${resumeData.personal.location}"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>LinkedIn</label><div class="icon-input-wrapper"><i class="fa-brands fa-linkedin"></i><input type="text" data-path="personal.linkedin" value="${resumeData.personal.linkedin}"></div></div>
+                    <div class="form-group"><label>GitHub</label><div class="icon-input-wrapper"><i class="fa-brands fa-github"></i><input type="text" data-path="personal.github" value="${resumeData.personal.github}"></div></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Kaggle</label><div class="icon-input-wrapper"><i class="fa-brands fa-kaggle"></i><input type="text" data-path="personal.kaggle" value="${resumeData.personal.kaggle}"></div></div>
+                    <div class="form-group"><label>Website</label><div class="icon-input-wrapper"><i class="fa-solid fa-globe"></i><input type="text" data-path="personal.website" value="${resumeData.personal.website}"></div></div>
+                </div>
+            `));
+
+            // Summary
+            editor.appendChild(createSection('Professional Summary', `
+                <div class="form-group"><textarea data-path="summary" rows="4">${resumeData.summary}</textarea></div>
+            `));
+
+            // Dynamic Sections
+            editor.appendChild(buildDynamicSection('Work Experience', 'experience', ['role', 'company', 'date', 'description'], ['Role', 'Company', 'Date Range', 'Description (use • for bullets)']));
+            editor.appendChild(buildDynamicSection('Education', 'education', ['school', 'degree', 'date', 'details'], ['School', 'Degree', 'Date', 'Details (GPA, Honors)']));
+            editor.appendChild(buildDynamicSection('Projects', 'projects', ['name', 'link', 'tech', 'description'], ['Project Name', 'Project Link (URL)', 'Languages / Tech Used', 'Description']));
+            editor.appendChild(buildDynamicSection('Awards & Certifications', 'awards', ['name', 'date', 'giver'], ['Award Name', 'Date/Year', 'Issuing Organization']));
+
+            // Skills
+            editor.appendChild(createSection('Skills', `
+                <div class="form-group"><label>Skills (Comma Separated)</label><input type="text" data-path="skills" value="${resumeData.skills}"></div>
+            `));
+
+            // Attach listeners
+            editor.querySelectorAll('input, textarea').forEach(el => {
+                el.addEventListener('input', (e) => updateState(e.target.dataset.path, e.target.value));
+            });
+        }
+
+        function createSection(title, contentHtml) {
+            const div = document.createElement('div');
+            div.className = 'accordion active';
+            div.innerHTML = `
+                <div class="accordion-header"><span>${title}</span> <i class="fa-solid fa-chevron-down"></i></div>
+                <div class="accordion-content">${contentHtml}</div>
+            `;
+            div.querySelector('.accordion-header').onclick = (e) => div.classList.toggle('active');
+            return div;
+        }
+
+        function buildDynamicSection(title, dataKey, fields, labels) {
+            const container = document.createElement('div');
+            let html = '';
+            
+            resumeData[dataKey].forEach((item, index) => {
+                html += `<div class="item-card" data-type="${dataKey}" data-index="${index}">
+                    <div class="item-card-header">
+                        <span>Entry ${index + 1}</span>
+                        <button class="btn-remove" data-type="${dataKey}" data-index="${index}"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                
+                fields.forEach((field, fIdx) => {
+                    const val = item[field] || '';
+                    const isDesc = field === 'description';
+                    html += `<div class="form-group">
+                        <label>${labels[fIdx]}</label>
+                        ${isDesc ? `<textarea data-path="${dataKey}.${index}.${field}" rows="3">${val}</textarea>` : `<input type="text" data-path="${dataKey}.${index}.${field}" value="${val}">`}
+                    </div>`;
+                });
+                html += `</div>`;
+            });
+
+            html += `<button class="btn-add" data-type="${dataKey}"><i class="fa-solid fa-plus"></i> Add Item</button>`;
+
+            const section = createSection(title, html);
+            
+            section.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-remove')) {
+                    const btn = e.target.closest('.btn-remove');
+                    resumeData[btn.dataset.type].splice(parseInt(btn.dataset.index), 1);
+                    buildEditor(); 
+                    renderPreview();
+                } else if (e.target.closest('.btn-add')) {
+                    const btn = e.target.closest('.btn-add');
+                    resumeData[btn.dataset.type].push(getTemplate(btn.dataset.type));
+                    buildEditor();
+                    renderPreview();
+                }
+            });
+
+            return section;
+        }
+
+        function getTemplate(type) {
+            switch(type) {
+                case 'experience': return { role: 'New Role', company: 'Company', date: 'Date', description: '• Description...' };
+                case 'education': return { school: 'University', degree: 'Degree', date: 'Date', details: '' };
+                case 'projects': return { name: 'New Project', link: '', tech: '', description: 'Description...' };
+                case 'awards': return { name: 'Award', date: 'Year', giver: 'Organization' };
+                default: return {};
+            }
+        }
+
+        // --- 4. State & Preview Logic ---
+        function updateState(path, value) {
+            const keys = path.split('.');
+            if (keys.length === 2) resumeData[keys[0]][keys[1]] = value;
+            else if (keys.length === 3) resumeData[keys[0]][parseInt(keys[1])][keys[2]] = value;
+            renderPreview();
+        }
+
+        function formatDescription(text) {
+            if (!text) return '';
+            if (text.includes('•')) {
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                return `<ul>${lines.map(l => `<li>${l.replace('•', '').trim()}</li>`).join('')}</ul>`;
+            }
+            return `<p>${text.replace(/\n/g, '<br>')}</p>`;
+        }
+
+        function renderPreview() {
+            const p = resumeData.personal;
+            const skills = resumeData.skills.split(',').map(s => s.trim()).filter(s => s);
+            
+            // Build contact items array
+            const contactItems = [];
+            if (p.location) contactItems.push(`<a href="https://maps.google.com/?q=${encodeURIComponent(p.location)}" target="_blank"><i class="fa-solid fa-location-dot"></i> ${p.location}</a>`);
+            if (p.email) contactItems.push(`<a href="mailto:${p.email}"><i class="fa-brands fa-google"></i> Gmail</a>`);
+            if (p.phone) contactItems.push(`<a href="tel:${p.phone}"><i class="fa-solid fa-phone"></i> ${p.phone}</a>`);
+            if (p.linkedin) contactItems.push(`<a href="${formatHref(p.linkedin)}" target="_blank"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>`);
+            if (p.github) contactItems.push(`<a href="${formatHref(p.github)}" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>`);
+            if (p.kaggle) contactItems.push(`<a href="${formatHref(p.kaggle)}" target="_blank"><i class="fa-brands fa-kaggle"></i> Kaggle</a>`);
+            if (p.website) contactItems.push(`<a href="${formatHref(p.website)}" target="_blank"><i class="fa-solid fa-globe"></i> Website</a>`);
+
+            // Join with bullet separator
+            const contactHtml = contactItems.join('<span class="separator">•</span>');
+
+            const html = `
+                <div class="res-name">${p.name}</div>
+                <div class="res-title">${p.title}</div>
+                <div class="res-contact">${contactHtml}</div>
+
+                ${resumeData.summary ? `<div class="res-sec"><div class="res-sec-head">Professional Summary</div><div class="res-desc">${resumeData.summary}</div></div>` : ''}
+
+                ${resumeData.experience.length ? `
+                <div class="res-sec">
+                    <div class="res-sec-head">Experience</div>
+                    ${resumeData.experience.map(job => `
+                        <div class="res-entry">
+                            <div class="res-entry-head"><span>${job.company}</span><span>${job.date}</span></div>
+                            <div class="res-entry-sub"><span>${job.role}</span></div>
+                            <div class="res-desc">${formatDescription(job.description)}</div>
+                        </div>
+                    `).join('')}
+                </div>` : ''}
+
+                ${resumeData.education.length ? `
+                <div class="res-sec">
+                    <div class="res-sec-head">Education</div>
+                    ${resumeData.education.map(e => `
+                        <div class="res-entry">
+                            <div class="res-entry-head"><span>${e.school}</span><span>${e.date}</span></div>
+                            <div class="res-entry-sub"><span>${e.degree}</span><span>${e.details}</span></div>
+                        </div>
+                    `).join('')}
+                </div>` : ''}
+
+                ${skills.length ? `
+                <div class="res-sec">
+                    <div class="res-sec-head">Skills</div>
+                    <div class="res-skills">${skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}</div>
+                </div>` : ''}
+
+                ${resumeData.projects.length ? `
+                <div class="res-sec">
+                    <div class="res-sec-head">Projects</div>
+                    ${resumeData.projects.map(proj => `
+                        <div class="res-entry">
+                            <div class="res-entry-head">
+                                <span>${proj.link ? `<a href="${formatHref(proj.link)}" target="_blank">${proj.name}</a>` : proj.name}</span>
+                            </div>
+                            ${proj.tech ? `<div class="res-tech"><strong>Tech:</strong> ${proj.tech}</div>` : ''}
+                            <div class="res-desc">${formatDescription(proj.description)}</div>
+                        </div>
+                    `).join('')}
+                </div>` : ''}
+
+                ${resumeData.awards.length ? `
+                <div class="res-sec">
+                    <div class="res-sec-head">Awards & Certifications</div>
+                    ${resumeData.awards.map(a => `
+                        <div class="res-entry">
+                            <div class="res-entry-head"><span>${a.name}</span><span>${a.date}</span></div>
+                            <div class="res-entry-sub"><span>${a.giver}</span></div>
+                        </div>
+                    `).join('')}
+                </div>` : ''}
+            `;
+
+            document.getElementById('a4-paper').innerHTML = html;
+        }
+
+        // --- 5. Utilities ---
+        function changeFont(fontName) { 
+            document.getElementById('a4-paper').style.fontFamily = `'${fontName}', serif`; 
+        }
+        
+        function changeFontSize(size) { 
+            document.getElementById('a4-paper').style.fontSize = `${size}pt`; 
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement; const icon = document.getElementById('theme-icon');
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            icon.className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast'); toast.textContent = msg; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type: type }); const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+        }
+
+        // --- 6. PDF Logic ---
+        
+        // PDF Export: High quality visual + Invisible clickable links overlay
+        async function exportPDF() {
+            const page = document.getElementById('a4-paper');
+            const loading = document.getElementById('pdf-loading');
+            const wrapper = document.getElementById('preview-wrapper');
+            
+            loading.classList.remove('hidden');
+            const originalTransform = wrapper.style.transform;
+            wrapper.style.transform = 'scale(1)'; 
+
+            try {
+                await new Promise(r => setTimeout(r, 200)); 
+                
+                // 1. Capture Link Positions before screenshot alters anything
+                const pageRect = page.getBoundingClientRect();
+                const linkElements = page.querySelectorAll('a[href]');
+                const linksData = Array.from(linkElements).map(el => {
+                    const rect = el.getBoundingClientRect();
+                    return {
+                        x: rect.left - pageRect.left,
+                        y: rect.top - pageRect.top,
+                        w: rect.width,
+                        h: rect.height,
+                        url: el.getAttribute('href')
+                    };
+                });
+
+                // 2. Generate High Fidelity Image Canvas
+                const canvas = await html2canvas(page, { scale: 3, useCORS: true, logging: false });
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                
+                // 3. Create PDF
+                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+                // 4. Overlay Invisible Clickable Links on top of the image
+                const scaleRatio = pdfWidth / pageRect.width; 
+                linksData.forEach(link => {
+                    pdf.link(
+                        link.x * scaleRatio, 
+                        link.y * scaleRatio, 
+                        link.w * scaleRatio, 
+                        link.h * scaleRatio, 
+                        { url: link.url }
+                    );
+                });
+
+                pdf.save(`${resumeData.personal.name.replace(/\s+/g, '_')}_Resume.pdf`);
+                showToast("Hyperlinked PDF Exported Successfully!");
+            } catch (error) {
+                console.error(error);
+                showToast("Error generating PDF.");
+            } finally {
+                wrapper.style.transform = originalTransform;
+                loading.classList.add('hidden');
+            }
+        }
+
+        // PDF Print: Native print dialog (Expands URLs to full text via CSS @media print)
+        function printPDF() {
+            showToast("Opening Print Dialog... (Choose 'Save as PDF' for full URL text version)");
+            setTimeout(() => window.print(), 500);
+        }
+
+        // --- 7. Other Exports ---
+        function exportJSON() { downloadFile(JSON.stringify(resumeData, null, 2), 'resume.json', 'application/json'); showToast("JSON Exported"); }
+
+        function exportMarkdown() {
+            let md = `# ${resumeData.personal.name}\n**${resumeData.personal.title}**\n\n`;
+            md += `📍 ${resumeData.personal.location} | 📧 ${resumeData.personal.email} | 📱 ${resumeData.personal.phone}\n\n`;
+            md += `## Summary\n${resumeData.summary}\n\n## Experience\n`;
+            resumeData.experience.forEach(j => { md += `### ${j.role} at ${j.company}\n*${j.date}*\n${j.description}\n\n`; });
+            md += `## Education\n`;
+            resumeData.education.forEach(e => { md += `### ${e.school}\n${e.degree} | ${e.date}\n\n`; });
+            md += `## Skills\n${resumeData.skills}`;
+            downloadFile(md, 'resume.md', 'text/markdown'); showToast("Markdown Exported");
+        }
+
+        function exportTeX() {
+            let tex = `\\documentclass[a4paper,11pt]{article}\n\\usepackage[margin=1in]{geometry}\n\\usepackage{hyperref}\n\\begin{document}\n\n`;
+            tex += `\\begin{center}\\textbf{\\Large ${resumeData.personal.name}}\\\\${resumeData.personal.title}\\\\\n`;
+            tex += `${resumeData.personal.location} \\textbullet~ \\href{mailto:${resumeData.personal.email}}{Gmail} \\textbullet~ ${resumeData.personal.phone}\\end{center}\n\n`;
+            tex += `\\section*{Summary}\\noindent ${resumeData.summary}\n\n\\section*{Experience}\n`;
+            resumeData.experience.forEach(j => {
+                tex += `\\textbf{${j.company}} \\hfill ${j.date}\\\\\\textit{${j.role}}\\\\\n\\begin{itemize}\\item ${j.description.replace(/• /g, '').replace(/\n/g, '\\item ')}\\end{itemize}\n`;
+            });
+            tex += `\\section*{Education}\n`;
+            resumeData.education.forEach(e => { tex += `\\textbf{${e.school}} \\hfill ${e.date}\\\\${e.degree}\\\\\n`; });
+            tex += `\\section*{Skills}\\noindent ${resumeData.skills}\n\n\\end{document}`;
+            downloadFile(tex, 'resume.tex', 'application/x-tex'); showToast("LaTeX Source Exported");
+        }
+    </script>
+</body>
+</html>
