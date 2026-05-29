@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Dark Mode – Merge & Convert PDFs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>tailwind.config={theme:{extend:{fontFamily:{display:['Space Grotesk','sans-serif']}}}}</script>
+    <style>
+        :root{--bg:#060a0f;--fg:#e4e8ec;--muted:#6b8090;--accent:#06d6a0;--accent-h:#34d399;--accent2:#22d3ee;--card:#0a1118;--border:#152030;--surface:#0d1620}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--fg);overflow-x:hidden}
+        .bg-blob{position:fixed;border-radius:50%;filter:blur(150px);opacity:.07;pointer-events:none;z-index:0}
+        .bb1{width:600px;height:600px;background:#06d6a0;top:-200px;left:-100px;animation:bf1 28s ease-in-out infinite}
+        .bb2{width:500px;height:500px;background:#22d3ee;bottom:-200px;right:-100px;animation:bf2 32s ease-in-out infinite}
+        @keyframes bf1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(80px,60px) scale(1.1)}}
+        @keyframes bf2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-60px,-80px) scale(1.1)}}
+        .grad-text{background:linear-gradient(135deg,#06d6a0,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .upload-zone{border:2px dashed var(--border);transition:all .3s ease}
+        .upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(6,214,160,.04)}
+        .theme-card{cursor:pointer;transition:all .2s ease;border:2px solid transparent;border-radius:8px;overflow:hidden;background:var(--card);position:relative}
+        .theme-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.5)}
+        .theme-card.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 4px 12px rgba(6,214,160,.15)}
+        .theme-preview{height:42px;padding:6px 7px;display:flex;flex-direction:column;justify-content:center;gap:3px}
+        .theme-line{height:2px;border-radius:1px;opacity:.85}
+        .theme-name{font-size:8px;padding:2px 4px;text-align:center;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .theme-card.active .theme-name{color:var(--accent);font-weight:700}
+        .rec-badge{position:absolute;top:2px;right:2px;background:var(--accent);color:#000;font-size:6px;font-weight:800;padding:1px 3px;border-radius:3px;z-index:2}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1a2530;border-radius:3px}
+        input[type="range"]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none}
+        input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+        input[type="color"]{-webkit-appearance:none;border:2px solid var(--border);border-radius:6px;cursor:pointer;padding:0;overflow:hidden}
+        input[type="color"]::-webkit-color-swatch-wrapper{padding:2px}
+        input[type="color"]::-webkit-color-swatch{border:none;border-radius:3px}
+        .preview-area{display:flex;align-items:flex-start;justify-content:center;overflow:auto;background:#040810;background-image:radial-gradient(circle at 1px 1px,#0e1820 1px,transparent 0);background-size:24px 24px}
+        .btn-p{background:var(--accent);color:#000;font-weight:700;padding:10px 22px;border-radius:8px;border:none;cursor:pointer;transition:all .2s ease;font-family:inherit;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+        .btn-p:hover{background:var(--accent-h);box-shadow:0 0 20px rgba(6,214,160,.25)}
+        .btn-p:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+        .btn-s{background:var(--surface);color:var(--fg);border:1px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;transition:all .2s ease;font-family:inherit;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+        .btn-s:hover{background:var(--border)}
+        .tb-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);height:28px;padding:0 8px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s ease;font-size:11px;gap:4px}
+        .tb-btn:hover{color:var(--fg);background:var(--border)}
+        .pg-btn{background:var(--surface);border:1px solid var(--border);color:var(--fg);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s ease;font-size:11px}
+        .pg-btn:hover:not(:disabled){background:var(--border)}.pg-btn:disabled{opacity:.25;cursor:not-allowed}
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:200}
+        .modal-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;max-width:420px;width:90%}
+        .toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;z-index:300;transform:translateY(100px);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);max-width:340px;font-size:14px}
+        .toast.show{transform:translateY(0);opacity:1}
+        .toast.success{border-left:3px solid #06d6a0}.toast.error{border-left:3px solid #f87171}.toast.info{border-left:3px solid #22d3ee}
+        .prog-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+        .prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .3s ease}
+        .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .link-overlay{position:absolute;cursor:pointer;background:transparent;transition:background .12s ease;border-radius:2px;z-index:5}
+        .link-overlay:hover{background:rgba(6,214,160,.12);outline:1px solid rgba(6,214,160,.3)}
+        .sidebar{width:320px;min-width:320px;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
+        @media(max-width:1024px){
+            .sidebar{position:fixed;left:-330px;top:56px;z-index:60;transition:left .3s ease;height:calc(100vh - 56px);width:320px;min-width:320px;box-shadow:4px 0 24px rgba(0,0,0,.5)}
+            .sidebar.open{left:0}
+            .sidebar-overlay{display:none;position:fixed;inset:0;top:56px;background:rgba(0,0,0,.5);z-index:55}
+            .sidebar-overlay.show{display:block}
+        }
+        @media(max-width:640px){.sidebar{width:100%;min-width:100%;left:-100%}}
+        .file-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;transition:all .2s ease;cursor:pointer}
+        .file-item:hover{border-color:#2a3a4a}
+        .file-item.active{border-color:var(--accent);background:rgba(6,214,160,.05)}
+        .file-action{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--muted);cursor:pointer;transition:all .15s ease;font-size:11px}
+        .file-action:hover{color:var(--fg);background:var(--border)}
+        .toggle-track{width:40px;height:22px;border-radius:11px;background:var(--border);cursor:pointer;transition:background .2s ease;position:relative;flex-shrink:0}
+        .toggle-track.on{background:var(--accent)}
+        .toggle-thumb{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .2s ease;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+        .toggle-track.on .toggle-thumb{transform:translateX(18px)}
+        .section-divider{height:1px;background:var(--border);margin:12px 0}
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0s!important;transition-duration:0s!important}}
+    </style>
+</head>
+<body>
+    <div class="bg-blob bb1"></div>
+    <div class="bg-blob bb2"></div>
+
+    <!-- LANDING -->
+    <div id="landing-view" class="relative z-10">
+        <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#060a0f]/80 border-b border-[#152030]">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#06d6a0]/20 to-[#22d3ee]/20 flex items-center justify-center border border-[#06d6a0]/15"><i class="fas fa-moon text-[#06d6a0] text-xs"></i></div>
+                    <span class="font-bold text-base tracking-tight">PDF Dark Mode</span>
+                </div>
+                <button onclick="document.getElementById('file-input-land').click()" class="btn-p !text-sm !py-2 !px-4">Upload PDFs</button>
+            </div>
+        </header>
+        <section class="min-h-screen flex items-center justify-center pt-16 pb-10 px-4">
+            <div class="max-w-3xl mx-auto text-center">
+                <div class="inline-flex items-center gap-2 bg-[#06d6a0]/8 border border-[#06d6a0]/15 rounded-full px-4 py-1.5 mb-6 text-xs sm:text-sm text-[#06d6a0]/90"><i class="fas fa-bolt text-[10px]"></i><span>Multiple PDFs & Merge Supported</span></div>
+                <h1 class="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-5 leading-[1.05] tracking-tight">Convert & Merge<br><span class="grad-text">Night Mode PDFs</span></h1>
+                <p class="text-base sm:text-lg text-[#6b8090] mb-10 max-w-xl mx-auto leading-relaxed">Switch light PDFs to dark, preserve image colors, merge multiple files with a clickable index, and download.</p>
+                <div id="upload-zone-land" class="upload-zone max-w-lg mx-auto rounded-2xl p-8 sm:p-12 bg-[#0a1118]/50 backdrop-blur-sm cursor-pointer" onclick="document.getElementById('file-input-land').click()">
+                    <input type="file" id="file-input-land" accept=".pdf" multiple class="hidden" aria-label="Upload PDFs">
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-[#06d6a0]/8 flex items-center justify-center border border-[#06d6a0]/10"><i class="fas fa-cloud-arrow-up text-[#06d6a0] text-2xl"></i></div>
+                        <div><p class="text-lg font-semibold mb-1">Drop PDFs here</p><p class="text-sm text-[#6b8090]">Select multiple files to merge or convert individually</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- EDITOR -->
+    <div id="editor-view" class="relative z-10 hidden">
+        <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#060a0f]/80 border-b border-[#152030] h-14 flex items-center px-3 sm:px-4 gap-2 sm:gap-3">
+            <button id="sidebar-toggle" class="lg:hidden w-9 h-9 rounded-lg bg-[#0d1620] border border-[#152030] flex items-center justify-center text-[#6b8090] hover:text-white transition-colors" aria-label="Toggle sidebar"><i class="fas fa-bars text-sm"></i></button>
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-md bg-gradient-to-br from-[#06d6a0]/20 to-[#22d3ee]/20 flex items-center justify-center border border-[#06d6a0]/15 flex-shrink-0"><i class="fas fa-moon text-[#06d6a0] text-[10px]"></i></div>
+                <span class="font-bold text-sm tracking-tight hidden sm:inline truncate">PDF Dark Mode</span>
+            </div>
+            <div class="flex-1"></div>
+            <button id="add-more-btn" class="btn-s !py-1.5 !px-3 !text-xs"><i class="fas fa-plus"></i><span class="hidden sm:inline">Add PDFs</span></button>
+            <button id="download-btn" class="btn-p !py-1.5 !px-3 !text-xs" disabled><i class="fas fa-download"></i><span class="hidden sm:inline">Merge & Download</span></button>
+        </header>
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        <div class="flex pt-14" style="height:100vh">
+            <aside id="sidebar" class="sidebar">
+                <div class="p-4 space-y-3">
+                    <div>
+                        <div class="flex items-center justify-between mb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-[#6b8090]">PDF Files</h3><span id="file-count" class="text-[10px] text-[#3a5060]">0 files</span></div>
+                        <div id="file-list" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></div>
+                    </div>
+                    <div class="section-divider"></div>
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-[#6b8090] mb-2">Themes</h3>
+                        <div id="themes-grid" class="grid grid-cols-4 gap-1.5"></div>
+                    </div>
+                    <div class="section-divider"></div>
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-[#6b8090] mb-2">Custom Colors</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-3"><input type="color" id="bg-color-input" value="#0c1c2c" class="w-8 h-8 flex-shrink-0" aria-label="Background"><div><label class="text-[10px] text-[#6b8090] block">Background</label><span id="bg-color-hex" class="text-[10px] font-mono text-gray-400">#0c1c2c</span></div></div>
+                            <div class="flex items-center gap-3"><input type="color" id="text-color-input" value="#e0f7fa" class="w-8 h-8 flex-shrink-0" aria-label="Text"><div><label class="text-[10px] text-[#6b8090] block">Text</label><span id="text-color-hex" class="text-[10px] font-mono text-gray-400">#e0f7fa</span></div></div>
+                        </div>
+                    </div>
+                    <div class="section-divider"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xs font-semibold uppercase tracking-wider text-[#6b8090]">Preserve Images</h3>
+                            <div id="preserve-toggle" class="toggle-track on" role="switch" aria-checked="true" aria-label="Preserve image colors"><div class="toggle-thumb"></div></div>
+                        </div>
+                        <p class="text-[10px] text-[#3a5060] mb-2">Colorful pixels keep original colors while text gets inverted</p>
+                        <div class="space-y-3">
+                            <div><div class="flex justify-between text-[10px] mb-1"><label class="text-[#6b8090]">Image Sensitivity</label><span id="sensitivity-val" class="text-gray-400 font-mono">15%</span></div><input type="range" id="sensitivity-slider" min="5" max="50" value="15"></div>
+                            <div><div class="flex justify-between text-[10px] mb-1"><label class="text-[#6b8090]">Image Dimming</label><span id="dimming-val" class="text-gray-400 font-mono">90%</span></div><input type="range" id="dimming-slider" min="50" max="100" value="90"></div>
+                        </div>
+                    </div>
+                    <div class="section-divider"></div>
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-[#6b8090] mb-2">Adjustments</h3>
+                        <div class="space-y-3">
+                            <div><div class="flex justify-between text-[10px] mb-1"><label class="text-[#6b8090]">Contrast</label><span id="contrast-val" class="text-gray-400 font-mono">100%</span></div><input type="range" id="contrast-slider" min="50" max="200" value="100"></div>
+                            <div><div class="flex justify-between text-[10px] mb-1"><label class="text-[#6b8090]">Brightness</label><span id="brightness-val" class="text-gray-400 font-mono">100%</span></div><input type="range" id="brightness-slider" min="50" max="200" value="100"></div>
+                            <div><div class="flex justify-between text-[10px] mb-1"><label class="text-[#6b8090]">Threshold</label><span id="threshold-val" class="text-gray-400 font-mono">128</span></div><input type="range" id="threshold-slider" min="40" max="220" value="128"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <main class="flex-1 flex flex-col min-w-0">
+                <div class="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-[#080e14] border-b border-[#152030] flex-shrink-0">
+                    <button id="prev-page" class="pg-btn"><i class="fas fa-chevron-left"></i></button>
+                    <span class="text-[11px] text-gray-300 min-w-[80px] text-center">Page <span id="current-page">1</span>/<span id="total-pages">1</span></span>
+                    <button id="next-page" class="pg-btn"><i class="fas fa-chevron-right"></i></button>
+                    <div class="h-4 w-px bg-[#152030] mx-1"></div>
+                    <button id="zoom-out-btn" class="tb-btn"><i class="fas fa-minus text-[9px]"></i></button>
+                    <span id="zoom-level" class="text-[10px] text-gray-300 min-w-[35px] text-center font-mono">100%</span>
+                    <button id="zoom-in-btn" class="tb-btn"><i class="fas fa-plus text-[9px]"></i></button>
+                    <button id="zoom-fit-btn" class="tb-btn">Fit</button>
+                    <div class="h-4 w-px bg-[#152030] mx-1"></div>
+                    <button id="export-png-btn" class="tb-btn" title="Export PNG"><i class="fas fa-image text-[9px]"></i><span class="hidden sm:inline">PNG</span></button>
+                </div>
+                <div id="preview-container" class="preview-area flex-1 p-3 sm:p-6">
+                    <div id="preview-placeholder" class="flex flex-col items-center justify-center text-[#3a5060] h-full w-full"><i class="fas fa-file-pdf text-3xl mb-3 text-[#152030]"></i><p class="text-sm">Select a PDF from the sidebar to preview</p></div>
+                    <div id="canvas-wrapper" class="hidden relative inline-block" style="transform-origin:top center">
+                        <canvas id="pdf-canvas" class="block shadow-2xl" style="border-radius:3px"></canvas>
+                        <div id="link-overlays" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="processing-modal" class="modal-bg hidden">
+        <div class="modal-box text-center">
+            <div class="spinner mx-auto mb-5"></div>
+            <h3 class="font-semibold text-lg mb-2">Processing PDFs</h3>
+            <p id="processing-status" class="text-sm text-[#6b8090] mb-4">Initializing...</p>
+            <div class="prog-bar"><div id="processing-progress" class="prog-fill" style="width:0%"></div></div>
+            <p id="processing-percent" class="text-xs text-[#3a5060] mt-2">0%</p>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <input type="file" id="file-input-hidden" accept=".pdf" multiple class="hidden" aria-label="Add PDFs">
+
+    <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    /* ===================== 32 Vibrant Themes ===================== */
+    const THEMES=[
+        /* Original 20 Crispy Themes */
+        {name:'Neon Mint',  bg:'#020d09',text:'#aaffd8',rec:true},
+        {name:'Cyberpunk',  bg:'#0d0c0e',text:'#fcee0a',rec:true},
+        {name:'Synthwave',  bg:'#1a0a2e',text:'#ff6eff',rec:true},
+        {name:'Midnight',   bg:'#080820',text:'#c8c8ff',rec:true},
+        {name:'Matrix',     bg:'#000000',text:'#00ff41',rec:true},
+        {name:'AMOLED',     bg:'#000000',text:'#e0e0e0'},
+        {name:'Deep Space', bg:'#0a0a2a',text:'#b0b0ff'},
+        {name:'Charcoal',   bg:'#1c1c1c',text:'#dcdcdc'},
+        {name:'Dracula',    bg:'#282a36',text:'#f8f8f2'},
+        {name:'Nord Night', bg:'#2e3440',text:'#d8dee9'},
+        {name:'Solarized',  bg:'#002b36',text:'#93a1a1'},
+        {name:'Gruvbox',    bg:'#282828',text:'#ebdbb2'},
+        {name:'Tokyo',      bg:'#1a1b26',text:'#a9b1d6'},
+        {name:'Catppuccin', bg:'#1e1e2e',text:'#cdd6f4'},
+        {name:'One Dark',   bg:'#282c34',text:'#abb2bf'},
+        {name:'Ocean Blue', bg:'#0c1929',text:'#7dd3fc'},
+        {name:'Rosewood',   bg:'#2a0a1a',text:'#f9a8d4'},
+        {name:'Neon Orange',bg:'#1a0800',text:'#ff8c00'},
+        {name:'Vampire',    bg:'#1c0a0a',text:'#fca5a5'},
+        {name:'Lavender',   bg:'#1a0e2e',text:'#c4b5fd'},
+        /* Added 12 Requested Themes */
+        {name:'MediaFusion',    bg:'#180828',text:'#ff6b00',rec:true},
+        {name:'Cinematic Gold', bg:'#18140a',text:'#ffc107',rec:true},
+        {name:'Ocean Depths',   bg:'#081828',text:'#4fc3f7'},
+        {name:'Forest Emerald', bg:'#082818',text:'#66bb6a'},
+        {name:'Emerald Night',  bg:'#041008',text:'#2ecc71'},
+        {name:'Midnight Sapphire',bg:'#0a1428',text:'#5c6bc0'},
+        {name:'Arctic Frost',   bg:'#0c1c2c',text:'#e0f7fa',rec:true},
+        {name:'Slate Graphite', bg:'#1a1a1a',text:'#cfd8dc'},
+        {name:'Rose Quartz',    bg:'#280a18',text:'#f48fb1'},
+        {name:'Nebula Purple',  bg:'#1a0a28',text:'#ce93d8'},
+        {name:'Sunset Blaze',   bg:'#280c04',text:'#ff7043'},
+        {name:'YouTube Red',    bg:'#280a0a',text:'#f44336',rec:true}
+    ];
+
+    /* State */
+    let uploadedPDFs=[],activePdfId=null,currentPage=1;
+    let currentBgColor='#0c1c2c',currentTextColor='#e0f7fa'; // Default: Arctic Frost
+    let contrastVal=100,brightnessVal=100,thresholdVal=128;
+    let preserveImages=true,preserveThreshold=0.15,imageDimming=0.90;
+    let activeThemeIdx=-1,isRendering=false,renderTimeout=null;
+    let currentRotation=0,zoomLevel=1;
+    const RENDER_SCALE=2;
+
+    const $=id=>document.getElementById(id);
+    const landingView=$('landing-view'),editorView=$('editor-view');
+    const fileInputLand=$('file-input-land'),fileInputHidden=$('file-input-hidden');
+    const themesGrid=$('themes-grid'),fileListEl=$('file-list'),fileCountEl=$('file-count');
+    const bgColorInput=$('bg-color-input'),textColorInput=$('text-color-input');
+    const bgColorHex=$('bg-color-hex'),textColorHex=$('text-color-hex');
+    const pdfCanvas=$('pdf-canvas'),canvasWrapper=$('canvas-wrapper'),linkOverlaysDiv=$('link-overlays');
+    const downloadBtn=$('download-btn'),addMoreBtn=$('add-more-btn');
+    const processingModal=$('processing-modal'),processingStatus=$('processing-status');
+    const processingProgress=$('processing-progress'),processingPercent=$('processing-percent');
+    const sidebarToggle=$('sidebar-toggle'),sidebar=$('sidebar'),sidebarOverlay=$('sidebar-overlay');
+    const previewContainer=$('preview-container'),previewPlaceholder=$('preview-placeholder');
+    const currentPageEl=$('current-page'),totalPagesEl=$('total-pages'),zoomLevelEl=$('zoom-level');
+    const preserveToggle=$('preserve-toggle');
+
+    /* Toast */
+    function showToast(msg,type='info'){
+        const t=document.createElement('div');t.className='toast '+type;
+        const ic=type==='success'?'check-circle':type==='error'?'exclamation-circle':'circle-info';
+        const cl=type==='success'?'#06d6a0':type==='error'?'#f87171':'#22d3ee';
+        t.innerHTML='<div class="flex items-center gap-2"><i class="fas fa-'+ic+'" style="color:'+cl+'"></i><span>'+msg+'</span></div>';
+        $('toast-container').appendChild(t);
+        requestAnimationFrame(()=>t.classList.add('show'));
+        setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400)},3500);
+    }
+
+    /* Themes */
+    function buildThemes(){
+        themesGrid.innerHTML='';
+        THEMES.forEach((theme,i)=>{
+            const card=document.createElement('div');card.className='theme-card';
+            let badge=theme.rec?'<div class="rec-badge">REC</div>':'';
+            card.innerHTML=badge+'<div class="theme-preview" style="background:'+theme.bg+'"><div class="theme-line" style="background:'+theme.text+';width:75%"></div><div class="theme-line" style="background:'+theme.text+';width:55%;opacity:.6"></div><div class="theme-line" style="background:'+theme.text+';width:85%;opacity:.4"></div></div><div class="theme-name">'+theme.name+'</div>';
+            card.addEventListener('click',()=>selectTheme(i));
+            themesGrid.appendChild(card);
+        });
+    }
+    function selectTheme(idx){
+        activeThemeIdx=idx;const t=THEMES[idx];
+        currentBgColor=t.bg;currentTextColor=t.text;
+        bgColorInput.value=t.bg;textColorInput.value=t.text;
+        bgColorHex.textContent=t.bg;textColorHex.textContent=t.text;
+        document.querySelectorAll('.theme-card').forEach((c,i)=>c.classList.toggle('active',i===idx));
+        scheduleRender();
+    }
+
+    /* Multi-File */
+    function getActivePdf(){return uploadedPDFs.find(p=>p.id===activePdfId)}
+    async function handleFiles(files){
+        if(!files||files.length===0)return;
+        if(uploadedPDFs.length===0){landingView.classList.add('hidden');editorView.classList.remove('hidden');}
+        let addedCount=0;
+        for(const file of files){
+            if(!file.name.toLowerCase().endsWith('.pdf')&&file.type!=='application/pdf')continue;
+            try{
+                const data=new Uint8Array(await file.arrayBuffer());
+                const pdfDoc=await pdfjsLib.getDocument({data}).promise;
+                const id=Date.now()+'_'+Math.random().toString(36).substr(2,9);
+                uploadedPDFs.push({id,name:file.name,size:file.size,pdfDoc,numPages:pdfDoc.numPages});
+                addedCount++;if(!activePdfId)activePdfId=id;
+            }catch(e){showToast('Failed: '+file.name,'error')}
+        }
+        renderFileList();
+        if(addedCount>0){downloadBtn.disabled=false;await renderCurrentPage();showToast('Added '+addedCount+' PDF'+(addedCount>1?'s':''),'success')}
+    }
+    fileInputLand.addEventListener('change',e=>{handleFiles(e.target.files);e.target.value='';});
+    fileInputHidden.addEventListener('change',e=>{handleFiles(e.target.files);e.target.value='';});
+    addMoreBtn.addEventListener('click',()=>fileInputHidden.click());
+
+    function setupDropZone(zone){
+        ['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();zone.classList.add('drag-over')}));
+        ['dragleave','drop'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();zone.classList.remove('drag-over')}));
+        zone.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFiles(e.dataTransfer.files)});
+    }
+    setupDropZone($('upload-zone-land'));
+    document.body.addEventListener('dragover',e=>e.preventDefault());
+    document.body.addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer.files[0])handleFiles(e.dataTransfer.files)});
+
+    function renderFileList(){
+        fileListEl.innerHTML='';fileCountEl.textContent=uploadedPDFs.length+' file'+(uploadedPDFs.length!==1?'s':'');
+        uploadedPDFs.forEach((pdf,idx)=>{
+            const div=document.createElement('div');div.className='file-item'+(pdf.id===activePdfId?' active':'');
+            div.innerHTML=`<div class="flex items-center gap-2"><div class="flex flex-col gap-0.5"><button class="file-action" data-action="up" data-id="${pdf.id}" title="Move Up"><i class="fas fa-chevron-up"></i></button><button class="file-action" data-action="down" data-id="${pdf.id}" title="Move Down"><i class="fas fa-chevron-down"></i></button></div><div class="flex-1 min-w-0 cursor-pointer select-name" data-id="${pdf.id}"><div class="text-xs font-medium truncate">${pdf.name}</div><div class="text-[10px] text-[#6b8090]">${pdf.numPages} pg &bull; ${(pdf.size/1024).toFixed(0)} KB</div></div><button class="file-action" data-action="delete" data-id="${pdf.id}" title="Remove"><i class="fas fa-times"></i></button></div>`;
+            div.querySelector('.select-name').addEventListener('click',()=>{activePdfId=pdf.id;currentPage=1;currentRotation=0;renderFileList();renderCurrentPage()});
+            div.querySelectorAll('.file-action').forEach(btn=>{
+                btn.addEventListener('click',e=>{
+                    e.stopPropagation();const action=btn.dataset.action,id=btn.dataset.id;const idx=uploadedPDFs.findIndex(p=>p.id===id);
+                    if(action==='up'&&idx>0){[uploadedPDFs[idx-1],uploadedPDFs[idx]]=[uploadedPDFs[idx],uploadedPDFs[idx-1]];renderFileList()}
+                    else if(action==='down'&&idx<uploadedPDFs.length-1){[uploadedPDFs[idx],uploadedPDFs[idx+1]]=[uploadedPDFs[idx+1],uploadedPDFs[idx]];renderFileList()}
+                    else if(action==='delete'){uploadedPDFs.splice(idx,1);if(activePdfId===id){activePdfId=uploadedPDFs.length>0?uploadedPDFs[0].id:null;currentPage=1;currentRotation=0}renderFileList();renderCurrentPage();if(uploadedPDFs.length===0){editorView.classList.add('hidden');landingView.classList.remove('hidden');downloadBtn.disabled=true}}
+                });
+            });fileListEl.appendChild(div);
+        });
+    }
+
+    function openSidebar(){sidebar.classList.add('open');sidebarOverlay.classList.add('show')}
+    function closeSidebar(){sidebar.classList.remove('open');sidebarOverlay.classList.remove('show')}
+    sidebarToggle.addEventListener('click',()=>sidebar.classList.contains('open')?closeSidebar():openSidebar());
+    sidebarOverlay.addEventListener('click',closeSidebar);
+
+    /* ===================== Dark Mode with Image Preservation ===================== */
+    function applyDarkModeToImageData(imgData){
+        const d=imgData.data;
+        const bgR=parseInt(currentBgColor.slice(1,3),16),bgG=parseInt(currentBgColor.slice(3,5),16),bgB=parseInt(currentBgColor.slice(5,7),16);
+        const txR=parseInt(currentTextColor.slice(1,3),16),txG=parseInt(currentTextColor.slice(3,5),16),txB=parseInt(currentTextColor.slice(5,7),16);
+        const cf=contrastVal/100,bf=brightnessVal/100,thr=thresholdVal;
+        const doPreserve=preserveImages,pThr=preserveThreshold,pDim=imageDimming;
+
+        for(let i=0;i<d.length;i+=4){
+            let r=d[i],g=d[i+1],b=d[i+2];
+            r*=bf;g*=bf;b*=bf;r=(r-128)*cf+128;g=(g-128)*cf+128;b=(b-128)*cf+128;
+            r=r<0?0:r>255?255:r;g=g<0?0:g>255?255:g;b=b<0?0:b>255?255:b;
+            if(doPreserve){
+                const maxC=Math.max(r,g,b),minC=Math.min(r,g,b);const sat=maxC===0?0:(maxC-minC)/maxC;
+                if(sat>pThr){d[i]=r*pDim;d[i+1]=g*pDim;d[i+2]=b*pDim;continue;}
+            }
+            const lum=0.299*r+0.587*g+0.114*b;const t=Math.max(0,Math.min(1,(lum-thr+128)/256));
+            d[i]=(1-t)*txR+t*bgR;d[i+1]=(1-t)*txG+t*bgG;d[i+2]=(1-t)*txB+t*bgB;
+        }
+    }
+
+    /* Links */
+    async function getLinkData(pdfDoc,page,viewport){
+        let annotations=[];try{annotations=await page.getAnnotations()}catch(e){return[]}
+        const links=[];
+        for(const ann of annotations){
+            if(ann.subtype!=='Link')continue;let targetPage=null,url=null;
+            if(ann.dest){try{let dest=ann.dest;if(typeof dest==='string')dest=await pdfDoc.getDestination(dest);if(dest&&dest[0])targetPage=(await pdfDoc.getPageIndex(dest[0]))+1}catch(e){}}
+            if(!targetPage&&ann.action&&ann.action.S==='GoTo'&&ann.action.D){try{let dest=ann.action.D;if(typeof dest==='string')dest=await pdfDoc.getDestination(dest);if(dest&&dest[0])targetPage=(await pdfDoc.getPageIndex(dest[0]))+1}catch(e){}}
+            if(ann.url)url=ann.url;if(!url&&ann.action&&ann.action.S==='URI'&&ann.action.URI)url=ann.action.URI;
+            if(!targetPage&&!url)continue;const rect=ann.rect;if(!rect||rect.length<4)continue;
+            const p1=viewport.convertToViewportPoint(rect[0],rect[1]),p2=viewport.convertToViewportPoint(rect[2],rect[3]);
+            const x=Math.min(p1[0],p2[0]),y=Math.min(p1[1],p2[1]),w=Math.abs(p2[0]-p1[0]),h=Math.abs(p2[1]-p1[1]);
+            if(w<2||h<2)continue;links.push({targetPage,url,x,y,w,h});
+        }return links;
+    }
+    function createLinkOverlays(links,cW,cH){
+        linkOverlaysDiv.innerHTML='';
+        for(const link of links){
+            const div=document.createElement('div');div.className='link-overlay';
+            div.style.left=(link.x/cW*100)+'%';div.style.top=(link.y/cH*100)+'%';div.style.width=(link.w/cW*100)+'%';div.style.height=(link.h/cH*100)+'%';div.style.pointerEvents='auto';
+            if(link.targetPage){div.title='Go to page '+link.targetPage;div.addEventListener('click',e=>{e.stopPropagation();currentPage=link.targetPage;currentPageEl.textContent=currentPage;renderCurrentPage()})}
+            else if(link.url){div.title=link.url;div.addEventListener('click',e=>{e.stopPropagation();window.open(link.url,'_blank')})}
+            linkOverlaysDiv.appendChild(div);
+        }
+    }
+
+    /* Render */
+    async function renderCurrentPage(){
+        const ap=getActivePdf();
+        if(!ap||isRendering){if(!ap){canvasWrapper.classList.add('hidden');previewPlaceholder.classList.remove('hidden');previewPlaceholder.innerHTML='<i class="fas fa-file-pdf text-3xl mb-3 text-[#152030]"></i><p class="text-sm">Select a PDF</p>'}return}
+        isRendering=true;previewPlaceholder.classList.remove('hidden');canvasWrapper.classList.add('hidden');
+        try{
+            const page=await ap.pdfDoc.getPage(currentPage);const viewport=page.getViewport({scale:RENDER_SCALE,rotation:currentRotation});
+            pdfCanvas.width=viewport.width;pdfCanvas.height=viewport.height;const ctx=pdfCanvas.getContext('2d');
+            await page.render({canvasContext:ctx,viewport}).promise;const imgData=ctx.getImageData(0,0,pdfCanvas.width,pdfCanvas.height);
+            applyDarkModeToImageData(imgData);ctx.putImageData(imgData,0,0);const links=await getLinkData(ap.pdfDoc,page,viewport);
+            createLinkOverlays(links,pdfCanvas.width,pdfCanvas.height);canvasWrapper.classList.remove('hidden');previewPlaceholder.classList.add('hidden');
+            currentPageEl.textContent=currentPage;totalPagesEl.textContent=ap.numPages;applyZoom();
+        }catch(err){console.error(err);previewPlaceholder.innerHTML='<p class="text-sm text-red-400">Error rendering</p>'}isRendering=false;
+    }
+    function scheduleRender(){clearTimeout(renderTimeout);renderTimeout=setTimeout(()=>renderCurrentPage(),150)}
+
+    /* Zoom */
+    function updateZoomDisplay(){zoomLevelEl.textContent=Math.round(zoomLevel*100)+'%'}
+    function applyZoom(){
+        if(!pdfCanvas.width||!pdfCanvas.height)return;const cW=previewContainer.clientWidth-40,cH=previewContainer.clientHeight-40;
+        const cA=pdfCanvas.width/pdfCanvas.height,rA=cW/cH;let fW,fH;if(cA>rA){fW=cW;fH=cW/cA}else{fH=cH;fW=cH*cA}
+        const dw=Math.round(fW*zoomLevel),dh=Math.round(fH*zoomLevel);pdfCanvas.style.width=dw+'px';pdfCanvas.style.height=dh+'px';canvasWrapper.style.width=dw+'px';canvasWrapper.style.height=dh+'px';
+    }
+    $('zoom-in-btn').addEventListener('click',()=>{zoomLevel=Math.min(4,zoomLevel+0.25);updateZoomDisplay();applyZoom()});
+    $('zoom-out-btn').addEventListener('click',()=>{zoomLevel=Math.max(0.25,zoomLevel-0.25);updateZoomDisplay();applyZoom()});
+    $('zoom-fit-btn').addEventListener('click',()=>{zoomLevel=1;updateZoomDisplay();applyZoom()});
+    previewContainer.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();zoomLevel=Math.max(0.25,Math.min(4,zoomLevel+(e.deltaY>0?-0.1:0.1)));updateZoomDisplay();applyZoom()}},{passive:false});
+
+    /* Navigation */
+    $('prev-page').addEventListener('click',()=>{const ap=getActivePdf();if(ap&&currentPage>1){currentPage--;renderCurrentPage()}});
+    $('next-page').addEventListener('click',()=>{const ap=getActivePdf();if(ap&&currentPage<ap.numPages){currentPage++;renderCurrentPage()}});
+    document.addEventListener('keydown',e=>{if(editorView.classList.contains('hidden'))return;if(e.key==='ArrowLeft')$('prev-page').click();if(e.key==='ArrowRight')$('next-page').click()});
+
+    /* Controls */
+    bgColorInput.addEventListener('input',e=>{currentBgColor=e.target.value;bgColorHex.textContent=e.target.value;activeThemeIdx=-1;document.querySelectorAll('.theme-card').forEach(c=>c.classList.remove('active'));scheduleRender()});
+    textColorInput.addEventListener('input',e=>{currentTextColor=e.target.value;textColorHex.textContent=e.target.value;activeThemeIdx=-1;document.querySelectorAll('.theme-card').forEach(c=>c.classList.remove('active'));scheduleRender()});
+    $('contrast-slider').addEventListener('input',e=>{contrastVal=parseInt(e.target.value);$('contrast-val').textContent=contrastVal+'%';scheduleRender()});
+    $('brightness-slider').addEventListener('input',e=>{brightnessVal=parseInt(e.target.value);$('brightness-val').textContent=brightnessVal+'%';scheduleRender()});
+    $('threshold-slider').addEventListener('input',e=>{thresholdVal=parseInt(e.target.value);$('threshold-val').textContent=thresholdVal;scheduleRender()});
+    $('sensitivity-slider').addEventListener('input',e=>{preserveThreshold=parseInt(e.target.value)/100;$('sensitivity-val').textContent=parseInt(e.target.value)+'%';scheduleRender()});
+    $('dimming-slider').addEventListener('input',e=>{imageDimming=parseInt(e.target.value)/100;$('dimming-val').textContent=parseInt(e.target.value)+'%';scheduleRender()});
+    preserveToggle.addEventListener('click',()=>{preserveImages=!preserveImages;preserveToggle.classList.toggle('on',preserveImages);preserveToggle.setAttribute('aria-checked',preserveImages);scheduleRender()});
+    $('export-png-btn').addEventListener('click',()=>{const ap=getActivePdf();if(!ap)return;const a=document.createElement('a');a.download=ap.name.replace(/\.pdf$/i,'')+'_dark.png';a.href=pdfCanvas.toDataURL('image/png');a.click();showToast('Exported as PNG','success')});
+
+    /* Download Merge */
+    downloadBtn.addEventListener('click',async()=>{
+        if(uploadedPDFs.length===0)return;processingModal.classList.remove('hidden');processingProgress.style.width='0%';processingPercent.textContent='0%';processingStatus.textContent='Calculating...';await new Promise(r=>setTimeout(r,50));
+        try{
+            const{jsPDF}=window.jspdf;let doc=null;const hasMultiple=uploadedPDFs.length>1;let pageOffset=hasMultiple?1:0;
+            let totalPgs=0;uploadedPDFs.forEach(p=>totalPgs+=p.numPages);let processedPgs=0;
+            if(hasMultiple){
+                processingStatus.textContent='Generating clickable index...';const firstPage=await uploadedPDFs[0].pdfDoc.getPage(1);const vp=firstPage.getViewport({scale:1});
+                const pw=vp.width,ph=vp.height;doc=new jsPDF({orientation:pw>ph?'landscape':'portrait',unit:'pt',format:[pw,ph],compress:true});
+                const bgR=parseInt(currentBgColor.slice(1,3),16),bgG=parseInt(currentBgColor.slice(3,5),16),bgB=parseInt(currentBgColor.slice(5,7),16);
+                const txR=parseInt(currentTextColor.slice(1,3),16),txG=parseInt(currentTextColor.slice(3,5),16),txB=parseInt(currentTextColor.slice(5,7),16);
+                doc.setFillColor(bgR,bgG,bgB);doc.rect(0,0,pw,ph,'F');doc.setFont('helvetica','bold');doc.setFontSize(28);doc.setTextColor(txR,txG,txB);doc.text('Table of Contents',40,80);
+                doc.setFont('helvetica','normal');doc.setFontSize(16);let y=120;let targetPage=2;
+                for(const pdfObj of uploadedPDFs){
+                    if(y>ph-40){doc.addPage([pw,ph],pw>ph?'landscape':'portrait');doc.setFillColor(bgR,bgG,bgB);doc.rect(0,0,pw,ph,'F');doc.setTextColor(txR,txG,txB);doc.setFont('helvetica','normal');doc.setFontSize(16);y=40}
+                    const entry=pdfObj.name.replace(/\.pdf$/i,'')+'  ('+pdfObj.numPages+' pages)';doc.textWithLink(entry,40,y,{pageNumber:targetPage});
+                    doc.setFontSize(10);doc.setTextColor(Math.min(255,txR+40),Math.min(255,txG+40),Math.min(255,txB+40));doc.text('Page '+targetPage,40+doc.getTextWidth(entry)+10,y);
+                    doc.setFontSize(16);doc.setTextColor(txR,txG,txB);y+=28;targetPage+=pdfObj.numPages;
+                }
+            }
+            for(let i=0;i<uploadedPDFs.length;i++){
+                const pdfObj=uploadedPDFs[i];
+                for(let p=1;p<=pdfObj.numPages;p++){
+                    processingStatus.textContent='Converting: '+pdfObj.name+' (Page '+p+')';const pct=Math.round((processedPgs/totalPgs)*95);processingProgress.style.width=pct+'%';processingPercent.textContent=pct+'%';
+                    const page=await pdfObj.pdfDoc.getPage(p);const origVp=page.getViewport({scale:1,rotation:currentRotation});const renderVp=page.getViewport({scale:RENDER_SCALE,rotation:currentRotation});
+                    const tempCanvas=document.createElement('canvas');tempCanvas.width=Math.max(1,Math.floor(renderVp.width));tempCanvas.height=Math.max(1,Math.floor(renderVp.height));const ctx=tempCanvas.getContext('2d');
+                    await page.render({canvasContext:ctx,viewport:renderVp}).promise;const imgData=ctx.getImageData(0,0,tempCanvas.width,tempCanvas.height);applyDarkModeToImageData(imgData);ctx.putImageData(imgData,0,0);
+                    const jpegURL=tempCanvas.toDataURL('image/jpeg',0.92);const pw=origVp.width,ph=origVp.height;
+                    if(!doc){doc=new jsPDF({orientation:pw>ph?'landscape':'portrait',unit:'pt',format:[pw,ph],compress:true})}else{doc.addPage([pw,ph],pw>ph?'landscape':'portrait')}
+                    doc.addImage(jpegURL,'JPEG',0,0,pw,ph,undefined,'FAST');const links=await getLinkData(pdfObj.pdfDoc,page,renderVp);
+                    for(const link of links){const pdfX=link.x/RENDER_SCALE,pdfY=link.y/RENDER_SCALE,pdfW=link.w/RENDER_SCALE,pdfH=link.h/RENDER_SCALE;try{if(link.targetPage){doc.link(pdfX,pdfY,pdfW,pdfH,{pageNumber:link.targetPage+pageOffset})}else if(link.url){doc.link(pdfX,pdfY,pdfW,pdfH,{url:link.url})}}catch(e){}}
+                    tempCanvas.width=0;tempCanvas.height=0;processedPgs++;await new Promise(r=>setTimeout(r,5));
+                }pageOffset+=pdfObj.numPages;
+            }
+            processingProgress.style.width='100%';processingPercent.textContent='100%';processingStatus.textContent='Saving...';await new Promise(r=>setTimeout(r,200));
+            const outName=(hasMultiple?'Merged_Dark':uploadedPDFs[0].name.replace(/\.pdf$/i,'')+'_dark')+'.pdf';const pdfBlob=doc.output('blob');const url=URL.createObjectURL(pdfBlob);
+            const a=document.createElement('a');a.href=url;a.download=outName;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),10000);
+            setTimeout(()=>{processingModal.classList.add('hidden');showToast('Downloaded "'+outName+'" — '+totalPgs+' pages'+(preserveImages?' (images preserved)':''),'success')},500);
+        }catch(err){console.error(err);processingModal.classList.add('hidden');showToast('Error: '+err.message,'error')}
+    });
+
+    /* Init */
+    buildThemes();
+    const arcticFrostIdx = THEMES.findIndex(t => t.name === 'Arctic Frost');
+    selectTheme(arcticFrostIdx !== -1 ? arcticFrostIdx : 0);
+    
+    let resizeTimeout;
+    window.addEventListener('resize',()=>{clearTimeout(resizeTimeout);resizeTimeout=setTimeout(()=>{if(!editorView.classList.contains('hidden')&&getActivePdf())applyZoom()},200)});
+    let touchStartX=0;previewContainer.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX},{passive:true});
+    previewContainer.addEventListener('touchend',e=>{const diff=e.changedTouches[0].clientX-touchStartX;if(Math.abs(diff)>60){if(diff<0)$('next-page').click();else $('prev-page').click()}},{passive:true});
+    </script>
+</body>
+</html>
