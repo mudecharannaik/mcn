@@ -1,0 +1,4267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyper-Scale 40k Markdown Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* ═══════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — injected by JS per theme
+═══════════════════════════════════════════════ */
+        :root {
+            --bg: #0f172a;
+            --text: #e2e8f0;
+            --subtle: #94a3b8;
+            --sidebar-bg: #1e293b;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --accent: #38bdf8;
+            --accent-text: #0f172a;
+            --code-bg: #090d16;
+            --code-text: #7dd3fc;
+            --font: Inter, system-ui, sans-serif;
+        }
+
+        /* ── Reset ── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background .25s, color .25s;
+            line-height: 1.6;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        ::selection {
+            background: var(--accent);
+            color: var(--accent-text);
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* ══════════════════════════════
+   LAYOUT
+══════════════════════════════ */
+        #app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ── */
+        #navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            gap: 8px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--accent);
+            color: var(--accent-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .nav-titles {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-title {
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .nav-sub {
+            font-size: 10px;
+            color: var(--subtle);
+            white-space: nowrap;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* view tabs */
+        .view-tabs {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
+            flex-shrink: 0;
+        }
+
+        .view-tab {
+            padding: 5px 12px;
+            border-radius: 7px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            background: transparent;
+            color: var(--text);
+            opacity: .65;
+            transition: all .18s;
+            white-space: nowrap;
+        }
+
+        .view-tab.active {
+            background: var(--accent);
+            color: var(--accent-text);
+            opacity: 1;
+        }
+
+        .view-tab:hover:not(.active) {
+            opacity: 1;
+        }
+
+        /* buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .18s;
+        }
+
+        .btn:hover {
+            opacity: .85;
+        }
+
+        .btn:active {
+            transform: scale(.96);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: var(--accent-text);
+            border-color: transparent;
+        }
+
+        .btn-accent:hover {
+            filter: brightness(1.08);
+        }
+
+        /* dropdown wrapper */
+        .dropdown-wrap {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 6px);
+            min-width: 230px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 6px;
+            z-index: 200;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .45);
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .dropdown-menu.open {
+            display: flex;
+        }
+
+        .dd-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--subtle);
+            padding: 4px 10px 6px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2px;
+        }
+
+        .dd-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            transition: background .15s;
+        }
+
+        .dd-item:hover {
+            background: var(--sidebar-bg);
+        }
+
+        .dd-item .dd-icon {
+            font-size: 16px;
+        }
+
+        .dd-item .dd-sub {
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--subtle);
+            margin-top: 1px;
+        }
+
+        .dd-item-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* theme grid */
+        #theme-menu {
+            min-width: 280px;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .theme-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            transition: background .15s;
+            gap: 8px;
+        }
+
+        .theme-item:hover {
+            background: var(--sidebar-bg);
+        }
+
+        .theme-item.active {
+            background: var(--accent);
+            color: var(--accent-text);
+        }
+
+        .theme-swatch {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .theme-cat {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 5px;
+            background: var(--sidebar-bg);
+            color: var(--subtle);
+        }
+
+        .theme-item.active .theme-cat {
+            background: rgba(0, 0, 0, .25);
+            color: var(--accent-text);
+        }
+
+        /* ── Body layout ── */
+        #body {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* ── Sidebar ── */
+        #sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 56px);
+            position: sticky;
+            top: 56px;
+            transition: width .25s, opacity .25s;
+            overflow: hidden;
+        }
+
+        #sidebar.collapsed {
+            width: 44px;
+        }
+
+        #sidebar.collapsed .sidebar-inner {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-inner {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            opacity: 1;
+            transition: opacity .2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .sidebar-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text);
+            opacity: .6;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            transition: opacity .15s;
+        }
+
+        .sidebar-toggle-btn:hover {
+            opacity: 1;
+        }
+
+        /* collapsed rail button */
+        #sidebar-rail {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 12px;
+        }
+
+        #sidebar.collapsed #sidebar-rail {
+            display: flex;
+        }
+
+        #sidebar.collapsed .sidebar-inner {
+            display: none;
+        }
+
+        .sidebar-search-wrap {
+            padding: 10px 10px 6px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .search-box-wrap {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            opacity: .45;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            opacity: .5;
+            font-size: 13px;
+            color: var(--text);
+            display: none;
+        }
+
+        .search-clear.visible {
+            display: block;
+        }
+
+        #toc-search {
+            width: 100%;
+            padding: 6px 28px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 12px;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        #toc-search:focus {
+            border-color: var(--accent);
+        }
+
+        .hit-badge {
+            position: absolute;
+            right: 26px;
+            top: 5px;
+            background: var(--accent);
+            color: var(--accent-text);
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        .depth-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .depth-label {
+            font-size: 10px;
+            font-weight: 700;
+            opacity: .55;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .depth-btns {
+            display: flex;
+            gap: 2px;
+        }
+
+        .depth-btn {
+            padding: 2px 6px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 700;
+            background: transparent;
+            color: var(--text);
+            opacity: .5;
+            transition: all .15s;
+        }
+
+        .depth-btn.active {
+            background: var(--accent);
+            color: var(--accent-text);
+            opacity: 1;
+        }
+
+        .ec-btns {
+            display: flex;
+            gap: 4px;
+        }
+
+        .ec-btn {
+            padding: 2px 7px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            background: transparent;
+            color: var(--text);
+            opacity: .6;
+            transition: all .15s;
+        }
+
+        .ec-btn:hover {
+            opacity: 1;
+        }
+
+        /* TOC tree */
+        #toc-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 8px;
+        }
+
+        .toc-node {}
+
+        .toc-row {
+            display: flex;
+            align-items: center;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: background .12s;
+            position: relative;
+            padding: 2px 4px 2px 0;
+            color: var(--text);
+        }
+
+        .toc-row:hover {
+            background: rgba(128, 128, 128, .12);
+        }
+
+        .toc-row.active {
+            background: var(--accent);
+            color: var(--accent-text);
+        }
+
+        .toc-chevron {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            opacity: .7;
+            border-radius: 4px;
+            transition: transform .2s;
+            color: inherit;
+        }
+
+        .toc-chevron.open {
+            transform: rotate(90deg);
+        }
+
+        .toc-chevron.leaf {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toc-label {
+            flex: 1;
+            font-size: 12px;
+            padding: 4px 2px;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .toc-row.lvl1 .toc-label {
+            font-weight: 700;
+            font-size: 12.5px;
+        }
+
+        .toc-row.lvl2 .toc-label {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .toc-row.lvl3 .toc-label {
+            font-weight: 500;
+            font-size: 11.5px;
+        }
+
+        .toc-row.lvl4 .toc-label,
+        .toc-row.lvl5 .toc-label,
+        .toc-row.lvl6 .toc-label {
+            font-weight: 400;
+            font-size: 11px;
+        }
+
+        .toc-line-no {
+            font-size: 9px;
+            font-family: monospace;
+            opacity: 0;
+            transition: opacity .15s;
+            flex-shrink: 0;
+            padding-right: 2px;
+        }
+
+        .toc-row:hover .toc-line-no {
+            opacity: .4;
+        }
+
+        .toc-bookmark-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity .15s;
+            flex-shrink: 0;
+            padding: 0 2px;
+            color: inherit;
+        }
+
+        .toc-row:hover .toc-bookmark-btn,
+        .toc-row .toc-bookmark-btn.marked {
+            opacity: 1;
+        }
+
+        .toc-bookmark-btn.marked {
+            color: #f59e0b;
+        }
+
+        .toc-children {
+            border-left: 2px solid var(--border);
+            margin-left: 10px;
+            padding-left: 2px;
+            margin-top: 1px;
+            margin-bottom: 1px;
+        }
+
+        .toc-children.hidden {
+            display: none;
+        }
+
+        .sidebar-footer {
+            padding: 8px 12px;
+            border-top: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        /* ── Main ── */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        /* ── Sub toolbar ── */
+        #sub-toolbar {
+            position: sticky;
+            top: 56px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 20px;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(8px);
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        .filter-input {
+            padding: 5px 10px 5px 28px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            color: var(--text);
+            font-size: 12px;
+            outline: none;
+            width: 220px;
+        }
+
+        .filter-wrap {
+            position: relative;
+        }
+
+        .filter-icon {
+            position: absolute;
+            left: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            opacity: .45;
+        }
+
+        /* ══════════════════════════════
+   VIEW PANES
+══════════════════════════════ */
+        .view-pane {
+            display: none;
+            flex: 1;
+        }
+
+        .view-pane.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── WEBSITE VIEW ── */
+        #view-website {
+            background: var(--bg);
+            padding: 28px 24px 80px;
+            overflow-y: auto;
+        }
+
+        .chapter-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .chapter-card {
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
+            transition: border-color .2s;
+        }
+
+        .chapter-card.highlighted {
+            border-color: var(--accent);
+            border-width: 2px;
+        }
+
+        .chapter-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            cursor: pointer;
+            user-select: none;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .chapter-head:hover {
+            filter: brightness(1.04);
+        }
+
+        .chapter-head-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .chap-chevron {
+            font-size: 16px;
+            color: var(--accent);
+            flex-shrink: 0;
+            transition: transform .2s;
+        }
+
+        .chap-chevron.open {}
+
+        .chap-chevron.closed {
+            transform: rotate(-90deg);
+        }
+
+        .chapter-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--accent);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chapter-head-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .line-badge {
+            font-size: 10px;
+            font-family: monospace;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--subtle);
+        }
+
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .copy-btn:hover {
+            opacity: .8;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            color: #fff;
+            border-color: #10b981;
+        }
+
+        .chapter-body {
+            padding: 28px 32px;
+            display: block;
+        }
+
+        .chapter-body.hidden {
+            display: none;
+        }
+
+        /* Markdown prose styling */
+        .prose {
+            color: var(--text);
+        }
+
+        .prose h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 1.5rem 0 .8rem;
+        }
+
+        .prose h2 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            margin: 1.8rem 0 .75rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: .35rem;
+            color: var(--text);
+        }
+
+        .prose h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.4rem 0 .65rem;
+            color: var(--text);
+        }
+
+        .prose h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1.2rem 0 .55rem;
+            color: var(--text);
+        }
+
+        .prose h5,
+        .prose h6 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 1rem 0 .5rem;
+            color: var(--text);
+        }
+
+        .prose p {
+            margin-bottom: 1.1rem;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .prose ul,
+        .prose ol {
+            margin: 0 0 1.1rem 1.6rem;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .prose li {
+            margin-bottom: .35rem;
+            color: var(--text);
+        }
+
+        .prose strong {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .prose em {
+            font-style: italic;
+            color: var(--text);
+        }
+
+        .prose a {
+            color: var(--accent);
+        }
+
+        .prose blockquote {
+            border-left: 4px solid var(--accent);
+            background: var(--sidebar-bg);
+            padding: .9rem 1.3rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.2rem 0;
+            font-style: italic;
+            color: var(--text);
+        }
+
+        .prose pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1.2rem;
+            border-radius: 0 0 8px 8px;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: .9rem;
+            margin: 1.4rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .prose code {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: .15rem .4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: .88em;
+        }
+
+        .prose pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .prose table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.4rem 0;
+            font-size: .95rem;
+        }
+
+        .prose th {
+            background: var(--sidebar-bg);
+            color: var(--text);
+            font-weight: 700;
+            text-align: left;
+            padding: .75rem 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .prose td {
+            padding: .7rem 1rem;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .prose tr:nth-child(even) td {
+            background: rgba(128, 128, 128, .05);
+        }
+
+        .code-block-wrap {
+            margin: 1.4rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .code-block-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 12px;
+            background: var(--sidebar-bg);
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--subtle);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        /* ── BOOK VIEW ── */
+        #view-book {
+            background: var(--bg);
+            overflow-y: auto;
+            padding-bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .book-toolbar {
+            width: 100%;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 56px;
+            z-index: 40;
+        }
+
+        .book-chapter-select {
+            padding: 6px 30px 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 700;
+            max-width: 320px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+        }
+
+        .book-chapter-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .book-chapter-arrow {
+            position: absolute;
+            right: 10px;
+            pointer-events: none;
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        .font-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 3px;
+        }
+
+        .font-btn {
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            background: transparent;
+            color: var(--text);
+            opacity: .55;
+            transition: all .15s;
+        }
+
+        .font-btn.active {
+            background: var(--accent);
+            color: var(--accent-text);
+            opacity: 1;
+        }
+
+        .book-content-area {
+            max-width: 820px;
+            width: 100%;
+            padding: 48px 32px;
+        }
+
+        .book-chapter-title-bar {
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 28px;
+            margin-bottom: 36px;
+        }
+
+        .book-chapter-meta {
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--subtle);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .book-chapter-h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--accent);
+            line-height: 1.15;
+        }
+
+        .book-paginator {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            z-index: 40;
+            backdrop-filter: blur(8px);
+        }
+
+        .pag-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .18s;
+            max-width: 240px;
+        }
+
+        .pag-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+        }
+
+        .pag-btn:disabled {
+            opacity: .3;
+            pointer-events: none;
+        }
+
+        .pag-btn-inner {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pag-hint {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: var(--subtle);
+            font-weight: 400;
+        }
+
+        .pag-name {
+            font-weight: 700;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .pag-center {
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--subtle);
+        }
+
+        /* ── PRESENTATION VIEW ── */
+        #view-presentation {
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .pres-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .slide-counter {
+            font-size: 12px;
+            font-family: monospace;
+            color: var(--subtle);
+        }
+
+        .pres-canvas {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow: hidden;
+        }
+
+        .slide-card {
+            width: 100%;
+            max-width: 1050px;
+            aspect-ratio: 16/9;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 18px;
+            padding: 48px 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, .4);
+            overflow-y: auto;
+            animation: fadeSlide .28s ease;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: scale(.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--subtle);
+        }
+
+        .slide-title {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 8px;
+            line-height: 1.15;
+        }
+
+        .slide-subtitle {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--subtle);
+            margin-bottom: 18px;
+        }
+
+        .slide-body {
+            flex: 1;
+            font-size: clamp(1rem, 1.8vw, 1.25rem);
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .slide-body ul {
+            margin-left: 1.8rem;
+            margin-top: .6rem;
+        }
+
+        .slide-body li {
+            margin-bottom: .5rem;
+        }
+
+        .slide-body pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: .8rem 0;
+            font-size: .85em;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+
+        .slide-body code {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: .1rem .35rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: .88em;
+        }
+
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: var(--subtle);
+        }
+
+        .pres-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            padding: 14px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+        }
+
+        .pres-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .pres-nav-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+        }
+
+        .pres-nav-btn:disabled {
+            opacity: .3;
+            pointer-events: none;
+        }
+
+        .pres-slide-no {
+            font-size: 12px;
+            font-family: monospace;
+            font-weight: 700;
+            color: var(--subtle);
+        }
+
+        /* thumbnail drawer */
+        .thumb-drawer {
+            position: fixed;
+            bottom: 68px;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            padding: 12px 20px;
+            display: none;
+            gap: 10px;
+            z-index: 80;
+            overflow-x: auto;
+            backdrop-filter: blur(8px);
+        }
+
+        .thumb-drawer.open {
+            display: flex;
+        }
+
+        .thumb-card {
+            flex-shrink: 0;
+            width: 160px;
+            height: 100px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--sidebar-bg);
+            padding: 10px;
+            cursor: pointer;
+            transition: all .15s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .thumb-card:hover {
+            border-color: var(--accent);
+            opacity: .9;
+        }
+
+        .thumb-card.active {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .thumb-no {
+            font-size: 9px;
+            font-family: monospace;
+            color: var(--subtle);
+            text-transform: uppercase;
+        }
+
+        .thumb-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        /* ── LINE INSPECTOR ── */
+        #view-lines {
+            background: var(--bg);
+            overflow-y: auto;
+            padding: 16px 20px 80px;
+        }
+
+        .lines-wrap {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .lines-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 0 14px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .type-filter-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+            text-transform: uppercase;
+            opacity: .6;
+        }
+
+        .type-filter-btn.active {
+            background: var(--accent);
+            color: var(--accent-text);
+            opacity: 1;
+            border-color: transparent;
+        }
+
+        .line-jump-form {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .line-jump-input {
+            padding: 5px 8px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            color: var(--text);
+            font-size: 12px;
+            width: 90px;
+            outline: none;
+            font-family: monospace;
+        }
+
+        .lines-table-wrap {
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            overflow: hidden;
+        }
+
+        .lines-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .rows-select {
+            padding: 3px 6px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 11px;
+            outline: none;
+        }
+
+        .lt {
+            display: grid;
+            grid-template-columns: 80px 110px 1fr 80px;
+            width: 100%;
+        }
+
+        .lt-head {
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .lt-head-cell {
+            padding: 8px 14px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .lt-row {
+            display: contents;
+        }
+
+        .lt-row>div {
+            padding: 7px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .lt-row:hover>div {
+            background: rgba(128, 128, 128, .06);
+        }
+
+        .lt-lineno {
+            font-family: monospace;
+            font-weight: 700;
+            color: var(--subtle);
+        }
+
+        .lt-type {}
+
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .lt-raw {
+            font-family: monospace;
+            font-size: 11.5px;
+            word-break: break-all;
+            white-space: pre-wrap;
+            color: var(--text);
+        }
+
+        .lt-raw.blank-line {
+            font-style: italic;
+            color: var(--subtle);
+        }
+
+        .lt-action {
+            display: flex;
+            align-items: center;
+        }
+
+        .line-copy-btn {
+            padding: 3px 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .line-copy-btn:hover {
+            opacity: .8;
+        }
+
+        .line-copy-btn.copied {
+            background: #10b981;
+            color: #fff;
+            border-color: #10b981;
+        }
+
+        .lines-paginator {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: var(--sidebar-bg);
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .page-btns {
+            display: flex;
+            gap: 4px;
+        }
+
+        .page-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+        }
+
+        .page-btn:disabled {
+            opacity: .3;
+            pointer-events: none;
+        }
+
+        /* ── STATS VIEW ── */
+        #view-stats {
+            background: var(--bg);
+            overflow-y: auto;
+            padding: 32px 24px 80px;
+        }
+
+        .stats-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .stats-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .stats-h1-tag {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .stats-h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            line-height: 1.2;
+            color: var(--text);
+        }
+
+        .stats-filesize {
+            font-size: 22px;
+            font-weight: 900;
+            font-family: monospace;
+            color: var(--accent);
+        }
+
+        .stats-fs-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--subtle);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform .15s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+        }
+
+        .stat-card:hover {
+            transform: scale(1.02);
+        }
+
+        .stat-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--subtle);
+        }
+
+        .stat-card-icon {
+            font-size: 20px;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 900;
+            font-family: monospace;
+            color: var(--accent);
+        }
+
+        .stat-card-sub {
+            font-size: 11px;
+            color: var(--subtle);
+        }
+
+        .struct-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .struct-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+        }
+
+        .struct-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--subtle);
+        }
+
+        .struct-num {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-family: monospace;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .struct-desc {
+            font-size: 11px;
+            color: var(--subtle);
+        }
+
+        .engine-panel {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px;
+        }
+
+        .engine-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .engine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .engine-item-title {
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .engine-item-desc {
+            font-size: 11.5px;
+            color: var(--subtle);
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════
+   MODALS
+══════════════════════════════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(0, 0, 0, .65);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 520px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, .6);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 14px;
+        }
+
+        .modal-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--accent);
+            color: var(--accent-text);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .modal-sub {
+            font-size: 11px;
+            color: var(--subtle);
+            margin-top: 2px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text);
+            opacity: .55;
+            transition: opacity .15s;
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        /* Upload tabs */
+        .tab-row {
+            display: flex;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
+            gap: 3px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 7px;
+            border-radius: 7px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            background: transparent;
+            color: var(--text);
+            opacity: .6;
+            transition: all .15s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: var(--accent-text);
+            opacity: 1;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 16px;
+            padding: 36px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            background: var(--sidebar-bg);
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            background: color-mix(in srgb, var(--accent) 8%, var(--sidebar-bg));
+        }
+
+        .drop-zone-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone-text {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .drop-zone-sub {
+            font-size: 11px;
+            color: var(--subtle);
+        }
+
+        #file-tab-pane {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #file-tab-pane.hidden,
+        #multi-tab-pane,
+        #paste-tab-pane {
+            display: none;
+        }
+
+        #multi-tab-pane.active {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #paste-tab-pane.active {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .paste-area {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            color: var(--text);
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            min-height: 140px;
+        }
+
+        /* Multi-file list */
+        .multi-file-entry {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            transition: background .12s;
+        }
+
+        .multi-file-entry:hover {
+            background: rgba(128, 128, 128, .05);
+        }
+
+        .multi-file-entry .mf-grip {
+            opacity: .3;
+            cursor: grab;
+            flex-shrink: 0;
+        }
+
+        .multi-file-entry .mf-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .multi-file-entry .mf-actions {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity .15s;
+            flex-shrink: 0;
+        }
+
+        .multi-file-entry:hover .mf-actions {
+            opacity: 1;
+        }
+
+        .mf-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 3px 5px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: var(--subtle);
+            transition: all .12s;
+            display: flex;
+            align-items: center;
+        }
+
+        .mf-btn:hover {
+            background: rgba(128, 128, 128, .15);
+        }
+
+        .mf-btn.del:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, .1);
+        }
+
+        .modal-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-divider-line {
+            flex: 1;
+            border-top: 1px solid var(--border);
+        }
+
+        .modal-divider-text {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--subtle);
+            letter-spacing: .8px;
+        }
+
+        .sample-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 2px solid var(--accent);
+            background: var(--sidebar-bg);
+            cursor: pointer;
+            transition: all .2s;
+            gap: 12px;
+        }
+
+        .sample-btn:hover {
+            filter: brightness(1.05);
+        }
+
+        .sample-btn-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sample-icon {
+            font-size: 28px;
+        }
+
+        .sample-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .sample-sub {
+            font-size: 11px;
+            color: var(--subtle);
+            margin-top: 2px;
+        }
+
+        .err-box {
+            background: rgba(239, 68, 68, .12);
+            border: 1px solid rgba(239, 68, 68, .4);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #ef4444;
+            font-size: 12px;
+            font-weight: 700;
+            display: none;
+        }
+
+        .err-box.visible {
+            display: block;
+        }
+
+        /* Config modal */
+        .cfg-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .cfg-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--subtle);
+        }
+
+        .cfg-input {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        .cfg-input:focus {
+            border-color: var(--accent);
+        }
+
+        .cfg-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--sidebar-bg);
+            cursor: pointer;
+            transition: all .15s;
+            user-select: none;
+        }
+
+        .cfg-toggle.on {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 10%, var(--sidebar-bg));
+        }
+
+        .cfg-toggle-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cfg-toggle-title {
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .cfg-toggle-sub {
+            font-size: 10px;
+            color: var(--subtle);
+        }
+
+        .cfg-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .cfg-toggle.on .cfg-checkbox {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--accent-text);
+        }
+
+        /* loading spinner */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #334155;
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #e2e8f0;
+        }
+
+        .loading-sub {
+            font-size: 12px;
+            color: #94a3b8;
+            font-family: monospace;
+        }
+
+        /* confetti */
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* ── utilities ── */
+        .hidden {
+            display: none !important;
+        }
+
+        .ellipsis {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── print ── */
+        @media print {
+
+            #navbar,
+            #sidebar,
+            #sub-toolbar,
+            .book-toolbar,
+            .book-paginator,
+            .pag-btn,
+            #view-lines,
+            #view-presentation,
+            #view-stats,
+            .view-tabs,
+            .nav-actions,
+            .chapter-head-right,
+            #loading-screen {
+                display: none !important;
+            }
+
+            #body {
+                display: block !important;
+            }
+
+            #main {
+                display: block !important;
+            }
+
+            #view-website,
+            #view-book {
+                display: block !important;
+                overflow: visible !important;
+            }
+
+            .chapter-card {
+                border: none !important;
+                box-shadow: none !important;
+                margin-bottom: 1.5rem !important;
+            }
+
+            .chapter-body.hidden {
+                display: block !important;
+            }
+
+            body {
+                background: #fff !important;
+                color: #000 !important;
+            }
+
+            .prose * {
+                color: #000 !important;
+                background: transparent !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #sidebar {
+                display: none;
+            }
+
+            .nav-sub,
+            .view-tab span {
+                display: none;
+            }
+
+            .view-tab {
+                padding: 5px 8px;
+            }
+
+            #view-website,
+            #view-book {
+                padding: 14px 10px 80px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <div class="loading-title">Markdown Engine</div>
+        <div class="loading-sub">Initialising High-Performance Markdown Tokenizer</div>
+    </div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- ════════════════════════════════════════
+     UPLOAD MODAL
+════════════════════════════════════════ -->
+    <div id="upload-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <div class="modal-icon">⬆️</div>
+                    <div>
+                        <div class="modal-title">Upload Markdown Document</div>
+                        <div class="modal-sub">Instant Website Converter — supports 40k+ lines</div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeUpload()">✕</button>
+            </div>
+            <div class="tab-row">
+                <button class="tab-btn active" id="file-tab-btn" onclick="switchUploadTab('file')">📂 Single
+                    File</button>
+                <button class="tab-btn" id="multi-tab-btn" onclick="switchUploadTab('multi')">🗂 Multiple Files</button>
+                <button class="tab-btn" id="paste-tab-btn" onclick="switchUploadTab('paste')">📋 Paste Text</button>
+            </div>
+            <div class="err-box" id="upload-err"></div>
+
+            <!-- File tab -->
+            <div id="file-tab-pane">
+                <input type="file" id="file-input" accept=".md,.markdown,.txt" style="display:none"
+                    onchange="handleFileInput(event)">
+                <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <div class="drop-zone-icon">📁</div>
+                    <div class="drop-zone-text">Click to browse or drag & drop your file</div>
+                    <div class="drop-zone-sub">Accepts massive specifications up to 50 MB</div>
+                </div>
+            </div>
+
+            <!-- Multi-file tab -->
+            <div id="multi-tab-pane">
+                <input type="file" id="multi-input" accept=".md,.markdown,.txt" multiple style="display:none"
+                    onchange="handleMultiInput(event)">
+                <button class="btn btn-accent" style="width:100%;justify-content:center;padding:10px;margin-bottom:8px"
+                    onclick="document.getElementById('multi-input').click()">+ Add Markdown Files…</button>
+                <div id="multi-file-list" class="multi-file-list"
+                    style="border-radius:12px;border:1px solid var(--border);overflow:hidden;max-height:200px;overflow-y:auto">
+                    <div
+                        style="padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;font-weight:800;color:var(--subtle);border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+                        <span>📄 Files to Merge</span><span id="multi-count">(0)</span>
+                    </div>
+                    <div id="multi-entries"
+                        style="font-size:11px;color:var(--subtle);text-align:center;padding:16px;font-style:italic">No
+                        files added yet.</div>
+                </div>
+                <button class="btn btn-accent" id="multi-build-btn"
+                    style="width:100%;justify-content:center;padding:12px;margin-top:8px;display:none"
+                    onclick="buildMultiFiles()">▶ Merge & Build Website</button>
+            </div>
+
+            <!-- Paste tab -->
+            <div id="paste-tab-pane">
+                <textarea class="paste-area" id="paste-area"
+                    placeholder="# Paste your markdown here…&#10;&#10;## Features&#10;- 20 stunning themes&#10;- Collapsible TOC tree"></textarea>
+                <button class="btn btn-accent" style="width:100%;justify-content:center;padding:12px"
+                    onclick="handlePaste()">🚀 Convert Pasted Text to Website</button>
+            </div>
+
+            <div class="modal-divider">
+                <div class="modal-divider-line"></div>
+                <div class="modal-divider-text">Or Quick Test</div>
+                <div class="modal-divider-line"></div>
+            </div>
+
+            <button class="sample-btn" onclick="loadSampleAndClose()">
+                <div class="sample-btn-left">
+                    <div class="sample-icon">✨</div>
+                    <div>
+                        <div class="sample-title">Load 35,000-Line Master Technical Lexicon</div>
+                        <div class="sample-sub">Instantly generates a massive 35k technical doc to benchmark performance
+                        </div>
+                    </div>
+                </div>
+                <div style="font-size:18px;color:var(--accent)">✔</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+     CONFIG MODAL
+════════════════════════════════════════ -->
+    <div id="config-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <div class="modal-icon">⚙️</div>
+                    <div>
+                        <div class="modal-title">Website Customisation</div>
+                        <div class="modal-sub">Adjust metadata & active UI features</div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeConfig()">✕</button>
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">Website Brand Title</div>
+                <input class="cfg-input" id="cfg-title" placeholder="e.g. Master Deployment Specification">
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">Website Tagline / Subtitle</div>
+                <input class="cfg-input" id="cfg-subtitle" placeholder="e.g. Volume IV: Distributed Infrastructure">
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">Author / Organisation</div>
+                <input class="cfg-input" id="cfg-author" placeholder="e.g. Global Enterprise Core Engineering">
+            </div>
+            <div class="cfg-toggle" id="cfg-linenums" onclick="toggleCfg('linenums')">
+                <div class="cfg-toggle-text">
+                    <div class="cfg-toggle-title">Show Line Numbers</div>
+                    <div class="cfg-toggle-sub">Show line range badges on chapter headings</div>
+                </div>
+                <div class="cfg-checkbox">✓</div>
+            </div>
+            <div class="cfg-toggle on" id="cfg-admonitions" onclick="toggleCfg('admonitions')">
+                <div class="cfg-toggle-text">
+                    <div class="cfg-toggle-title">✨ Parse GitHub Admonitions</div>
+                    <div class="cfg-toggle-sub">Turns [!IMPORTANT] / [!WARNING] into vibrant callout boxes</div>
+                </div>
+                <div class="cfg-checkbox">✓</div>
+            </div>
+            <button class="btn btn-accent" style="width:100%;justify-content:center;padding:12px"
+                onclick="saveConfig()">💾 Save & Apply Configuration</button>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════ -->
+    <div id="app">
+
+        <!-- NAVBAR -->
+        <nav id="navbar">
+            <div class="nav-brand">
+                <div class="nav-logo">⚡</div>
+                <div class="nav-titles">
+                    <div class="nav-title" id="nav-title">Hyper-Scale Markdown Engine</div>
+                    <div class="nav-sub" id="nav-sub">40k Engine • Loading…</div>
+                </div>
+                <button class="btn" onclick="openUpload()" style="margin-left:6px">⬆ Upload MD</button>
+                <button class="btn" onclick="openConfig()">⚙ Configure</button>
+            </div>
+
+            <!-- View mode tabs -->
+            <div class="view-tabs">
+                <button class="view-tab active" data-view="website" onclick="switchView('website')">🖥 Website</button>
+                <button class="view-tab" data-view="book" onclick="switchView('book')">📖 Book</button>
+                <button class="view-tab" data-view="presentation" onclick="switchView('presentation')">📽
+                    Slides</button>
+                <button class="view-tab" data-view="lines" onclick="switchView('lines')">🔢 Comming soon</button>
+                <button class="view-tab" data-view="stats" onclick="switchView('stats')">📊 Comming soon</button>
+            </div>
+
+            <div class="nav-actions">
+                <!-- Theme picker -->
+                <div class="dropdown-wrap" id="theme-dropdown">
+                    <button class="btn" onclick="toggleDropdown('theme-dropdown')">🎨 <span
+                            id="theme-name-label">Theme</span> ▾</button>
+                    <div class="dropdown-menu" id="theme-menu">
+                        <div class="dd-label">Select Page Theme (20 Themes)</div>
+                    </div>
+                </div>
+
+                <!-- Export menu -->
+                <div class="dropdown-wrap" id="export-dropdown">
+                    <button class="btn btn-accent" onclick="toggleDropdown('export-dropdown')">⬇ Export ▾</button>
+                    <div class="dropdown-menu" id="export-menu">
+                        <div class="dd-label">Export Options (Fully Offline)</div>
+                        <div class="dd-item" onclick="doExport('website');closeAllDropdowns()"><span
+                                class="dd-icon">🌐</span>
+                            <div class="dd-item-text"><span>Standalone HTML Website</span><span class="dd-sub">Single
+                                    responsive web file</span></div>
+                        </div>
+                        <div class="dd-item" onclick="doExport('ppt');closeAllDropdowns()"><span
+                                class="dd-icon">📽</span>
+                            <div class="dd-item-text"><span>Interactive Slide Deck</span><span
+                                    class="dd-sub">Self-contained HTML presentation</span></div>
+                        </div>
+                        <div class="dd-item" onclick="doExport('pdf');closeAllDropdowns()"><span
+                                class="dd-icon">🖨</span>
+                            <div class="dd-item-text"><span>Formatted Book / PDF</span><span class="dd-sub">Clean print
+                                    dialog</span></div>
+                        </div>
+                        <div class="dd-item" onclick="doExport('csv');closeAllDropdowns()"><span
+                                class="dd-icon">📊</span>
+                            <div class="dd-item-text"><span>Structured CSV / Excel</span><span class="dd-sub">Chapters &
+                                    metrics data</span></div>
+                        </div>
+                        <div class="dd-item" onclick="doExport('json');closeAllDropdowns()"><span
+                                class="dd-icon">📦</span>
+                            <div class="dd-item-text"><span>Structured JSON Token Map</span><span
+                                    class="dd-sub">Complete document AST payload</span></div>
+                        </div>
+                        <div class="dd-item" onclick="doExport('txt');closeAllDropdowns()"><span
+                                class="dd-icon">📄</span>
+                            <div class="dd-item-text"><span>Raw Plain Text (.txt)</span><span class="dd-sub">Universal
+                                    UTF-8 text bundle</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- BODY -->
+        <div id="body">
+
+            <!-- SIDEBAR -->
+            <div id="sidebar">
+                <!-- Collapsed rail -->
+                <div id="sidebar-rail">
+                    <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Open Table of Contents"
+                        style="color:var(--accent)">&#9654;</button>
+                </div>
+                <!-- Full sidebar content -->
+                <div class="sidebar-inner">
+                    <div class="sidebar-header">
+                        <span>📚 Table of Contents</span>
+                        <button class="sidebar-toggle-btn" onclick="toggleSidebar()"
+                            title="Collapse sidebar">&#9664;</button>
+                    </div>
+                    <div class="sidebar-search-wrap">
+                        <div class="search-box-wrap">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="toc-search" placeholder="Search headings…"
+                                oninput="onTocSearch(this.value)">
+                            <span class="hit-badge hidden" id="hit-badge">0</span>
+                            <button class="search-clear" id="search-clear-btn" onclick="clearTocSearch()">✕</button>
+                        </div>
+                        <div class="depth-row">
+                            <div class="depth-label">⚙ Depth:</div>
+                            <div class="depth-btns" id="depth-btns">
+                                <button class="depth-btn" data-d="1" onclick="setMaxDepth(1)">H1</button>
+                                <button class="depth-btn" data-d="2" onclick="setMaxDepth(2)">H2</button>
+                                <button class="depth-btn" data-d="3" onclick="setMaxDepth(3)">H3</button>
+                                <button class="depth-btn active" data-d="6" onclick="setMaxDepth(6)">All</button>
+                            </div>
+                            <div class="ec-btns">
+                                <button class="ec-btn" onclick="expandAllToc()">+All</button>
+                                <button class="ec-btn" onclick="collapseAllToc()">−All</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="toc-tree"></div>
+                    <div class="sidebar-footer">
+                        <span>📖 <span id="toc-count">0</span> headings</span>
+                        <span id="bookmark-count" style="color:#f59e0b;font-weight:700"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <div id="main">
+
+                <!-- SUB TOOLBAR -->
+                <div id="sub-toolbar">
+                    <div class="toolbar-left">
+                        <span class="toolbar-label" id="toolbar-label">Interactive Doc Website</span>
+                        <div class="filter-wrap">
+                            <span class="filter-icon">🔍</span>
+                            <input type="text" class="filter-input" id="section-filter" placeholder="Filter sections…"
+                                oninput="filterSections(this.value)">
+                        </div>
+                        <span style="font-size:11px;color:var(--subtle)" id="section-count-label"></span>
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn" id="linenums-btn" onclick="toggleLineNumbers()">🔢 Line Numbers: <span
+                                id="ln-status">ON</span></button>
+                        <button class="btn" onclick="expandAllChapters()">Expand All</button>
+                        <button class="btn" onclick="collapseAllChapters()">Collapse All</button>
+                    </div>
+                </div>
+
+                <!-- VIEW: WEBSITE -->
+                <div class="view-pane active" id="view-website">
+                    <div class="chapter-grid" id="chapter-grid"></div>
+                </div>
+
+                <!-- VIEW: BOOK -->
+                <div class="view-pane" id="view-book">
+                    <div class="book-toolbar">
+                        <div class="book-chapter-wrap">
+                            <select class="book-chapter-select" id="book-chapter-select"
+                                onchange="gotoBookChapter(parseInt(this.value))"></select>
+                            <span class="book-chapter-arrow">▾</span>
+                        </div>
+                        <div class="font-controls" id="book-font-size-ctrl">
+                            <button class="font-btn" data-fs="sm" onclick="setBookFont('sm')">Sm</button>
+                            <button class="font-btn active" data-fs="md" onclick="setBookFont('md')">Md</button>
+                            <button class="font-btn" data-fs="lg" onclick="setBookFont('lg')">Lg</button>
+                            <button class="font-btn" data-fs="xl" onclick="setBookFont('xl')">XL</button>
+                        </div>
+                        <div class="font-controls" id="book-font-style-ctrl">
+                            <button class="font-btn" data-style="sans" onclick="setBookStyle('sans')">Sans</button>
+                            <button class="font-btn active" data-style="serif"
+                                onclick="setBookStyle('serif')">Serif</button>
+                            <button class="font-btn" data-style="mono" onclick="setBookStyle('mono')">Mono</button>
+                        </div>
+                    </div>
+                    <div class="book-content-area" id="book-content-area">
+                        <div class="book-chapter-title-bar">
+                            <div class="book-chapter-meta" id="book-meta"></div>
+                            <div class="book-chapter-h1" id="book-title"></div>
+                        </div>
+                        <div class="prose" id="book-prose"></div>
+                    </div>
+                    <div class="book-paginator">
+                        <button class="pag-btn" id="pag-prev" onclick="bookPrev()">
+                            ◀ <div class="pag-btn-inner"><span class="pag-hint">Previous Chapter</span><span
+                                    class="pag-name" id="pag-prev-name">—</span></div>
+                        </button>
+                        <div class="pag-center" id="pag-center"></div>
+                        <button class="pag-btn" id="pag-next" onclick="bookNext()">
+                            <div class="pag-btn-inner"><span class="pag-hint">Next Chapter</span><span class="pag-name"
+                                    id="pag-next-name">—</span></div> ▶
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VIEW: PRESENTATION -->
+                <div class="view-pane" id="view-presentation">
+                    <div class="pres-toolbar">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <span style="font-size:13px;font-weight:800">📽 Slide Mode</span>
+                            <span class="slide-counter" id="slide-counter">Slide 1 / 0</span>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <button class="btn btn-accent" onclick="doExport('ppt')">⬇ Export Offline Deck</button>
+                            <button class="btn" id="thumb-toggle" onclick="toggleThumbs()">⊞ Thumbnails</button>
+                        </div>
+                    </div>
+                    <div class="pres-canvas" id="pres-canvas">
+                        <div class="slide-card" id="slide-card">
+                            <div class="slide-header">
+                                <span id="slide-brand-label"></span>
+                                <span id="slide-num-label"></span>
+                            </div>
+                            <div>
+                                <div class="slide-title" id="slide-title"></div>
+                                <div class="slide-subtitle" id="slide-subtitle"></div>
+                                <div class="slide-body" id="slide-body"></div>
+                            </div>
+                            <div class="slide-footer">
+                                <span id="slide-author-label"></span>
+                                <span>Use ← → keys to navigate</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="thumb-drawer" id="thumb-drawer"></div>
+                    <div class="pres-nav">
+                        <button class="pres-nav-btn" id="pres-prev" onclick="prevSlide()">◀ Prev</button>
+                        <span class="pres-slide-no" id="pres-slide-no">1 / 0</span>
+                        <button class="pres-nav-btn" id="pres-next" onclick="nextSlide()">Next ▶</button>
+                    </div>
+                </div>
+
+                <!-- VIEW: LINE INSPECTOR -->
+                <div class="view-pane" id="view-lines">
+                    <div class="lines-wrap">
+                        <div class="lines-toolbar">
+                            <div class="filter-wrap" style="flex-shrink:0">
+                                <span class="filter-icon">🔍</span>
+                                <input type="text" class="filter-input" id="line-search" placeholder="Search content…"
+                                    oninput="applyLineFilters()">
+                            </div>
+                            <form onsubmit="jumpToLine(event)" style="display:flex;gap:4px;align-items:center">
+                                <input type="number" class="line-jump-input" id="line-jump-input"
+                                    placeholder="# Line jump">
+                                <button type="submit" class="btn btn-accent" style="padding:5px 12px">Go</button>
+                            </form>
+                            <div style="display:flex;flex-wrap:wrap;gap:4px" id="type-filter-btns"></div>
+                        </div>
+                        <div class="lines-table-wrap">
+                            <div class="lines-table-header">
+                                <span id="lines-range-label">Showing lines…</span>
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    <span>Rows / page:</span>
+                                    <select class="rows-select" id="rows-select"
+                                        onchange="setRowsPerPage(parseInt(this.value))">
+                                        <option value="50">50</option>
+                                        <option value="100" selected>100</option>
+                                        <option value="250">250</option>
+                                        <option value="500">500</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="overflow-x:auto;max-height:calc(100vh - 340px);overflow-y:auto">
+                                <div class="lt">
+                                    <div class="lt-head" style="display:contents">
+                                        <div class="lt-head-cell">Line #</div>
+                                        <div class="lt-head-cell">Type</div>
+                                        <div class="lt-head-cell">Raw Content</div>
+                                        <div class="lt-head-cell" style="text-align:right">Action</div>
+                                    </div>
+                                    <div id="lines-tbody"></div>
+                                </div>
+                            </div>
+                            <div class="lines-paginator">
+                                <span id="lines-page-info">Page 1 of 1</span>
+                                <div class="page-btns">
+                                    <button class="page-btn" id="page-first" onclick="goLinePage(1)">«</button>
+                                    <button class="page-btn" id="page-prev" onclick="goLinePage(linesPage-1)">‹
+                                        Prev</button>
+                                    <button class="page-btn" id="page-next" onclick="goLinePage(linesPage+1)">Next
+                                        ›</button>
+                                    <button class="page-btn" id="page-last"
+                                        onclick="goLinePage(linesTotalPages)">»</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: STATS -->
+                <div class="view-pane" id="view-stats">
+                    <div class="stats-inner" id="stats-inner"></div>
+                </div>
+
+            </div><!-- /#main -->
+        </div><!-- /#body -->
+    </div><!-- /#app -->
+
+    <script>
+        /* ══════════════════════════════════════════════════════════════════
+           THEMES — 20 complete theme definitions
+        ══════════════════════════════════════════════════════════════════ */
+        const THEMES = [
+            { id: 'pristine-light', name: 'Pristine Light', cat: 'Light', bg: '#ffffff', text: '#0f172a', subtle: '#64748b', sidebarBg: '#f8fafc', cardBg: '#ffffff', border: '#e2e8f0', accent: '#2563eb', accentText: '#ffffff', codeBg: '#f1f5f9', codeText: '#0f172a', font: 'system-ui,-apple-system,sans-serif' },
+            { id: 'github-light', name: 'GitHub Clean Light', cat: 'Light', bg: '#f6f8fa', text: '#1f2328', subtle: '#656d76', sidebarBg: '#ffffff', cardBg: '#ffffff', border: '#d0d7de', accent: '#0969da', accentText: '#ffffff', codeBg: '#eff2f5', codeText: '#24292f', font: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' },
+            { id: 'solarized-light', name: 'Solarized Parchment', cat: 'Light', bg: '#fdf6e3', text: '#073642', subtle: '#586e75', sidebarBg: '#eee8d5', cardBg: '#fdf6e3', border: '#d3c6a6', accent: '#268bd2', accentText: '#ffffff', codeBg: '#eee8d5', codeText: '#b58900', font: 'Georgia,Cambria,serif' },
+            { id: 'sepia-manuscript', name: 'Sepia Classic', cat: 'Light', bg: '#fbf0d9', text: '#43302e', subtle: '#7c6561', sidebarBg: '#f2e3c6', cardBg: '#fbf0d9', border: '#e2d0ab', accent: '#9e2a2b', accentText: '#ffffff', codeBg: '#f0e1c3', codeText: '#671d1e', font: 'Charter,"Bitstream Charter",Cambria,serif' },
+            { id: 'ocean-breeze', name: 'Ocean Breeze Light', cat: 'Light', bg: '#f0f9ff', text: '#0369a1', subtle: '#0284c7', sidebarBg: '#e0f2fe', cardBg: '#ffffff', border: '#bae6fd', accent: '#0284c7', accentText: '#ffffff', codeBg: '#e0f2fe', codeText: '#075985', font: 'Inter,system-ui,sans-serif' },
+            { id: 'deep-obsidian', name: 'Deep Obsidian', cat: 'Dark', bg: '#000000', text: '#f8fafc', subtle: '#94a3b8', sidebarBg: '#090d16', cardBg: '#111827', border: '#1f2937', accent: '#10b981', accentText: '#000000', codeBg: '#111827', codeText: '#34d399', font: 'system-ui,-apple-system,sans-serif' },
+            { id: 'midnight-slate', name: 'Midnight Slate', cat: 'Dark', bg: '#0f172a', text: '#e2e8f0', subtle: '#94a3b8', sidebarBg: '#1e293b', cardBg: '#1e293b', border: '#334155', accent: '#38bdf8', accentText: '#0f172a', codeBg: '#090d16', codeText: '#7dd3fc', font: 'Inter,system-ui,sans-serif' },
+            { id: 'dracula-dark', name: 'Dracula Midnight', cat: 'Dark', bg: '#282a36', text: '#f8f8f2', subtle: '#6272a4', sidebarBg: '#21222c', cardBg: '#44475a', border: '#6272a4', accent: '#ff79c6', accentText: '#282a36', codeBg: '#21222c', codeText: '#8be9fd', font: '"Fira Code","Source Code Pro",monospace' },
+            { id: 'nordic-frost', name: 'Nord Frost', cat: 'Dark', bg: '#2e3440', text: '#eceff4', subtle: '#d8dee9', sidebarBg: '#3b4252', cardBg: '#434c5e', border: '#4c566a', accent: '#88c0d0', accentText: '#2e3440', codeBg: '#242933', codeText: '#a3be8c', font: 'Rubik,system-ui,sans-serif' },
+            { id: 'solarized-dark', name: 'Solarized Dark Deep', cat: 'Dark', bg: '#002b36', text: '#93a1a1', subtle: '#586e75', sidebarBg: '#073642', cardBg: '#073642', border: '#586e75', accent: '#b58900', accentText: '#002b36', codeBg: '#001e26', codeText: '#2aa198', font: 'Georgia,Cambria,serif' },
+            { id: 'tokyo-night', name: 'Tokyo Night Neon', cat: 'Colorful', bg: '#1a1b26', text: '#c0caf5', subtle: '#7aa2f7', sidebarBg: '#16161e', cardBg: '#24283b', border: '#414868', accent: '#bb9af7', accentText: '#1a1b26', codeBg: '#101014', codeText: '#7dcfff', font: '"Segoe UI",Roboto,sans-serif' },
+            { id: 'cyberpunk-2077', name: 'Cyberpunk Neon', cat: 'Colorful', bg: '#120324', text: '#fae03c', subtle: '#f0528b', sidebarBg: '#1f063b', cardBg: '#2d0954', border: '#f0528b', accent: '#00f0ff', accentText: '#120324', codeBg: '#0b0217', codeText: '#00f0ff', font: '"Courier New",Courier,monospace' },
+            { id: 'matcha-green', name: 'Matcha Botanical', cat: 'Colorful', bg: '#f0f7f4', text: '#1b4332', subtle: '#40916c', sidebarBg: '#d8f3dc', cardBg: '#ffffff', border: '#b7e4c7', accent: '#2d6a4f', accentText: '#ffffff', codeBg: '#e2ece9', codeText: '#081c15', font: 'system-ui,-apple-system,sans-serif' },
+            { id: 'sunset-amber', name: 'Sunset Amber', cat: 'Colorful', bg: '#fffbeb', text: '#78350f', subtle: '#b45309', sidebarBg: '#fef3c7', cardBg: '#ffffff', border: '#fde68a', accent: '#ea580c', accentText: '#ffffff', codeBg: '#fef3c7', codeText: '#9a3412', font: 'system-ui,sans-serif' },
+            { id: 'royal-amethyst', name: 'Royal Amethyst', cat: 'Colorful', bg: '#2e1065', text: '#f3e8ff', subtle: '#c084fc', sidebarBg: '#1e0748', cardBg: '#3b0764', border: '#581c87', accent: '#d8b4fe', accentText: '#2e1065', codeBg: '#1e0748', codeText: '#e9d5ff', font: 'Inter,system-ui,sans-serif' },
+            { id: 'hc-light', name: 'High Contrast Light', cat: 'High Contrast', bg: '#ffffff', text: '#000000', subtle: '#000000', sidebarBg: '#ffffff', cardBg: '#ffffff', border: '#000000', accent: '#000000', accentText: '#ffffff', codeBg: '#ffffff', codeText: '#000000', font: 'Verdana,sans-serif' },
+            { id: 'hc-dark', name: 'High Contrast Dark', cat: 'High Contrast', bg: '#000000', text: '#ffffff', subtle: '#ffff00', sidebarBg: '#000000', cardBg: '#000000', border: '#ffffff', accent: '#ffff00', accentText: '#000000', codeBg: '#000000', codeText: '#ffff00', font: 'Verdana,sans-serif' },
+            { id: 'charcoal-minimal', name: 'Charcoal Minimal', cat: 'Monochrome', bg: '#18181b', text: '#f4f4f5', subtle: '#a1a1aa', sidebarBg: '#27272a', cardBg: '#27272a', border: '#3f3f46', accent: '#e4e4e7', accentText: '#18181b', codeBg: '#0f0f12', codeText: '#d4d4d8', font: 'Helvetica Neue,Helvetica,Arial,sans-serif' },
+            { id: 'velvet-coffee', name: 'Velvet Coffee', cat: 'Monochrome', bg: '#261c14', text: '#f3e5ab', subtle: '#d97706', sidebarBg: '#1c140e', cardBg: '#36271c', border: '#543d2b', accent: '#f59e0b', accentText: '#261c14', codeBg: '#1a120c', codeText: '#fcd34d', font: 'Georgia,Cambria,serif' },
+            { id: 'retro-terminal', name: 'Retro 80s Terminal', cat: 'Monochrome', bg: '#050505', text: '#22c55e', subtle: '#16a34a', sidebarBg: '#0a100d', cardBg: '#0a150f', border: '#15803d', accent: '#4ade80', accentText: '#050505', codeBg: '#000000', codeText: '#4ade80', font: '"Courier New",Courier,monospace' }
+        ];
+
+        /* ══════════════════════════════════════════════════════════════════
+           APP STATE
+        ══════════════════════════════════════════════════════════════════ */
+        let currentTheme = THEMES.find(t => t.id === 'midnight-slate');
+        let currentView = 'website';
+        let rawMarkdown = '';
+        let parsedDoc = null;  // { stats, toc, chapters, lineItems, slides }
+        let config = { title: 'Hyper-Scale System Lexicon', subtitle: '35,000-Line Master Doc Engine', author: 'Core Infrastructure Group', showLineNums: true, admonitions: true };
+        let sidebarOpen = true;
+        let maxTocDepth = 6;
+        let tocSearchQuery = '';
+        let bookmarks = new Set();
+        let collapsedTocIds = new Set();
+        let bookChapterIdx = 0;
+        let bookFontSize = 'md';
+        let bookFontStyle = 'serif';
+        let slideIdx = 0;
+        let thumbsOpen = false;
+        let lineTypeFilter = 'all';
+        let lineSearchQuery = '';
+        let linesPage = 1;
+        let linesRowsPerPage = 100;
+        let linesTotalPages = 1;
+        let filteredLines = [];
+        let sectionFilter = '';
+
+        const FONT_SIZES = { sm: '1rem', md: '1.1rem', lg: '1.25rem', xl: '1.45rem' };
+        const FONT_STYLES = { sans: 'system-ui,sans-serif', serif: 'Georgia,Cambria,serif', mono: '"Courier New",Courier,monospace' };
+
+        const TYPE_COLORS = {
+            heading: { bg: '#3b82f6', color: '#fff' },
+            code: { bg: '#10b981', color: '#fff' },
+            table: { bg: '#f59e0b', color: '#000' },
+            quote: { bg: '#8b5cf6', color: '#fff' },
+            list: { bg: '#ec4899', color: '#fff' },
+            paragraph: { bg: 'transparent', color: 'inherit' },
+            blank: { bg: 'transparent', color: '#9ca3af' }
+        };
+
+        /* ══════════════════════════════════════════════════════════════════
+           THEME SYSTEM
+        ══════════════════════════════════════════════════════════════════ */
+        function applyTheme(t) {
+            currentTheme = t;
+            const r = document.documentElement.style;
+            r.setProperty('--bg', t.bg);
+            r.setProperty('--text', t.text);
+            r.setProperty('--subtle', t.subtle);
+            r.setProperty('--sidebar-bg', t.sidebarBg);
+            r.setProperty('--card-bg', t.cardBg);
+            r.setProperty('--border', t.border);
+            r.setProperty('--accent', t.accent);
+            r.setProperty('--accent-text', t.accentText);
+            r.setProperty('--code-bg', t.codeBg);
+            r.setProperty('--code-text', t.codeText);
+            r.setProperty('--font', t.font);
+            document.body.style.fontFamily = t.font;
+            document.getElementById('theme-name-label').textContent = t.name;
+            // Update active state in menu
+            document.querySelectorAll('.theme-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.id === t.id);
+            });
+            // Update loading screen background to match
+            const ls = document.getElementById('loading-screen');
+            if (ls) ls.style.background = t.bg;
+        }
+
+        function buildThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            // Keep the label
+            const label = menu.querySelector('.dd-label');
+            menu.innerHTML = '';
+            menu.appendChild(label);
+            const cats = {};
+            THEMES.forEach(t => { if (!cats[t.cat]) cats[t.cat] = []; cats[t.cat].push(t); });
+            for (const [cat, themes] of Object.entries(cats)) {
+                const catDiv = document.createElement('div');
+                catDiv.className = 'dd-label';
+                catDiv.style.cssText = 'margin-top:6px;border-top:1px solid var(--border);padding-top:6px';
+                catDiv.textContent = cat;
+                menu.appendChild(catDiv);
+                themes.forEach(t => {
+                    const el = document.createElement('div');
+                    el.className = 'theme-item' + (t.id === currentTheme.id ? ' active' : '');
+                    el.dataset.id = t.id;
+                    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;flex:1;overflow:hidden">
+        <div class="theme-swatch" style="background:${t.bg};border-color:${t.border}"></div>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</span>
+      </div>
+      <span class="theme-cat">${t.cat}</span>`;
+                    el.onclick = () => { applyTheme(t); closeAllDropdowns(); };
+                    menu.appendChild(el);
+                });
+            }
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           DROPDOWN CONTROL
+        ══════════════════════════════════════════════════════════════════ */
+        function toggleDropdown(id) {
+            const menus = { 'theme-dropdown': 'theme-menu', 'export-dropdown': 'export-menu' };
+            const targetMenu = menus[id];
+            Object.values(menus).forEach(mid => {
+                const el = document.getElementById(mid);
+                if (mid === targetMenu) el.classList.toggle('open');
+                else el.classList.remove('open');
+            });
+        }
+        function closeAllDropdowns() {
+            document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('open'));
+        }
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.dropdown-wrap')) closeAllDropdowns();
+        });
+
+        /* ══════════════════════════════════════════════════════════════════
+           VIEW SWITCHING
+        ══════════════════════════════════════════════════════════════════ */
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById('view-' + view).classList.add('active');
+            document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+
+            // show/hide toolbar buttons relevant to each view
+            const isWebsite = view === 'website';
+            document.getElementById('linenums-btn').style.display = isWebsite ? '' : 'none';
+            document.querySelectorAll('.toolbar-right .btn:not(#linenums-btn)').forEach(b => b.style.display = isWebsite ? '' : 'none');
+            document.getElementById('section-filter').parentElement.style.display = (isWebsite || view === 'book') ? '' : 'none';
+
+            const labels = { website: 'Interactive Doc Website', book: 'Book Reader', presentation: 'Slide Mode', lines: 'Line Inspector', stats: 'Analytics Dashboard' };
+            document.getElementById('toolbar-label').textContent = labels[view] || view;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           MARKDOWN PARSER (pure JS, uses marked.js)
+        ══════════════════════════════════════════════════════════════════ */
+        function parseMarkdown(md) {
+            const lines = md.split(/\r?\n/);
+            const total = lines.length;
+            let wordCount = 0, charCount = 0, headingsCount = 0, codeBlocksCount = 0, tablesCount = 0;
+            const toc = [], lineItems = [], chapters = [], slides = [];
+            let inCode = false, curChap = null, chapBuf = [], slideCounter = 1;
+
+            // If doc doesn't start with heading, make intro chapter
+            if (total > 0 && !lines[0].startsWith('#')) {
+                curChap = { id: 'chapter-intro-0', title: 'Introduction & Overview', level: 1, startLine: 1, endLine: 1, raw: '' };
+            }
+
+            function finalise(nextStart) {
+                if (!curChap) return;
+                curChap.endLine = nextStart - 1;
+                curChap.raw = chapBuf.join('\n');
+                curChap.html = marked.parse(curChap.raw);
+                chapters.push(curChap);
+            }
+
+            for (let i = 0; i < total; i++) {
+                const raw = lines[i];
+                const num = i + 1;
+                const tr = raw.trim();
+
+                charCount += raw.length;
+                if (tr) wordCount += tr.split(/\s+/).length;
+
+                let type = 'paragraph', level;
+
+                if (tr.startsWith('```')) {
+                    inCode = !inCode;
+                    type = 'code';
+                    if (inCode) codeBlocksCount++;
+                } else if (inCode) {
+                    type = 'code';
+                } else if (tr.startsWith('|') && tr.endsWith('|')) {
+                    type = 'table';
+                    if (tr.includes('---')) tablesCount++;
+                } else if (tr.startsWith('#')) {
+                    type = 'heading';
+                    const m = tr.match(/^(#{1,6})\s+(.+)$/);
+                    if (m) {
+                        headingsCount++;
+                        level = m[1].length;
+                        const text = m[2];
+                        const id = `h-${num}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+                        toc.push({ id, text, level, startLine: num });
+                        if (level <= 2) {
+                            finalise(num);
+                            curChap = { id, title: text, level, startLine: num, endLine: total, raw: '' };
+                            chapBuf = [];
+                            slides.push({ id: `s${slideCounter}`, title: text, subtitle: level === 2 ? 'Section Breakdown' : undefined, contentRaw: '', contentHtml: '', slideNumber: slideCounter++ });
+                        }
+                    }
+                } else if (tr.startsWith('>')) { type = 'quote'; }
+                else if (/^[-*+]\s|^\d+\.\s/.test(tr)) { type = 'list'; }
+                else if (!tr) { type = 'blank'; }
+
+                chapBuf.push(raw);
+                if (slides.length > 0 && (type !== 'heading' || (level && level > 2)) && chapBuf.length < 35) {
+                    slides[slides.length - 1].contentRaw += raw + '\n';
+                }
+                lineItems.push({ lineNumber: num, raw, type, level });
+            }
+
+            finalise(total + 1);
+
+            slides.forEach(s => { if (s.contentRaw) s.contentHtml = marked.parse(s.contentRaw); });
+
+            const readTime = Math.max(1, Math.ceil(wordCount / 220));
+            const fileSize = (new Blob([md]).size / 1024).toFixed(1) + ' KB';
+
+            return {
+                stats: { lineCount: total, wordCount, charCount, readTime, headingsCount, codeBlocksCount, tablesCount, fileSize },
+                toc, chapters, lineItems, slides
+            };
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           RENDER — WEBSITE VIEW
+        ══════════════════════════════════════════════════════════════════ */
+        function renderWebsite() {
+            const grid = document.getElementById('chapter-grid');
+            grid.innerHTML = '';
+            if (!parsedDoc) return;
+
+            parsedDoc.chapters.forEach((chap, i) => {
+                const card = document.createElement('div');
+                card.className = 'chapter-card';
+                card.id = chap.id;
+
+                const lineLabel = config.showLineNums ? `Lines ${chap.startLine}–${chap.endLine}` : '';
+
+                card.innerHTML = `
+      <div class="chapter-head" onclick="toggleChapter('${chap.id}')">
+        <div class="chapter-head-left">
+          <span class="chap-chevron open" id="chev-${chap.id}">▼</span>
+          <span class="chapter-title">${escHtml(chap.title)}</span>
+        </div>
+        <div class="chapter-head-right">
+          ${lineLabel ? `<span class="line-badge">${lineLabel}</span>` : ''}
+          <button class="copy-btn" id="copy-${chap.id}" onclick="copyChapter(event,'${chap.id}')">⎘ Copy Section</button>
+        </div>
+      </div>
+      <div class="chapter-body" id="body-${chap.id}">
+        <div class="prose">${processHtml(chap.html)}</div>
+      </div>`;
+                grid.appendChild(card);
+            });
+
+            updateSectionCount();
+        }
+
+        function processHtml(html) {
+            if (!html) return '';
+            let h = html;
+
+            // Admonitions
+            if (config.admonitions) {
+                h = h.replace(/>\s*\[!IMPORTANT\]([\s\S]*?)(?=<\/blockquote>)/gi,
+                    `<div style="display:flex;align-items:center;gap:6px;color:#ef4444;font-weight:800;font-size:.82rem;text-transform:uppercase;margin-bottom:8px">⚠ Critical Importance</div><div style="color:var(--text)">$1</div>`);
+                h = h.replace(/>\s*\[!WARNING\]([\s\S]*?)(?=<\/blockquote>)/gi,
+                    `<div style="display:flex;align-items:center;gap:6px;color:#f59e0b;font-weight:800;font-size:.82rem;text-transform:uppercase;margin-bottom:8px">⚡ Warning</div><div style="color:var(--text)">$1</div>`);
+                h = h.replace(/>\s*\[!TIP\]([\s\S]*?)(?=<\/blockquote>)/gi,
+                    `<div style="display:flex;align-items:center;gap:6px;color:#10b981;font-weight:800;font-size:.82rem;text-transform:uppercase;margin-bottom:8px">💡 Pro Tip</div><div style="color:var(--text)">$1</div>`);
+            }
+
+            // Wrap pre/code blocks with header
+            h = h.replace(/<pre><code(.*?)>([\s\S]*?)<\/code><\/pre>/gi, (_, attrs, code) => {
+                const langMatch = attrs.match(/class="language-(\w+)"/);
+                const lang = langMatch ? langMatch[1].toUpperCase() : 'CODE';
+                return `<div class="code-block-wrap"><div class="code-block-head"><span>${lang}</span><div class="code-dot"></div></div><pre style="margin:0;border-radius:0;border:none"><code${attrs}>${code}</code></pre></div>`;
+            });
+
+            return h;
+        }
+
+        function toggleChapter(id) {
+            const body = document.getElementById('body-' + id);
+            const chev = document.getElementById('chev-' + id);
+            if (!body || !chev) return;
+            const isHidden = body.classList.toggle('hidden');
+            chev.classList.toggle('closed', isHidden);
+            chev.classList.toggle('open', !isHidden);
+        }
+
+        function expandAllChapters() { parsedDoc && parsedDoc.chapters.forEach(c => { const b = document.getElementById('body-' + c.id); const v = document.getElementById('chev-' + c.id); if (b) { b.classList.remove('hidden'); v && v.classList.replace('closed', 'open'); } }); }
+        function collapseAllChapters() { parsedDoc && parsedDoc.chapters.forEach(c => { const b = document.getElementById('body-' + c.id); const v = document.getElementById('chev-' + c.id); if (b) { b.classList.add('hidden'); v && v.classList.replace('open', 'closed'); } }); }
+
+        function filterSections(q) {
+            sectionFilter = q.toLowerCase();
+            if (!parsedDoc) return;
+            parsedDoc.chapters.forEach(chap => {
+                const el = document.getElementById(chap.id);
+                if (!el) return;
+                const match = !sectionFilter || chap.title.toLowerCase().includes(sectionFilter) || chap.raw.toLowerCase().includes(sectionFilter);
+                el.style.display = match ? '' : 'none';
+            });
+            updateSectionCount();
+        }
+
+        function updateSectionCount() {
+            if (!parsedDoc) return;
+            const visible = parsedDoc.chapters.filter(c => { const el = document.getElementById(c.id); return el && el.style.display !== 'none'; }).length;
+            document.getElementById('section-count-label').textContent = `(${visible} sections)`;
+        }
+
+        function toggleLineNumbers() {
+            config.showLineNums = !config.showLineNums;
+            document.getElementById('ln-status').textContent = config.showLineNums ? 'ON' : 'OFF';
+            renderWebsite();
+        }
+
+        function copyChapter(e, id) {
+            e.stopPropagation();
+            const chap = parsedDoc.chapters.find(c => c.id === id);
+            if (!chap) return;
+            navigator.clipboard.writeText(chap.raw).then(() => {
+                const btn = document.getElementById('copy-' + id);
+                if (!btn) return;
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = '⎘ Copy Section'; btn.classList.remove('copied'); }, 2000);
+            });
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           RENDER — TOC TREE (collapsible)
+        ══════════════════════════════════════════════════════════════════ */
+        function buildTocTree(headings) {
+            const roots = [], stack = [];
+            headings.forEach(h => {
+                const node = { h, children: [] };
+                while (stack.length && stack[stack.length - 1].h.level >= h.level) stack.pop();
+                if (!stack.length) roots.push(node);
+                else stack[stack.length - 1].children.push(node);
+                stack.push(node);
+            });
+            return roots;
+        }
+
+        function collectNodeIds(nodes) {
+            const ids = [];
+            nodes.forEach(n => { ids.push(n.h.id); ids.push(...collectNodeIds(n.children)); });
+            return ids;
+        }
+
+        function renderTocTree() {
+            if (!parsedDoc) return;
+
+            const filtered = parsedDoc.toc.filter(h => {
+                if (h.level > maxTocDepth) return false;
+                if (tocSearchQuery) return h.text.toLowerCase().includes(tocSearchQuery);
+                return true;
+            });
+
+            const tree = buildTocTree(filtered);
+            const container = document.getElementById('toc-tree');
+            container.innerHTML = '';
+            container.appendChild(renderTocNodes(tree, 0));
+
+            document.getElementById('toc-count').textContent = filtered.length;
+
+            const bmCount = bookmarks.size;
+            const bmEl = document.getElementById('bookmark-count');
+            bmEl.textContent = bmCount ? `🔖 ${bmCount} saved` : '';
+        }
+
+        function renderTocNodes(nodes, depth) {
+            const ul = document.createElement('ul');
+            ul.style.cssText = 'list-style:none;padding:0;margin:0';
+
+            nodes.forEach(node => {
+                const { h, children } = node;
+                const hasKids = children.length > 0;
+                const isCollapsed = collapsedTocIds.has(h.id);
+                const isActive = false; // updated by scroll / click
+                const isBookmarked = bookmarks.has(h.id);
+
+                const li = document.createElement('li');
+                li.className = 'toc-node';
+
+                // row
+                const row = document.createElement('div');
+                row.className = `toc-row lvl${h.level}`;
+                row.id = `toc-row-${h.id}`;
+                row.title = `Go to: ${h.text} (line ${h.startLine})`;
+                row.onclick = () => selectTocItem(h.id);
+
+                // chevron
+                const chev = document.createElement('span');
+                chev.className = 'toc-chevron' + (!hasKids ? ' leaf' : (isCollapsed ? '' : ' open'));
+                chev.textContent = '▶';
+                chev.onclick = e => { e.stopPropagation(); toggleTocNode(h.id); };
+                row.appendChild(chev);
+
+                // label
+                const label = document.createElement('span');
+                label.className = 'toc-label';
+                label.textContent = h.text;
+                row.appendChild(label);
+
+                // line no
+                const lineNo = document.createElement('span');
+                lineNo.className = 'toc-line-no';
+                lineNo.textContent = `L${h.startLine}`;
+                row.appendChild(lineNo);
+
+                // bookmark btn
+                const bmBtn = document.createElement('button');
+                bmBtn.className = 'toc-bookmark-btn' + (isBookmarked ? ' marked' : '');
+                bmBtn.title = isBookmarked ? 'Remove bookmark' : 'Bookmark';
+                bmBtn.textContent = '🔖';
+                bmBtn.onclick = e => { e.stopPropagation(); toggleBookmark(h.id); };
+                row.appendChild(bmBtn);
+
+                li.appendChild(row);
+
+                // children container
+                if (hasKids) {
+                    const childWrap = document.createElement('div');
+                    childWrap.className = 'toc-children' + (isCollapsed ? ' hidden' : '');
+                    childWrap.id = `toc-kids-${h.id}`;
+                    childWrap.appendChild(renderTocNodes(children, depth + 1));
+                    li.appendChild(childWrap);
+                }
+
+                ul.appendChild(li);
+            });
+
+            return ul;
+        }
+
+        function toggleTocNode(id) {
+            if (collapsedTocIds.has(id)) collapsedTocIds.delete(id);
+            else collapsedTocIds.add(id);
+
+            const kids = document.getElementById(`toc-kids-${id}`);
+            const chev = document.querySelector(`#toc-row-${id} .toc-chevron`);
+            if (kids) kids.classList.toggle('hidden', collapsedTocIds.has(id));
+            if (chev) chev.classList.toggle('open', !collapsedTocIds.has(id));
+        }
+
+        function expandAllToc() { collapsedTocIds.clear(); renderTocTree(); }
+        function collapseAllToc() {
+            if (parsedDoc) parsedDoc.toc.forEach(h => collapsedTocIds.add(h.id));
+            renderTocTree();
+        }
+
+        function setMaxDepth(d) {
+            maxTocDepth = d;
+            document.querySelectorAll('.depth-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.d) === d));
+            renderTocTree();
+        }
+
+        function onTocSearch(q) {
+            tocSearchQuery = q.toLowerCase();
+            const badge = document.getElementById('hit-badge');
+            const clearBtn = document.getElementById('search-clear-btn');
+            const hits = tocSearchQuery ? (parsedDoc ? parsedDoc.toc.filter(h => h.text.toLowerCase().includes(tocSearchQuery)).length : 0) : 0;
+
+            if (tocSearchQuery) {
+                badge.textContent = hits;
+                badge.classList.remove('hidden');
+                clearBtn.classList.add('visible');
+                collapsedTocIds.clear(); // expand all when searching
+            } else {
+                badge.classList.add('hidden');
+                clearBtn.classList.remove('visible');
+            }
+            renderTocTree();
+        }
+
+        function clearTocSearch() {
+            document.getElementById('toc-search').value = '';
+            onTocSearch('');
+        }
+
+        function selectTocItem(id) {
+            // Highlight row
+            document.querySelectorAll('.toc-row').forEach(r => r.classList.remove('active'));
+            const row = document.getElementById(`toc-row-${id}`);
+            if (row) row.classList.add('active');
+
+            // Auto-expand ancestors
+            autoExpandToId(id);
+
+            // Navigate in website view
+            if (currentView === 'website' || currentView === 'book') {
+                const el = document.getElementById(id);
+                if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('highlighted'); setTimeout(() => el.classList.remove('highlighted'), 2000); }
+
+                if (currentView === 'book') {
+                    const chapIdx = parsedDoc.chapters.findIndex(c => c.id === id);
+                    if (chapIdx >= 0) gotoBookChapter(chapIdx);
+                }
+            }
+        }
+
+        function autoExpandToId(targetId) {
+            // Build parent map
+            if (!parsedDoc) return;
+            const parentMap = {};
+            const build = (nodes, parentId) => {
+                nodes.forEach(n => {
+                    if (parentId) parentMap[n.h.id] = parentId;
+                    build(n.children, n.h.id);
+                });
+            };
+            const tree = buildTocTree(parsedDoc.toc.filter(h => h.level <= maxTocDepth));
+            build(tree, null);
+
+            let cur = parentMap[targetId];
+            while (cur) {
+                if (collapsedTocIds.has(cur)) {
+                    collapsedTocIds.delete(cur);
+                    const kids = document.getElementById(`toc-kids-${cur}`);
+                    const chev = document.querySelector(`#toc-row-${cur} .toc-chevron`);
+                    if (kids) kids.classList.remove('hidden');
+                    if (chev) chev.classList.add('open');
+                }
+                cur = parentMap[cur];
+            }
+        }
+
+        function toggleBookmark(id) {
+            if (bookmarks.has(id)) bookmarks.delete(id);
+            else bookmarks.add(id);
+            renderTocTree();
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           RENDER — BOOK VIEW
+        ══════════════════════════════════════════════════════════════════ */
+        function renderBookSelect() {
+            const sel = document.getElementById('book-chapter-select');
+            sel.innerHTML = '';
+            if (!parsedDoc) return;
+            parsedDoc.chapters.forEach((c, i) => {
+                const opt = document.createElement('option');
+                opt.value = i; opt.textContent = `${i + 1}. ${c.title}`;
+                sel.appendChild(opt);
+            });
+        }
+
+        function gotoBookChapter(idx) {
+            if (!parsedDoc || !parsedDoc.chapters.length) return;
+            bookChapterIdx = Math.max(0, Math.min(idx, parsedDoc.chapters.length - 1));
+            const chap = parsedDoc.chapters[bookChapterIdx];
+            document.getElementById('book-meta').textContent = `Chapter ${bookChapterIdx + 1} of ${parsedDoc.chapters.length} · Lines ${chap.startLine}–${chap.endLine}`;
+            document.getElementById('book-title').textContent = chap.title;
+            document.getElementById('book-prose').innerHTML = processHtml(chap.html);
+            document.getElementById('book-chapter-select').value = bookChapterIdx;
+
+            const prev = parsedDoc.chapters[bookChapterIdx - 1];
+            const next = parsedDoc.chapters[bookChapterIdx + 1];
+            const prevBtn = document.getElementById('pag-prev');
+            const nextBtn = document.getElementById('pag-next');
+            prevBtn.disabled = bookChapterIdx === 0;
+            nextBtn.disabled = bookChapterIdx === parsedDoc.chapters.length - 1;
+            document.getElementById('pag-prev-name').textContent = prev ? prev.title : '—';
+            document.getElementById('pag-next-name').textContent = next ? next.title : '—';
+            document.getElementById('pag-center').textContent = `${config.title} · ${bookChapterIdx + 1} / ${parsedDoc.chapters.length}`;
+
+            // Scroll book area to top
+            const ba = document.getElementById('view-book');
+            if (ba) ba.scrollTo({ top: 0, behavior: 'smooth' });
+
+            applyBookStyles();
+        }
+
+        function bookPrev() { gotoBookChapter(bookChapterIdx - 1); }
+        function bookNext() { gotoBookChapter(bookChapterIdx + 1); }
+
+        function setBookFont(s) {
+            bookFontSize = s;
+            document.querySelectorAll('#book-font-size-ctrl .font-btn').forEach(b => b.classList.toggle('active', b.dataset.fs === s));
+            applyBookStyles();
+        }
+
+        function setBookStyle(s) {
+            bookFontStyle = s;
+            document.querySelectorAll('#book-font-style-ctrl .font-btn').forEach(b => b.classList.toggle('active', b.dataset.style === s));
+            applyBookStyles();
+        }
+
+        function applyBookStyles() {
+            const prose = document.getElementById('book-prose');
+            if (!prose) return;
+            prose.style.fontSize = FONT_SIZES[bookFontSize] || '1.1rem';
+            prose.style.fontFamily = FONT_STYLES[bookFontStyle] || 'Georgia,serif';
+            prose.style.lineHeight = bookFontSize === 'xl' ? '2' : bookFontSize === 'lg' ? '1.85' : '1.7';
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           RENDER — PRESENTATION
+        ══════════════════════════════════════════════════════════════════ */
+        function renderSlide() {
+            if (!parsedDoc || !parsedDoc.slides.length) return;
+            const s = parsedDoc.slides[slideIdx];
+            document.getElementById('slide-title').textContent = s.title;
+            document.getElementById('slide-subtitle').textContent = s.subtitle || '';
+            document.getElementById('slide-body').innerHTML = s.contentHtml || '<p style="opacity:.5;font-style:italic">Press Next or use arrow keys →</p>';
+            document.getElementById('slide-counter').textContent = `Slide ${slideIdx + 1} / ${parsedDoc.slides.length}`;
+            document.getElementById('pres-slide-no').textContent = `${slideIdx + 1} / ${parsedDoc.slides.length}`;
+            document.getElementById('slide-num-label').textContent = `Slide ${s.slideNumber} of ${parsedDoc.slides.length}`;
+            document.getElementById('slide-brand-label').textContent = config.title;
+            document.getElementById('slide-author-label').textContent = config.author;
+            document.getElementById('pres-prev').disabled = slideIdx === 0;
+            document.getElementById('pres-next').disabled = slideIdx === parsedDoc.slides.length - 1;
+
+            // Animate
+            const card = document.getElementById('slide-card');
+            card.style.animation = 'none';
+            requestAnimationFrame(() => { card.style.animation = 'fadeSlide .28s ease'; });
+
+            // Update thumbnails active state
+            document.querySelectorAll('.thumb-card').forEach((el, i) => el.classList.toggle('active', i === slideIdx));
+        }
+
+        function nextSlide() { if (slideIdx < parsedDoc.slides.length - 1) { slideIdx++; renderSlide(); } }
+        function prevSlide() { if (slideIdx > 0) { slideIdx--; renderSlide(); } }
+
+        function toggleThumbs() {
+            thumbsOpen = !thumbsOpen;
+            const drawer = document.getElementById('thumb-drawer');
+            drawer.classList.toggle('open', thumbsOpen);
+            document.getElementById('thumb-toggle').textContent = thumbsOpen ? '✕ Close' : '⊞ Thumbnails';
+        }
+
+        function renderThumbnails() {
+            if (!parsedDoc) return;
+            const drawer = document.getElementById('thumb-drawer');
+            drawer.innerHTML = '';
+            parsedDoc.slides.forEach((s, i) => {
+                const c = document.createElement('div');
+                c.className = 'thumb-card' + (i === slideIdx ? ' active' : '');
+                c.innerHTML = `<div class="thumb-no">Slide ${s.slideNumber}</div><div class="thumb-title">${escHtml(s.title)}</div>`;
+                c.onclick = () => { slideIdx = i; renderSlide(); if (thumbsOpen) toggleThumbs(); };
+                drawer.appendChild(c);
+            });
+        }
+
+        // Keyboard navigation for slides
+        document.addEventListener('keydown', e => {
+            if (currentView !== 'presentation') return;
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+        });
+
+        /* ══════════════════════════════════════════════════════════════════
+           RENDER — LINE INSPECTOR
+        ══════════════════════════════════════════════════════════════════ */
+        function buildTypeFilterBtns() {
+            const wrap = document.getElementById('type-filter-btns');
+            wrap.innerHTML = '';
+            ['all', 'heading', 'code', 'table', 'quote', 'list', 'paragraph'].forEach(type => {
+                const btn = document.createElement('button');
+                btn.className = 'type-filter-btn' + (type === lineTypeFilter ? ' active' : '');
+                btn.textContent = type.toUpperCase();
+                btn.onclick = () => { lineTypeFilter = type; applyLineFilters(); };
+                wrap.appendChild(btn);
+            });
+        }
+
+        function applyLineFilters() {
+            if (!parsedDoc) return;
+            lineSearchQuery = (document.getElementById('line-search') || { value: '' }).value.toLowerCase();
+            lineTypeFilter = lineTypeFilter; // already set
+
+            filteredLines = parsedDoc.lineItems.filter(li => {
+                if (lineTypeFilter !== 'all' && li.type !== lineTypeFilter) return false;
+                if (lineSearchQuery) return li.raw.toLowerCase().includes(lineSearchQuery) || li.lineNumber.toString().includes(lineSearchQuery);
+                return true;
+            });
+
+            linesTotalPages = Math.max(1, Math.ceil(filteredLines.length / linesRowsPerPage));
+            linesPage = Math.min(linesPage, linesTotalPages);
+
+            document.querySelectorAll('.type-filter-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === lineTypeFilter));
+            renderLinesPage();
+        }
+
+        function setRowsPerPage(n) {
+            linesRowsPerPage = n;
+            linesPage = 1;
+            applyLineFilters();
+        }
+
+        function jumpToLine(e) {
+            e.preventDefault();
+            const target = parseInt(document.getElementById('line-jump-input').value);
+            if (isNaN(target)) return;
+            const idx = filteredLines.findIndex(l => l.lineNumber === target);
+            if (idx >= 0) {
+                linesPage = Math.floor(idx / linesRowsPerPage) + 1;
+                renderLinesPage();
+            }
+        }
+
+        function goLinePage(p) {
+            linesPage = Math.max(1, Math.min(p, linesTotalPages));
+            renderLinesPage();
+        }
+
+        function renderLinesPage() {
+            const start = (linesPage - 1) * linesRowsPerPage;
+            const rows = filteredLines.slice(start, start + linesRowsPerPage);
+            const tbody = document.getElementById('lines-tbody');
+            tbody.innerHTML = '';
+
+            if (!rows.length) {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:40px;opacity:.5;font-size:13px';
+                empty.textContent = 'No lines match your current filter.';
+                tbody.appendChild(empty);
+            } else {
+                rows.forEach(li => {
+                    const tc = TYPE_COLORS[li.type] || TYPE_COLORS.paragraph;
+                    const badgeBg = (li.type === 'paragraph' || li.type === 'blank') ? 'var(--sidebar-bg)' : tc.bg;
+                    const badgeColor = (li.type === 'paragraph' || li.type === 'blank') ? 'var(--text)' : tc.color;
+                    const isBlank = li.type === 'blank';
+
+                    const row = document.createElement('div');
+                    row.className = 'lt-row';
+                    row.innerHTML = `
+        <div class="lt-lineno">#${li.lineNumber}</div>
+        <div class="lt-type"><span class="type-badge" style="background:${badgeBg};color:${badgeColor}">${li.type}${li.level ? ` H${li.level}` : ''}</span></div>
+        <div class="lt-raw${isBlank ? ' blank-line' : ''}">${isBlank ? '[Blank Line]' : escHtml(li.raw)}</div>
+        <div class="lt-action"><button class="line-copy-btn" id="lcb-${li.lineNumber}" onclick="copyLine(event,${li.lineNumber})">⎘ Copy</button></div>`;
+                    tbody.appendChild(row);
+                });
+            }
+
+            document.getElementById('lines-range-label').textContent = `Lines ${start + 1}–${Math.min(start + linesRowsPerPage, filteredLines.length)} of ${filteredLines.length.toLocaleString()}`;
+            document.getElementById('lines-page-info').textContent = `Page ${linesPage} of ${linesTotalPages}`;
+            document.getElementById('page-first').disabled = linesPage === 1;
+            document.getElementById('page-prev').disabled = linesPage === 1;
+            document.getElementById('page-next').disabled = linesPage === linesTotalPages;
+            document.getElementById('page-last').disabled = linesPage === linesTotalPages;
+        }
+
+        function copyLine(e, lineNum) {
+            e.stopPropagation();
+            const li = parsedDoc.lineItems.find(l => l.lineNumber === lineNum);
+            if (!li) return;
+            navigator.clipboard.writeText(li.raw).then(() => {
+                const btn = document.getElementById('lcb-' + lineNum);
+                if (!btn) return;
+                btn.textContent = '✓ Copied'; btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = '⎘ Copy'; btn.classList.remove('copied'); }, 2000);
+            });
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           RENDER — STATS VIEW
+        ══════════════════════════════════════════════════════════════════ */
+        function renderStats() {
+            if (!parsedDoc) return;
+            const s = parsedDoc.stats;
+            const wpl = (s.wordCount / Math.max(1, s.lineCount)).toFixed(1);
+            const cpw = (s.charCount / Math.max(1, s.wordCount)).toFixed(1);
+            const lex = Math.min(100, Math.max(10, Math.round((s.wordCount / (s.charCount || 1)) * 480)));
+
+            document.getElementById('stats-inner').innerHTML = `
+    <div class="stats-header">
+      <div>
+        <div class="stats-h1-tag">📊 Lexical & Architectural Diagnostics</div>
+        <div class="stats-h1">${escHtml(config.title)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="stats-fs-label">Memory Payload</div>
+        <div class="stats-filesize">${s.fileSize}</div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      ${statCard('🔢', 'Total Lines', s.lineCount.toLocaleString(), `~${wpl} words per line`)}
+      ${statCard('📄', 'Total Words', s.wordCount.toLocaleString(), `~${cpw} chars per word`)}
+      ${statCard('⏱', 'Read Time', `${s.readTime} mins`, 'Based on 220 WPM rate')}
+      ${statCard('📈', 'Lexical Density', `${lex}%`, 'Highly Technical Profile')}
+    </div>
+
+    <div class="struct-grid">
+      ${structCard('📑', 'Heading Nodes', s.headingsCount, 'Semantic section nodes parsed across the AST')}
+      ${structCard('💻', 'Code Specimens', s.codeBlocksCount, 'Multiline code blocks with syntax tokens')}
+      ${structCard('📋', 'Data Matrices', s.tablesCount, 'GFM multi-column tabular comparison tables')}
+    </div>
+
+    <div class="engine-panel">
+      <div class="engine-title">⚡ High-Performance 40k Parsing Engine</div>
+      <div class="engine-grid">
+        <div><div class="engine-item-title">⚙ AST Tokenizer Speed</div><div class="engine-item-desc">Custom hybrid regex-marked pipeline processes 40,000 lines in ~50–90ms, enabling seamless offline execution without page freezes.</div></div>
+        <div><div class="engine-item-title">🗂 Chapter Virtualisation</div><div class="engine-item-desc">Content chunked into logical Chapters & Sections, maintaining butter-smooth scrollbar responsiveness even at 40k lines.</div></div>
+        <div><div class="engine-item-title">🎨 Theme Accessibility</div><div class="engine-item-desc">Every element dynamically binds to theme CSS variables, fully resolving dark-mode text contrast issues across all 20 custom themes.</div></div>
+      </div>
+    </div>`;
+        }
+
+        function statCard(icon, title, value, sub) {
+            return `<div class="stat-card"><div class="stat-card-top"><span>${title}</span><span class="stat-card-icon">${icon}</span></div><div class="stat-card-value">${value}</div><div class="stat-card-sub">${sub}</div></div>`;
+        }
+        function structCard(icon, title, value, desc) {
+            return `<div class="struct-card"><div class="struct-top"><span>${title}</span><span style="font-size:20px">${icon}</span></div><div class="struct-num">${value}</div><div class="struct-desc">${desc}</div></div>`;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           SIDEBAR
+        ══════════════════════════════════════════════════════════════════ */
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+            document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           UPLOAD MODAL
+        ══════════════════════════════════════════════════════════════════ */
+        function openUpload() { document.getElementById('upload-modal').classList.remove('hidden'); }
+        function closeUpload() { document.getElementById('upload-modal').classList.add('hidden'); }
+        function switchUploadTab(tab) {
+            const isFile = tab === 'file';
+            const isMulti = tab === 'multi';
+            const isPaste = tab === 'paste';
+            document.getElementById('file-tab-btn').classList.toggle('active', isFile);
+            document.getElementById('multi-tab-btn').classList.toggle('active', isMulti);
+            document.getElementById('paste-tab-btn').classList.toggle('active', isPaste);
+            document.getElementById('file-tab-pane').classList.toggle('hidden', !isFile);
+            document.getElementById('multi-tab-pane').classList.toggle('active', isMulti);
+            document.getElementById('paste-tab-pane').classList.toggle('active', isPaste);
+        }
+
+        /* ── Multi-file management ── */
+        let multiFiles = []; // { id, name, content }
+
+        function handleMultiInput(e) {
+            const files = e.target.files;
+            if (!files || !files.length) return;
+            showErr('');
+            Array.from(files).forEach(f => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    multiFiles.push({ id: 'mf' + Date.now() + Math.random(), name: f.name.replace(/\.[^/.]+$/, ''), content: ev.target.result });
+                    renderMultiList();
+                };
+                reader.onerror = () => showErr('Failed to read: ' + f.name);
+                reader.readAsText(f);
+            });
+            e.target.value = '';
+        }
+
+        function renderMultiList() {
+            const el = document.getElementById('multi-entries');
+            const btn = document.getElementById('multi-build-btn');
+            const cnt = document.getElementById('multi-count');
+            cnt.textContent = '(' + multiFiles.length + ')';
+            if (!multiFiles.length) {
+                el.innerHTML = '<div style="font-size:11px;color:var(--subtle);text-align:center;padding:16px;font-style:italic">No files added yet.</div>';
+                btn.style.display = 'none';
+                return;
+            }
+            btn.style.display = '';
+            el.innerHTML = multiFiles.map((mf, i) => `
+    <div class="multi-file-entry">
+      <span class="mf-grip">⠿</span>
+      <span class="mf-name" title="${escHtml(mf.name)}">${escHtml(mf.name)}</span>
+      <div class="mf-actions">
+        <button class="mf-btn" onclick="moveMultiUp('${mf.id}')" title="Move up">▲</button>
+        <button class="mf-btn" onclick="moveMultiDown('${mf.id}')" title="Move down">▼</button>
+        <button class="mf-btn del" onclick="removeMulti('${mf.id}')" title="Remove">✕</button>
+      </div>
+    </div>`).join('');
+        }
+
+        function moveMultiUp(id) {
+            const idx = multiFiles.findIndex(f => f.id === id);
+            if (idx <= 0) return;
+            [multiFiles[idx - 1], multiFiles[idx]] = [multiFiles[idx], multiFiles[idx - 1]];
+            renderMultiList();
+        }
+
+        function moveMultiDown(id) {
+            const idx = multiFiles.findIndex(f => f.id === id);
+            if (idx < 0 || idx >= multiFiles.length - 1) return;
+            [multiFiles[idx], multiFiles[idx + 1]] = [multiFiles[idx + 1], multiFiles[idx]];
+            renderMultiList();
+        }
+
+        function removeMulti(id) {
+            multiFiles = multiFiles.filter(f => f.id !== id);
+            renderMultiList();
+        }
+
+        async function buildMultiFiles() {
+            if (!multiFiles.length) return;
+            showErr('');
+            const names = [];
+            let merged = '';
+            for (const f of multiFiles) {
+                names.push(f.name);
+                merged += '\n\n---\n\n## ' + f.name + '\n\n' + f.content;
+            }
+            const combinedTitle = names.length === 1 ? names[0] : names.join(' + ');
+            multiFiles = [];
+            renderMultiList();
+            await loadMarkdownText(merged, combinedTitle);
+            closeUpload();
+        }
+
+        // Drag & drop
+        const dz = document.getElementById('drop-zone');
+        ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag-over'); }));
+        ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag-over'); if (e.type === 'drop') { const f = e.dataTransfer.files[0]; if (f) readFileAndLoad(f); } }));
+
+        async function handleFileInput(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            readFileAndLoad(f);
+        }
+
+        function readFileAndLoad(file) {
+            const reader = new FileReader();
+            reader.onload = async ev => {
+                const text = ev.target.result;
+                const name = file.name.replace(/\.[^/.]+$/, '');
+                showErr('');
+                await loadMarkdownText(text, name);
+                closeUpload();
+            };
+            reader.onerror = () => showErr('Failed to read file.');
+            reader.readAsText(file);
+        }
+
+        async function handlePaste() {
+            const text = document.getElementById('paste-area').value.trim();
+            if (!text) return;
+            showErr('');
+            await loadMarkdownText(text, 'Pasted Specification');
+            closeUpload();
+        }
+
+        async function loadSampleAndClose() {
+            showErr('');
+            await loadSampleDoc();
+            closeUpload();
+        }
+
+        function showErr(msg) {
+            const el = document.getElementById('upload-err');
+            el.textContent = msg;
+            el.classList.toggle('visible', !!msg);
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           CONFIG MODAL
+        ══════════════════════════════════════════════════════════════════ */
+        function openConfig() {
+            document.getElementById('cfg-title').value = config.title;
+            document.getElementById('cfg-subtitle').value = config.subtitle;
+            document.getElementById('cfg-author').value = config.author;
+            document.getElementById('cfg-linenums').classList.toggle('on', config.showLineNums);
+            document.getElementById('cfg-admonitions').classList.toggle('on', config.admonitions);
+            document.getElementById('config-modal').classList.remove('hidden');
+        }
+        function closeConfig() { document.getElementById('config-modal').classList.add('hidden'); }
+
+        function toggleCfg(key) {
+            const elMap = { linenums: 'cfg-linenums', admonitions: 'cfg-admonitions' };
+            const el = document.getElementById(elMap[key]);
+            el.classList.toggle('on');
+        }
+
+        function saveConfig() {
+            config.title = document.getElementById('cfg-title').value.trim() || 'Markdown Engine';
+            config.subtitle = document.getElementById('cfg-subtitle').value.trim() || '40k Doc Renderer';
+            config.author = document.getElementById('cfg-author').value.trim() || 'System Engineer';
+            config.showLineNums = document.getElementById('cfg-linenums').classList.contains('on');
+            config.admonitions = document.getElementById('cfg-admonitions').classList.contains('on');
+            document.getElementById('nav-title').textContent = config.title;
+            document.getElementById('nav-sub').textContent = config.subtitle + ' • 40k Engine';
+            document.getElementById('ln-status').textContent = config.showLineNums ? 'ON' : 'OFF';
+            renderWebsite();
+            closeConfig();
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           EXPORT SYSTEM
+        ══════════════════════════════════════════════════════════════════ */
+        function doExport(type) {
+            if (!parsedDoc) return;
+            fireConfetti();
+            switch (type) {
+                case 'website': exportWebsite(); break;
+                case 'ppt': exportPpt(); break;
+                case 'pdf': window.print(); break;
+                case 'csv': exportCsv(); break;
+                case 'json': exportJson(); break;
+                case 'txt': exportTxt(); break;
+            }
+        }
+
+        function triggerDownload(content, filename, mime) {
+            const blob = new Blob([content], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function safeFilename(str) { return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+        function exportTxt() {
+            const raw = parsedDoc.chapters.map(c => c.raw).join('\n\n');
+            triggerDownload(raw, safeFilename(config.title) + '.txt', 'text/plain;charset=utf-8');
+        }
+
+        function exportJson() {
+            const payload = {
+                metadata: { title: config.title, subtitle: config.subtitle, author: config.author, generatedAt: new Date().toISOString(), stats: parsedDoc.stats },
+                toc: parsedDoc.toc,
+                chapters: parsedDoc.chapters.map(c => ({ id: c.id, title: c.title, level: c.level, startLine: c.startLine, endLine: c.endLine, content: c.raw })),
+                slides: parsedDoc.slides
+            };
+            triggerDownload(JSON.stringify(payload, null, 2), safeFilename(config.title) + '.json', 'application/json;charset=utf-8');
+        }
+
+        function exportCsv() {
+            let csv = 'Chapter ID,Level,Start Line,End Line,Title,Word Count\n';
+            parsedDoc.chapters.forEach(c => {
+                const words = c.raw.split(/\s+/).length;
+                csv += `${c.id},${c.level},${c.startLine},${c.endLine},"${c.title.replace(/"/g, '""')}",${words}\n`;
+            });
+            triggerDownload(csv, safeFilename(config.title) + '-chapters.csv', 'text/csv;charset=utf-8');
+        }
+
+        /* ─────────────────────────────────────────────
+           Apply theme-aware inline styles to raw HTML.
+           Ensures exported files have correct dark-mode
+           text contrast using the selected theme.
+        ───────────────────────────────────────────── */
+        function styleExportedHtml(html) {
+            if (!html) return '';
+            const t = currentTheme;
+            let h = html;
+
+            // Admonitions
+            h = h.replace(/>\s*\[!IMPORTANT\]([\s\S]*?)(?=<\/blockquote>)/gi,
+                `<div style="border-left:4px solid #ef4444;background:${t.sidebarBg};padding:1rem 1.5rem;border-radius:0 8px 8px 0;margin:1rem 0"><div style="display:flex;align-items:center;gap:6px;color:#ef4444;font-weight:800;font-size:.82rem;text-transform:uppercase;margin-bottom:6px">⚠ Critical Importance</div><div style="color:${t.text};font-size:1rem;line-height:1.6">$1</div></div>`);
+            h = h.replace(/>\s*\[!WARNING\]([\s\S]*?)(?=<\/blockquote>)/gi,
+                `<div style="border-left:4px solid #f59e0b;background:${t.sidebarBg};padding:1rem 1.5rem;border-radius:0 8px 8px 0;margin:1rem 0"><div style="display:flex;align-items:center;gap:6px;color:#f59e0b;font-weight:800;font-size:.82rem;text-transform:uppercase;margin-bottom:6px">⚡ Warning</div><div style="color:${t.text};font-size:1rem;line-height:1.6">$1</div></div>`);
+            h = h.replace(/>\s*\[!TIP\]([\s\S]*?)(?=<\/blockquote>)/gi,
+                `<div style="border-left:4px solid #10b981;background:${t.sidebarBg};padding:1rem 1.5rem;border-radius:0 8px 8px 0;margin:1rem 0"><div style="display:flex;align-items:center;gap:6px;color:#10b981;font-weight:800;font-size:.82rem;text-transform:uppercase;margin-bottom:6px">💡 Pro Tip</div><div style="color:${t.text};font-size:1rem;line-height:1.6">$1</div></div>`);
+
+            // Code blocks with themed header
+            h = h.replace(/<pre><code(.*?)>([\s\S]*?)<\/code><\/pre>/gi, (_, attrs, code) => {
+                const langMatch = attrs.match(/class="language-(\w+)"/);
+                const lang = langMatch ? langMatch[1].toUpperCase() : 'CODE';
+                return `<div style="margin:1.4rem 0;border-radius:8px;overflow:hidden;border:1px solid ${t.border}">
+      <div style="background:${t.sidebarBg};border-bottom:1px solid ${t.border};padding:6px 14px;font-size:11px;font-family:monospace;color:${t.subtle};display:flex;justify-content:space-between">
+        <span>${lang}</span><span style="width:8px;height:8px;border-radius:50%;background:${t.accent};display:inline-block"></span>
+      </div>
+      <pre style="background:${t.codeBg};color:${t.codeText};padding:1.2rem;overflow-x:auto;font-family:monospace;font-size:.88rem;line-height:1.6;margin:0;border:none"><code${attrs}>${code}</code></pre>
+    </div>`;
+            });
+
+            // Tables
+            h = h.replace(/<table>/gi, `<div style="overflow-x:auto;margin:1.4rem 0;border:1px solid ${t.border};border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:.93rem">`);
+            h = h.replace(/<\/table>/gi, `</table></div>`);
+            h = h.replace(/<th>/gi, `<th style="background:${t.sidebarBg};color:${t.text};font-weight:700;text-align:left;padding:.75rem 1rem;border:1px solid ${t.border}">`);
+            h = h.replace(/<td>/gi, `<td style="padding:.65rem 1rem;border:1px solid ${t.border};color:${t.text}">`);
+            h = h.replace(/<tr>/gi, `<tr style="border-bottom:1px solid ${t.border}">`);
+
+            // Blockquotes
+            h = h.replace(/<blockquote>/gi, `<blockquote style="border-left:4px solid ${t.accent};background:${t.sidebarBg};padding:.9rem 1.3rem;border-radius:0 8px 8px 0;margin:1.2rem 0;font-style:italic;color:${t.text}">`);
+
+            // Headings
+            h = h.replace(/<h1>/gi, `<h1 style="font-size:2.1rem;font-weight:800;color:${t.accent};margin:1.4rem 0 .8rem">`);
+            h = h.replace(/<h2>/gi, `<h2 style="font-size:1.6rem;font-weight:700;color:${t.text};margin:1.6rem 0 .7rem;border-bottom:1px solid ${t.border};padding-bottom:.3rem">`);
+            h = h.replace(/<h3>/gi, `<h3 style="font-size:1.25rem;font-weight:600;color:${t.text};margin:1.3rem 0 .6rem">`);
+            h = h.replace(/<h4>/gi, `<h4 style="font-size:1.1rem;font-weight:600;color:${t.text};margin:1.1rem 0 .5rem">`);
+
+            // Paragraphs & lists
+            h = h.replace(/<p>/gi, `<p style="color:${t.text};margin-bottom:1.1rem;font-size:1.05rem;line-height:1.75">`);
+            h = h.replace(/<ul>/gi, `<ul style="color:${t.text};margin:0 0 1.1rem 1.6rem;font-size:1.05rem;line-height:1.75">`);
+            h = h.replace(/<ol>/gi, `<ol style="color:${t.text};margin:0 0 1.1rem 1.6rem;font-size:1.05rem;line-height:1.75">`);
+            h = h.replace(/<li>/gi, `<li style="color:${t.text};margin-bottom:.35rem">`);
+            h = h.replace(/<strong>/gi, `<strong style="color:${t.text};font-weight:700">`);
+            h = h.replace(/<em>/gi, `<em style="color:${t.text}">`);
+            h = h.replace(/<a /gi, `<a style="color:${t.accent};text-decoration:none" `);
+            h = h.replace(/<hr>/gi, `<hr style="border:none;border-top:1px solid ${t.border};margin:1.8rem 0">`);
+
+            // Inline code
+            h = h.replace(/<code>(.*?)<\/code>/gi, `<code style="background:${t.codeBg};color:${t.codeText};padding:.15rem .4rem;border-radius:4px;font-family:monospace;font-size:.88em">$1</code>`);
+
+            return h;
+        }
+
+        function exportWebsite() {
+            const t = currentTheme;
+            const tocHtml = parsedDoc.toc.map(h =>
+                `<a href="#${h.id}" class="toc-link lv${h.level}" onclick="highlight('${h.id}')">${escHtml(h.text)}</a>`
+            ).join('\n');
+
+            const contentHtml = parsedDoc.chapters.map(c => `
+    <article id="${c.id}" class="chap">
+      <div class="chap-meta">Lines ${c.startLine}–${c.endLine}</div>
+      <div class="chap-prose">${styleExportedHtml(c.html)}</div>
+    </article>`).join('\n');
+
+            const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escHtml(config.title)}</title>
+<style>
+:root{--bg:${t.bg};--text:${t.text};--subtle:${t.subtle};--sbg:${t.sidebarBg};--cbg:${t.cardBg};--brd:${t.border};--acc:${t.accent};--atext:${t.accentText};--codebg:${t.codeBg};--codetxt:${t.codeText};--font:${t.font}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+.sidebar{width:300px;background:var(--sbg);border-right:1px solid var(--brd);position:fixed;top:0;bottom:0;overflow-y:auto;display:flex;flex-direction:column}
+.sb-brand{padding:16px;border-bottom:1px solid var(--brd)}
+.sb-title{font-size:16px;font-weight:800;color:var(--acc)}
+.sb-sub{font-size:11px;color:var(--subtle);margin-top:3px}
+.sb-search{padding:10px;border-bottom:1px solid var(--brd)}
+.sb-search input{width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--brd);background:var(--cbg);color:var(--text);font-size:12px;outline:none}
+.toc{padding:8px}
+.toc-link{display:block;text-decoration:none;color:var(--text);font-size:12px;padding:5px 8px;border-radius:6px;margin-bottom:2px;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toc-link:hover,.toc-link.act{background:var(--acc);color:var(--atext)}
+.lv1{font-weight:700}.lv2{margin-left:12px;font-size:11.5px;color:var(--subtle)}.lv3{margin-left:24px;font-size:11px;color:var(--subtle)}
+.lv2.act,.lv3.act{color:var(--atext)}
+.main{margin-left:300px;flex:1;padding:32px 48px 80px}
+.header{position:sticky;top:0;background:var(--cbg);border-bottom:1px solid var(--brd);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;z-index:10;margin:-32px -48px 28px;padding:12px 48px}
+.stat-pills{display:flex;gap:10px}
+.pill{background:var(--sbg);border:1px solid var(--brd);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;color:var(--text)}
+.chap{background:var(--cbg);border:1px solid var(--brd);border-radius:12px;padding:28px 32px;margin-bottom:24px}
+.chap-meta{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--subtle);border-bottom:1px solid var(--brd);padding-bottom:8px;margin-bottom:16px}
+.chap-prose h1{font-size:2rem;font-weight:800;color:var(--acc);margin:1.2rem 0 .8rem}
+.chap-prose h2{font-size:1.55rem;font-weight:700;margin:1.6rem 0 .7rem;border-bottom:1px solid var(--brd);padding-bottom:.3rem;color:var(--text)}
+.chap-prose h3{font-size:1.2rem;font-weight:600;margin:1.3rem 0 .6rem;color:var(--text)}
+.chap-prose p{margin-bottom:1rem;font-size:1.05rem;color:var(--text)}
+.chap-prose ul,.chap-prose ol{margin:0 0 1rem 1.5rem;color:var(--text)}
+.chap-prose li{margin-bottom:.3rem;color:var(--text)}
+.chap-prose blockquote{border-left:4px solid var(--acc);background:var(--sbg);padding:.8rem 1.2rem;border-radius:0 8px 8px 0;margin:1rem 0;font-style:italic;color:var(--text)}
+.chap-prose pre{background:var(--codebg);color:var(--codetxt);padding:1.1rem;border-radius:8px;overflow-x:auto;font-family:monospace;font-size:.88rem;margin:1.2rem 0;border:1px solid var(--brd)}
+.chap-prose code{background:var(--codebg);color:var(--codetxt);padding:.15rem .35rem;border-radius:4px;font-family:monospace;font-size:.88em}
+.chap-prose pre code{background:none;padding:0;color:inherit}
+.chap-prose table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.92rem}
+.chap-prose th{background:var(--sbg);color:var(--text);font-weight:700;padding:.7rem 1rem;border:1px solid var(--brd);text-align:left}
+.chap-prose td{padding:.65rem 1rem;border:1px solid var(--brd);color:var(--text)}
+.chap-prose strong{color:var(--text);font-weight:700}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:16px 14px}}
+@media print{.sidebar,.header{display:none}.main{margin:0;padding:0}.chap{border:none;box-shadow:none;padding:0;margin-bottom:1.5rem}.chap-meta{color:#666!important}}
+</style></head><body>
+<nav class="sidebar">
+  <div class="sb-brand"><div class="sb-title">${escHtml(config.title)}</div><div class="sb-sub">${escHtml(config.subtitle)}</div></div>
+  <div class="sb-search"><input placeholder="Search…" oninput="filterChaps(this.value)"></div>
+  <div class="toc">${tocHtml}</div>
+</nav>
+<main class="main">
+  <div class="header">
+    <div class="stat-pills">
+      <span class="pill">📄 ${parsedDoc.stats.lineCount.toLocaleString()} Lines</span>
+      <span class="pill">📝 ${parsedDoc.stats.wordCount.toLocaleString()} Words</span>
+      <span class="pill">⏱ ~${parsedDoc.stats.readTime} min read</span>
+    </div>
+    <span style="font-size:12px;color:var(--subtle)">By <strong>${escHtml(config.author)}</strong></span>
+  </div>
+  ${contentHtml}
+</main>
+<script>
+function highlight(id){document.querySelectorAll('.chap').forEach(c=>c.style.borderColor='');document.querySelectorAll('.toc-link').forEach(l=>l.classList.remove('act'));const el=document.getElementById(id);if(el){el.style.borderColor='var(--acc)';setTimeout(()=>el.style.borderColor='',2000);}const lk=document.querySelector('.toc-link[href="#'+id+'"]');if(lk)lk.classList.add('act');}
+function filterChaps(q){const lq=q.toLowerCase();document.querySelectorAll('.chap').forEach(c=>{c.style.display=c.innerText.toLowerCase().includes(lq)?'':'none';});}
+<\/script>
+</body></html>`;
+            triggerDownload(html, safeFilename(config.title) + '-website.html', 'text/html;charset=utf-8');
+        }
+
+        function exportPpt() {
+            const t = currentTheme;
+            const slidesHtml = parsedDoc.slides.map((s, i) => `
+    <div class="slide${i === 0 ? ' active' : ''}" id="slide-${i}">
+      <div class="sh"><span>${escHtml(config.title)}</span><span>Slide ${s.slideNumber} / ${parsedDoc.slides.length}</span></div>
+      <div class="sb">
+        <h1>${escHtml(s.title)}</h1>
+        ${s.subtitle ? `<h3>${escHtml(s.subtitle)}</h3>` : ''}
+        <div class="sc">${s.contentHtml ? styleExportedHtml(s.contentHtml) : '<p style="opacity:.5;font-style:italic">No slide content</p>'}</div>
+      </div>
+      <div class="sf"><span>${escHtml(config.author)}</span><span>Use ← → keys</span></div>
+    </div>`).join('\n');
+
+            const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escHtml(config.title)} — Presentation</title>
+<style>
+:root{--bg:${t.bg};--text:${t.text};--subtle:${t.subtle};--sbg:${t.sidebarBg};--cbg:${t.cardBg};--brd:${t.border};--acc:${t.accent};--atext:${t.accentText};--codebg:${t.codeBg};--codetxt:${t.codeText}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:var(--sbg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.deck{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;position:relative}
+.slide{display:none;width:100%;max-width:1050px;max-height:680px;background:var(--cbg);border:2px solid var(--brd);border-radius:16px;padding:48px 56px;flex-direction:column;justify-content:space-between;box-shadow:0 24px 48px rgba(0,0,0,.4);animation:fd .28s ease;overflow-y:auto}
+.slide.active{display:flex}
+@keyframes fd{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.sh{display:flex;justify-content:space-between;border-bottom:1px solid var(--brd);padding-bottom:12px;margin-bottom:20px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--subtle)}
+.sb h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;color:var(--acc);margin-bottom:8px;line-height:1.15}
+.sb h3{font-size:1.3rem;font-weight:600;color:var(--subtle);margin-bottom:16px}
+.sc{font-size:clamp(1rem,1.8vw,1.2rem);line-height:1.6;color:var(--text)}
+.sc ul{margin-left:1.8rem;margin-top:.5rem}.sc li{margin-bottom:.5rem}
+.sc pre{background:var(--codebg);color:var(--codetxt);padding:1rem;border-radius:8px;margin:.7rem 0;font-family:monospace;font-size:.82em;overflow-x:auto;border:1px solid var(--brd)}
+.sc code{background:var(--codebg);color:var(--codetxt);padding:.1rem .3rem;border-radius:4px;font-family:monospace;font-size:.86em}
+.sf{display:flex;justify-content:space-between;border-top:1px solid var(--brd);padding-top:12px;margin-top:14px;font-size:11px;color:var(--subtle)}
+.nav{height:58px;background:var(--cbg);border-top:1px solid var(--brd);display:flex;align-items:center;justify-content:center;gap:18px}
+.nb{display:flex;align-items:center;gap:6px;padding:8px 22px;border-radius:50px;border:1px solid var(--brd);background:var(--sbg);color:var(--acc);font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}
+.nb:hover:not(:disabled){border-color:var(--acc)}.nb:disabled{opacity:.3;pointer-events:none}
+.sn{font-size:12px;font-family:monospace;color:var(--subtle);font-weight:700}
+</style></head><body>
+<div class="deck">${slidesHtml}</div>
+<div class="nav">
+  <button class="nb" id="pb" onclick="p()">◀ Prev</button>
+  <span class="sn" id="sn">1/${parsedDoc.slides.length}</span>
+  <button class="nb" id="nb2" onclick="n()">Next ▶</button>
+</div>
+<script>
+let ci=0;const slides=document.querySelectorAll('.slide');const pb=document.getElementById('pb');const nb=document.getElementById('nb2');const sn=document.getElementById('sn');
+function upd(){slides.forEach((s,i)=>s.classList.toggle('active',i===ci));pb.disabled=ci===0;nb.disabled=ci===slides.length-1;sn.textContent=(ci+1)+'/'+slides.length;}
+function n(){if(ci<slides.length-1){ci++;upd();}}
+function p(){if(ci>0){ci--;upd();}}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();n();}if(e.key==='ArrowLeft'){e.preventDefault();p();}});
+upd();
+<\/script></body></html>`;
+            triggerDownload(html, safeFilename(config.title) + '-presentation.html', 'text/html;charset=utf-8');
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           CONFETTI
+        ══════════════════════════════════════════════════════════════════ */
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const ctx = canvas.getContext('2d');
+            const pieces = Array.from({ length: 100 }, () => ({
+                x: Math.random() * canvas.width, y: Math.random() * -canvas.height,
+                r: Math.random() * 6 + 3, c: `hsl(${Math.random() * 360},90%,60%)`,
+                vx: (Math.random() - .5) * 3, vy: Math.random() * 5 + 2, rot: Math.random() * 360, vr: (Math.random() - .5) * 8
+            }));
+            let frame = 0;
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let done = true;
+                pieces.forEach(p => {
+                    p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+                    if (p.y < canvas.height + 20) done = false;
+                    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+                    ctx.fillStyle = p.c; ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2); ctx.restore();
+                });
+                frame++;
+                if (frame < 160 && !done) requestAnimationFrame(draw);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            draw();
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           SAMPLE MARKDOWN GENERATOR
+        ══════════════════════════════════════════════════════════════════ */
+        function generateSample() {
+            const topics = [
+                { title: 'System Architecture & Distributed Consensus', lang: 'rust', code: 'fn propose<T>(val: T) -> ConsensusResult<T> {\n    let quorum = get_nodes().len() / 2 + 1;\n    // Raft heartbeat verification\n}' },
+                { title: 'High-Performance Compute & SIMD Optimisations', lang: 'cpp', code: '#pragma omp parallel for\nfor(size_t i=0; i<data.size(); i++) {\n    compute_simd(data[i]);\n}' },
+                { title: 'Database Sharding Strategies & Replication Lag', lang: 'sql', code: "CREATE TABLE shard_master (\n    id BIGINT GENERATED ALWAYS AS IDENTITY,\n    region VARCHAR(10) NOT NULL,\n    payload JSONB,\n    PRIMARY KEY (region, id)\n) PARTITION BY LIST (region);" },
+                { title: 'Container Orchestration & Service Meshes', lang: 'yaml', code: 'apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: hyper-scaler\nspec:\n  replicas: 1500' },
+                { title: 'Modern Web Hydration & Streaming SSR', lang: 'typescript', code: 'export async function streamRender<T>(component: FC<T>) {\n    return renderToPipeableStream(component);\n}' },
+                { title: 'Real-Time Telemetry & Distributed Tracing', lang: 'go', code: 'func StartSpan(ctx context.Context, name string) trace.Span {\n    _, span := otel.Tracer("core").Start(ctx, name)\n    return span\n}' },
+                { title: 'Machine Learning Pipelines & LLM Serving', lang: 'python', code: "import torch\nfrom transformers import AutoModelForCausalLM\nmodel = AutoModelForCausalLM.from_pretrained('mistral-7b', device_map='auto')" },
+                { title: 'Zero-Trust Security & Mutual TLS', lang: 'bash', code: 'openssl req -x509 -newkey rsa:4096 -keyout ca.key -out ca.crt -days 3650 -nodes' },
+                { title: 'GraphQL Federation & Subgraph Gateways', lang: 'graphql', code: 'extend schema @link(url:"https://specs.apollo.dev/federation/v2.5")\ntype User @key(fields:"uuid"){uuid:ID!\nperms:[String!]!}' },
+                { title: 'Quantum Resilient Cryptography', lang: 'rust', code: 'pub struct Kyber512 {\n    public_key: [u8; 800],\n    secret_key: [u8; 1632],\n}' }
+            ];
+
+            const paras = [
+                'In modern hyper-scale infrastructures, fault tolerance is the absolute foundation. When network partitions occur the PACELC theorem mandates trade-offs between latency and consistency even during standard non-partitioned operational phases.',
+                'Leveraging asynchronous IO combined with event-loop architectures allows single processes to saturate 100% of multi-core machines without context-switching overhead or memory bloat caused by thread-per-connection paradigms.',
+                'Memory-mapped files (mmap) bridge user-space applications and the kernel page cache. By bypassing traditional copy boundaries, intensive database systems achieve near-RAM read-speed parity.',
+                'Security profiles must adopt Defense-in-Depth. SELinux policies coupled with eBPF socket filters ensure rogue binaries are isolated before executing unauthorised system calls.',
+                'Edge computing shifts loads closer to consuming clients. Routing requests to worldwide POPs drives TTFB below 20ms consistently.'
+            ];
+
+            const lines = ['# The Comprehensive Encyclopedia of System Architecture & Engineering'];
+            lines.push('> This authoritative reference guide demonstrates our Markdown engine\'s rendering speed across 35,000+ lines.\n');
+
+            let chapter = 1;
+            while (lines.length < 34000) {
+                const t = topics[(chapter - 1) % topics.length];
+                lines.push(`\n## Chapter ${chapter}: ${t.title}\n`);
+                lines.push(`Welcome to **Chapter ${chapter}**, a masterclass in ${t.title.toLowerCase()}. We review mathematical models, benchmarking profiles, and implementation patterns.\n`);
+                lines.push('> [!IMPORTANT]\n> Production engineers must observe all compliance metrics. Rate-limiting failures may precipitate cascading outages.\n');
+
+                for (let s = 1; s <= 6; s++) {
+                    lines.push(`### ${chapter}.${s} Theoretical Principles & Edge Cases\n`);
+                    lines.push(paras[(chapter + s) % paras.length] + '\n');
+                    lines.push(paras[(chapter * s) % paras.length] + '\n');
+
+                    if (s === 2 || s === 4) {
+                        lines.push(`Production-ready code in **${t.lang.toUpperCase()}**:\n\n\`\`\`${t.lang}\n${t.code}\n\`\`\`\n`);
+                    }
+                    if (s === 3) {
+                        lines.push('#### Benchmark Protocol Matrix\n');
+                        lines.push('| Algorithm | Throughput | P99 Latency | Footprint | Failure Mode |');
+                        lines.push('| :--- | :---: | :---: | :---: | :--- |');
+                        lines.push('| **Epoll Loop** | 450k req/s | 1.2ms | 12 MB | Graceful Degrade |');
+                        lines.push('| **Thread-per-Req** | 85k req/s | 14.8ms | 4.2 GB | OOM Kill |');
+                        lines.push('| **Goroutine Pool** | 380k req/s | 2.4ms | 180 MB | GC Stalls |');
+                        lines.push('| **Actor Model** | 410k req/s | 1.8ms | 250 MB | Mailbox Overflow |\n');
+                    }
+                    if (s === 5) {
+                        lines.push('#### Deployment Verification Checklist\n');
+                        lines.push('- [x] Verify mTLS certificate renewal daemons');
+                        lines.push('- [x] Execute chaos engineering partition trials');
+                        lines.push('- [ ] Audit IAM privilege escalation vectors');
+                        lines.push('- [ ] Confirm cold-storage snapshots use KMS keys\n');
+                    }
+                    lines.push('The architectural consensus indicates strong resilience against Byzantine faults. Partitioning state space into mutually exclusive shards lets each node maintain full ownership without distributed locking.\n');
+                    lines.push('`L_total = L_network + (N_concurrent × T_service) / Max(1, N_workers)` — as concurrency approaches infinity queueing delay grows proportionally.\n');
+                }
+                chapter++;
+            }
+
+            lines.push(`\n## Appendix: Glossary & Index\n`);
+            lines.push(`This concludes our monumental document of **${lines.length}** lines successfully converted into an interactive web experience!`);
+            return lines.join('\n');
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           LOAD & INIT
+        ══════════════════════════════════════════════════════════════════ */
+        async function loadMarkdownText(md, name) {
+            rawMarkdown = md;
+            if (name) {
+                config.title = name;
+                document.getElementById('nav-title').textContent = name;
+            }
+            // Parse (sync but large — yield to browser first)
+            await new Promise(r => setTimeout(r, 10));
+            parsedDoc = parseMarkdown(md);
+
+            document.getElementById('nav-sub').textContent = `${parsedDoc.stats.lineCount.toLocaleString()} lines · ${parsedDoc.stats.fileSize} · 40k Engine`;
+
+            renderTocTree();
+            renderWebsite();
+            renderBookSelect();
+            gotoBookChapter(0);
+            renderThumbnails();
+            renderSlide();
+            renderStats();
+            buildTypeFilterBtns();
+            applyLineFilters();
+        }
+
+        async function loadSampleDoc() {
+            const md = generateSample();
+            await loadMarkdownText(md, 'Hyper-Scale System Lexicon');
+        }
+
+        async function init() {
+            // Apply initial theme
+            applyTheme(currentTheme);
+            buildThemeMenu();
+
+            // Boot sequence: load sample doc
+            await loadSampleDoc();
+
+            document.getElementById('loading-screen').style.display = 'none';
+        }
+
+        /* ── UTILS ── */
+        function escHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        // Close modals on overlay click
+        document.getElementById('upload-modal').addEventListener('click', function (e) { if (e.target === this) closeUpload(); });
+        document.getElementById('config-modal').addEventListener('click', function (e) { if (e.target === this) closeConfig(); });
+
+        // Start
+        window.addEventListener('load', init);
+    </script>
+</body>
+
+</html>
