@@ -1,3 +1,3 @@
 # mudecharnnaik.github.io
-website
+personal portfolio website
 ## my portfolio link : https://mudecharannaik.github.io/mcn/  
