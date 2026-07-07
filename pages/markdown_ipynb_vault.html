@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analytics Vault</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* Theme Variables - Default Dark */
+        :root {
+            --bg-main: #0f172a;
+            --bg-sidebar: #1e293b;
+            --bg-code: #020617;
+            --bg-header: #1e293b;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --btn-bg: #334155;
+            --btn-hover: #475569;
+        }
+
+        /* Light Theme */
+        [data-theme="light"] {
+            --bg-main: #f8fafc;
+            --bg-sidebar: #f1f5f9;
+            --bg-code: #e2e8f0;
+            --bg-header: #ffffff;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --btn-bg: #e2e8f0;
+            --btn-hover: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px;
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 10px 0 0;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .icon-btn:hover {
+            color: var(--accent-hover);
+            background: transparent;
+        }
+
+        input[type="text"] {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            background-color: var(--btn-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--btn-hover);
+        }
+
+        button.primary {
+            background-color: var(--accent);
+            color: #fff;
+            border-color: var(--accent-hover);
+        }
+
+        button.primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        /* Layout modifier when sidebar is closed */
+        .layout.sidebar-closed {
+            grid-template-columns: 0px 1fr;
+        }
+
+        .layout.sidebar-closed aside {
+            padding: 0;
+            opacity: 0;
+            border: none;
+            pointer-events: none;
+        }
+
+        .layout.sidebar-closed .content-container {
+            margin: 0 auto;
+            max-width: 1000px;
+            /* Expands viewing width when sidebar is hidden */
+        }
+
+        /* Left Sidebar: Collapsible File Explorer Styles */
+        aside {
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .sidebar-file-group {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-file-group summary {
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            user-select: none;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-file-group summary:hover {
+            background-color: var(--btn-bg);
+            color: var(--accent);
+        }
+
+        .sidebar-file-content {
+            padding-left: 10px;
+            margin-top: 5px;
+            border-left: 1px solid var(--border-color);
+            margin-left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sidebar-link {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            white-space: normal;
+        }
+
+        .sidebar-link:hover {
+            background-color: var(--btn-bg);
+            color: var(--accent);
+        }
+
+        .sidebar-link.h1 {
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .sidebar-link.h2 {
+            padding-left: 10px;
+        }
+
+        .sidebar-link.h3 {
+            padding-left: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* Floating Right TOC & Toggle Controls */
+        .toc-bubble {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            width: 240px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            z-index: 50;
+            display: none;
+        }
+
+        .toc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+        }
+
+        .toc-header h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .close-toc-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+        }
+
+        .close-toc-btn:hover {
+            color: var(--accent);
+            background: transparent;
+        }
+
+        .open-toc-btn {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            color: var(--accent);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 50;
+            display: none;
+            font-size: 1.2rem;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .open-toc-btn:hover {
+            background: var(--btn-bg);
+        }
+
+        .toc-bubble a {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 5px 0;
+        }
+
+        .toc-bubble a:hover {
+            color: var(--accent);
+        }
+
+        .toc-bubble a.toc-h1 {
+            font-weight: 600;
+            margin-top: 8px;
+            color: var(--text-main);
+        }
+
+        .toc-bubble a.toc-h2 {
+            padding-left: 12px;
+            font-size: 0.8rem;
+        }
+
+        /* Main Content */
+        main {
+            padding: 40px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            width: 100%;
+        }
+
+        .content-container {
+            max-width: 800px;
+            margin: 0 auto 0 40px;
+            transition: margin 0.3s ease, max-width 0.3s ease;
+        }
+
+        /* Markdown Rendering Styles */
+        main h1,
+        main h2,
+        main h3 {
+            color: var(--text-main);
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        main p {
+            line-height: 1.6;
+            margin-bottom: 1em;
+        }
+
+        main img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+
+        main table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5em;
+            overflow-x: auto;
+            display: block;
+        }
+
+        main th,
+        main td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        main th {
+            background-color: var(--bg-sidebar);
+        }
+
+        /* Code Blocks */
+        .code-wrapper {
+            margin-bottom: 1.5em;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-code);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-sidebar);
+            padding: 5px 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .code-actions button {
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            margin-left: 5px;
+        }
+
+        .code-actions button:hover {
+            background: var(--btn-bg);
+        }
+
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            margin: 0;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Invisible Watermark base styling (Hidden by default) */
+        .invisible-watermark {
+            display: none;
+        }
+
+        /* Responsive Mobile */
+        @media (max-width: 1024px) {
+
+            .toc-bubble,
+            .open-toc-btn {
+                display: none !important;
+            }
+
+            .content-container {
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            aside {
+                display: none;
+            }
+
+            .icon-btn {
+                display: none;
+            }
+        }
+
+        /* =========================================================================
+           NATIVE BROWSER PRINT STYLESHEET
+           ========================================================================= */
+        @media print {
+
+            body,
+            .layout,
+            main,
+            .content-container {
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            header,
+            aside,
+            .toc-bubble,
+            .open-toc-btn,
+            .code-actions {
+                display: none !important;
+            }
+
+            * {
+                color: #000000 !important;
+            }
+
+            h1,
+            h2,
+            h3 {
+                page-break-after: avoid !important;
+            }
+
+            .code-wrapper,
+            img,
+            table {
+                page-break-inside: avoid !important;
+            }
+
+            .code-wrapper {
+                border: 1px solid #ccc !important;
+                background-color: #f9f9f9 !important;
+                margin-bottom: 20px !important;
+            }
+
+            .code-header {
+                background-color: #e5e5e5 !important;
+                border-bottom: 1px solid #ccc !important;
+            }
+
+            pre,
+            code {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                overflow-wrap: anywhere !important;
+            }
+
+            /* ACTIVATING THE INVISIBLE WATERMARK ON PRINT */
+            .invisible-watermark {
+                display: block !important;
+                position: fixed !important;
+                bottom: 0 !important;
+                right: 0 !important;
+                font-size: 1px !important;
+                color: #ffffff !important;
+                opacity: 0.01 !important;
+                z-index: -9999 !important;
+                pointer-events: none !important;
+            }
+        }
+
+        /* Pre-Flight layout destroyer for JS print triggering */
+        html.print-active,
+        html.print-active body,
+        html.print-active .layout,
+        html.print-active main,
+        html.print-active .content-container {
+            display: block !important;
+            height: auto !important;
+            overflow: visible !important;
+            position: static !important;
+            background-color: #ffffff !important;
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        html.print-active header,
+        html.print-active aside,
+        html.print-active .toc-bubble,
+        html.print-active .open-toc-btn,
+        html.print-active .code-actions {
+            display: none !important;
+        }
+
+        html.print-active * {
+            color: #000000 !important;
+        }
+
+        html.print-active h1,
+        html.print-active h2,
+        html.print-active h3 {
+            page-break-after: avoid !important;
+        }
+
+        html.print-active .code-wrapper,
+        html.print-active img,
+        html.print-active table {
+            page-break-inside: avoid !important;
+        }
+
+        html.print-active .code-wrapper {
+            border: 1px solid #ccc !important;
+            background-color: #f9f9f9 !important;
+            margin-bottom: 20px !important;
+        }
+
+        html.print-active .code-header {
+            background-color: #e5e5e5 !important;
+            border-bottom: 1px solid #ccc !important;
+        }
+
+        html.print-active pre,
+        html.print-active code {
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
+
+        html.print-active .invisible-watermark {
+            display: block !important;
+            position: fixed !important;
+            bottom: 0 !important;
+            right: 0 !important;
+            font-size: 1px !important;
+            color: transparent !important;
+            opacity: 0.01 !important;
+            z-index: -9999 !important;
+            pointer-events: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header id="mainHeader">
+        <div class="header-title">
+            <button id="sidebarToggle" class="icon-btn" title="Toggle Sidebar">☰</button>
+            <span>⚡ Data Analytics Vault</span>
+        </div>
+        <div class="header-controls">
+            <input type="text" id="searchInput" placeholder="Search snippets...">
+            <button id="themeToggle">☀️ Light</button>
+            <input type="file" id="folderInput" webkitdirectory multiple style="display: none;">
+            <input type="file" id="fileInput" accept=".md,.ipynb" multiple style="display: none;">
+            <button id="importFolderBtn" class="primary">📂 Folders</button>
+            <button id="importFilesBtn" class="primary">📄 Files</button>
+
+            <button id="exportMdBtn">📝 Save MD</button>
+            <button id="exportHtmlBtn">💾 Save HTML</button>
+            <button id="exportPdfBtn" class="primary">🖨️ Print PDF</button>
+        </div>
+    </header>
+
+    <div class="layout" id="mainLayout">
+        <aside id="sidebar">
+            <div style="padding: 10px; color: var(--text-muted); font-size: 0.85rem;">Import files to map TOC</div>
+        </aside>
+
+        <main id="mainContent">
+            <div id="printWatermark" class="invisible-watermark">
+                mcn mcn mcn mcn mcn mcn mcn mcn mcn mcn mcn mcn mcn mcn mcn
+            </div>
+
+            <div class="content-container" id="content">
+                <div style="text-align: center; margin-top: 20%; color: var(--text-muted);">
+                    <h2>Your vault is currently empty.</h2>
+                    <p style="margin-top: 10px;">Import Markdown (.md) or Notebook (.ipynb) files to begin.</p>
+                </div>
+            </div>
+        </main>
+
+        <div id="tocBubble" class="toc-bubble">
+            <div class="toc-header">
+                <h3>On This Page</h3>
+                <button id="closeTocBtn" class="close-toc-btn" title="Close TOC">×</button>
+            </div>
+            <div id="tocBubbleContent"></div>
+        </div>
+        <button id="openTocBtn" class="open-toc-btn" title="Open TOC" style="display: none;">📑</button>
+    </div>
+
+    <script>
+        let isDarkMode = true;
+        let isTocUserClosed = false;
+        let currentMarkdownContent = "";
+
+        // Sidebar Toggle Handler
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const mainLayout = document.getElementById('mainLayout');
+        sidebarToggle.addEventListener('click', () => {
+            mainLayout.classList.toggle('sidebar-closed');
+        });
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            themeToggle.innerText = isDarkMode ? '☀️ Light' : '🌙 Dark';
+        });
+
+        // TOC Toggle Handlers
+        const tocBubble = document.getElementById('tocBubble');
+        const openTocBtn = document.getElementById('openTocBtn');
+        const closeTocBtn = document.getElementById('closeTocBtn');
+
+        closeTocBtn.addEventListener('click', () => {
+            tocBubble.style.display = 'none';
+            openTocBtn.style.display = 'flex';
+            isTocUserClosed = true;
+        });
+
+        openTocBtn.addEventListener('click', () => {
+            tocBubble.style.display = 'block';
+            openTocBtn.style.display = 'none';
+            isTocUserClosed = false;
+        });
+
+        // Import Controls
+        document.getElementById('importFolderBtn').addEventListener('click', () => document.getElementById('folderInput').click());
+        document.getElementById('importFilesBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+
+        // Advanced Jupyter Notebook JSON Parser
+        function parseIpynbToMarkdown(jsonString) {
+            try {
+                const notebook = JSON.parse(jsonString);
+                let mdString = "";
+                const defaultLang = notebook.metadata?.kernelspec?.language || "python";
+
+                for (const cell of notebook.cells) {
+                    if (cell.cell_type === 'markdown') {
+                        let cellSource = Array.isArray(cell.source) ? cell.source.join('') : cell.source;
+                        if (cell.attachments) {
+                            for (const [filename, mimeData] of Object.entries(cell.attachments)) {
+                                for (const [mimeType, b64Data] of Object.entries(mimeData)) {
+                                    const cleanBase64 = (Array.isArray(b64Data) ? b64Data.join('') : b64Data).replace(/\n/g, '');
+                                    const dataUri = `data:${mimeType};base64,${cleanBase64}`;
+                                    const attachmentRegex = new RegExp(`attachment:${filename}`, 'g');
+                                    cellSource = cellSource.replace(attachmentRegex, dataUri);
+                                }
+                            }
+                        }
+                        mdString += cellSource + "\n\n";
+
+                    } else if (cell.cell_type === 'code') {
+                        const code = Array.isArray(cell.source) ? cell.source.join('') : cell.source;
+                        mdString += `\`\`\`${defaultLang}\n${code}\n\`\`\`\n\n`;
+                        if (cell.outputs && cell.outputs.length > 0) {
+                            cell.outputs.forEach(out => {
+                                if (out.text) {
+                                    const text = Array.isArray(out.text) ? out.text.join('') : out.text;
+                                    mdString += `> *Output:*\n\`\`\`plaintext\n${text}\n\`\`\`\n\n`;
+                                }
+                                if (out.data) {
+                                    for (const key of Object.keys(out.data)) {
+                                        if (key.startsWith('image/')) {
+                                            const base64 = Array.isArray(out.data[key]) ? out.data[key].join('') : out.data[key];
+                                            const cleanBase64 = base64.replace(/\n/g, '');
+                                            if (key.includes('svg')) mdString += `> *Visualization:*\n\n${cleanBase64}\n\n`;
+                                            else mdString += `> *Visualization:*\n\n![Plot](data:${key};base64,${cleanBase64})\n\n`;
+                                        }
+                                        else if (key === 'text/html') {
+                                            const htmlStr = Array.isArray(out.data[key]) ? out.data[key].join('') : out.data[key];
+                                            mdString += `> *Data Table:*\n\n${htmlStr}\n\n`;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+                return mdString;
+            } catch (error) { return `> ⚠️ **Error:** Failed to parse Jupyter Notebook content.\n\n`; }
+        }
+
+        async function handleFiles(e) {
+            const files = Array.from(e.target.files).filter(f => f.name.endsWith('.md') || f.name.endsWith('.ipynb'));
+            if (files.length === 0) return alert("No .md or .ipynb files found.");
+
+            let combinedMd = '';
+            for (const file of files) {
+                const text = await file.text();
+                const cleanName = file.name.replace(/\.(md|ipynb)$/, '');
+
+                if (file.name.endsWith('.ipynb')) {
+                    combinedMd += `\n\n# 📓 ${cleanName}\n\n`;
+                    combinedMd += parseIpynbToMarkdown(text);
+                } else {
+                    combinedMd += `\n\n# 📄 ${cleanName}\n\n${text}\n\n`;
+                }
+            }
+
+            currentMarkdownContent = combinedMd;
+            renderVault(combinedMd);
+            e.target.value = '';
+        }
+
+        document.getElementById('folderInput').addEventListener('change', handleFiles);
+        document.getElementById('fileInput').addEventListener('change', handleFiles);
+
+        // Core Render Function
+        function renderVault(mdString) {
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = marked.parse(mdString);
+            buildNav(contentDiv);
+            decorateCodeBlocks(contentDiv);
+        }
+
+        // Hierarchical File/Header Left Navigation
+        function buildNav(container) {
+            const sidebar = document.getElementById('sidebar');
+            const tocContent = document.getElementById('tocBubbleContent');
+            sidebar.innerHTML = ''; tocContent.innerHTML = '';
+            let hasToc = false;
+
+            let currentFileGroup = null;
+            let currentFileContent = null;
+
+            container.querySelectorAll('h1, h2, h3').forEach((h, i) => {
+                const id = `sec-${i}-${h.innerText.replace(/\s+/g, '-').toLowerCase()}`;
+                h.id = id;
+                const tag = h.tagName.toLowerCase();
+                const text = h.innerText;
+
+                // Detect if this is a File Root created by our importer
+                const isFileHeader = tag === 'h1' && (text.startsWith('📄') || text.startsWith('📓'));
+
+                // Build Left Sidebar
+                if (isFileHeader) {
+                    currentFileGroup = document.createElement('details');
+                    currentFileGroup.open = true; // Start expanded
+                    currentFileGroup.className = 'sidebar-file-group';
+
+                    const summary = document.createElement('summary');
+                    summary.innerText = text;
+                    summary.onclick = () => { window.location.hash = `#${id}`; };
+                    currentFileGroup.appendChild(summary);
+
+                    currentFileContent = document.createElement('div');
+                    currentFileContent.className = 'sidebar-file-content';
+                    currentFileGroup.appendChild(currentFileContent);
+
+                    sidebar.appendChild(currentFileGroup);
+                } else {
+                    const link = document.createElement('a');
+                    link.href = `#${id}`;
+                    link.innerText = text;
+                    link.className = `sidebar-link ${tag}`;
+
+                    if (currentFileContent) {
+                        currentFileContent.appendChild(link); // Nest under file
+                    } else {
+                        sidebar.appendChild(link); // Root level fallback
+                    }
+                }
+
+                // Build Right Floating TOC Bubble
+                if (tag === 'h1' || tag === 'h2') {
+                    hasToc = true;
+                    const rightLink = document.createElement('a');
+                    rightLink.href = `#${id}`;
+                    rightLink.innerText = text;
+                    rightLink.className = tag === 'h1' ? 'toc-h1' : 'toc-h2';
+                    tocContent.appendChild(rightLink);
+                }
+            });
+
+            // Respect right-TOC open/close preference
+            if (hasToc) {
+                if (isTocUserClosed) { tocBubble.style.display = 'none'; openTocBtn.style.display = 'flex'; }
+                else { tocBubble.style.display = 'block'; openTocBtn.style.display = 'none'; }
+            } else {
+                tocBubble.style.display = 'none'; openTocBtn.style.display = 'none';
+            }
+        }
+
+        function decorateCodeBlocks(container) {
+            container.querySelectorAll('pre').forEach(pre => {
+                const code = pre.querySelector('code');
+                if (!code || code.className === 'language-plaintext') return;
+
+                const langClass = Array.from(code.classList).find(c => c.startsWith('language-'));
+                const language = langClass ? langClass.replace('language-', '') : 'plaintext';
+                const rawCode = code.innerText;
+
+                const wrapper = document.createElement('div'); wrapper.className = 'code-wrapper';
+                const header = document.createElement('div'); header.className = 'code-header';
+                const actions = document.createElement('div'); actions.className = 'code-actions';
+
+                const langLabel = document.createElement('span'); langLabel.innerText = language.toUpperCase();
+
+                const copyBtn = document.createElement('button'); copyBtn.innerText = '📋 Copy';
+                copyBtn.onclick = () => { navigator.clipboard.writeText(rawCode); copyBtn.innerText = '✅ Copied!'; setTimeout(() => copyBtn.innerText = '📋 Copy', 2000); };
+                actions.appendChild(copyBtn);
+
+                header.appendChild(langLabel); header.appendChild(actions);
+                pre.parentNode.insertBefore(wrapper, pre);
+                wrapper.appendChild(header); wrapper.appendChild(pre);
+            });
+        }
+
+        // Search Engine
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const elements = document.getElementById('content').children;
+            for (let el of elements) {
+                if (el.tagName.match(/^H[1-3]$/)) { el.style.display = el.innerText.toLowerCase().includes(term) ? '' : 'none'; }
+                else { el.style.display = el.style.display === 'none' ? 'none' : ''; }
+            }
+        });
+
+        // 1. Export as Markdown (WITH INVISIBLE WATERMARK)
+        document.getElementById('exportMdBtn').addEventListener('click', () => {
+            if (!currentMarkdownContent) {
+                alert("The vault is currently empty. Please import files before exporting.");
+                return;
+            }
+            const watermarkString = '\n\n\n';
+            const blob = new Blob([currentMarkdownContent + watermarkString], { type: 'text/markdown' });
+
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'Analytics_Vault.md';
+            a.click();
+        });
+
+        // 2. Export as HTML
+        document.getElementById('exportHtmlBtn').addEventListener('click', () => {
+            const domClone = document.documentElement.cloneNode(true);
+            const htmlString = `<!DOCTYPE html>\n<html lang="en">\n${domClone.innerHTML}\n</html>`;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([htmlString], { type: 'text/html' }));
+            a.download = 'Analytics_Vault.html';
+            a.click();
+        });
+
+        // 3. Print as PDF (Native)
+        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+            document.documentElement.classList.add('print-active');
+            setTimeout(() => {
+                window.print();
+                document.documentElement.classList.remove('print-active');
+            }, 300);
+        });
+
+    </script>
+</body>
+
+</html>
