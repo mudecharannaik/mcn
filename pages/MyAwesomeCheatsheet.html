@@ -53,18 +53,37 @@
         .container { max-width: 1400px; margin: 0 auto; padding-right: 40px; }
 
         /* Header & Export */
-        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap; gap: 15px; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
         .header-bar h1 { margin: 0; color: var(--text-accent); }
-        .export-btns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;}
+        .export-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;}
 
-        button { background-color: var(--btn-primary); color: white; border: 1px solid rgba(240,246,252,0.1); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        button:hover { background-color: var(--btn-primary-hover); }
+        /* Unified Button Styles (Includes label tags used for file uploads) */
+        button, .btn-style { 
+            background-color: var(--btn-primary); 
+            color: white; 
+            border: 1px solid rgba(240,246,252,0.1); 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 13px;
+            font-family: inherit;
+            transition: 0.2s; 
+            display: inline-block;
+            box-sizing: border-box;
+        }
+        button:hover, .btn-style:hover { background-color: var(--btn-primary-hover); }
+        
         button.danger { background-color: transparent; border-color: var(--btn-danger); color: var(--btn-danger); padding: 4px 8px; font-size: 12px;}
         button.danger:hover { background-color: var(--btn-danger); color: white; }
         button.edit { background-color: transparent; border-color: var(--text-accent); color: var(--text-accent); padding: 4px 8px; font-size: 12px;}
         button.edit:hover { background-color: var(--text-accent); color: var(--card-bg); }
-        button.secondary { background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
-        button.secondary:hover { background-color: var(--border-color); }
+        
+        button.secondary, .btn-style.secondary { background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+        button.secondary:hover, .btn-style.secondary:hover { background-color: var(--border-color); }
+        
+        /* Utility class to hide actual file inputs but keep the label looking like a button */
+        .hidden-file-input { display: none; }
 
         /* Table of Contents */
         #toc-sidebar { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 100; }
@@ -104,7 +123,7 @@
         .io-block { display: flex; flex-direction: column; height: 100%; }
         .code-container { position: relative; flex-grow: 1; display: flex; flex-direction: column; background-color: var(--input-bg); border-radius: 6px; border: 1px solid var(--border-color); transition: background-color 0.3s;}
 
-        .copy-btn { position: absolute; top: 8px; right: 8px; background-color: var(--border-color); color: var(--text-main); border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; opacity: 0.6; transition: 0.2s; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background-color: var(--border-color); color: var(--text-main); border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; opacity: 0.6; transition: 0.2s; z-index: 5;}
         .copy-btn:hover { opacity: 1; background-color: var(--text-accent); color: var(--card-bg); }
 
         .code-block { padding: 10px; padding-right: 50px; overflow-x: auto; flex-grow: 1; margin: 0; }
@@ -159,9 +178,21 @@
 <div class="container">
     <div class="header-bar">
         <h1 id="page-title">Cheatsheet Generator</h1>
+        
         <div class="export-btns">
-            <button onclick="toggleTheme()" class="secondary">🌓 Theme</button>
-            <button onclick="window.print()" class="secondary">🖨️ Print / PDF</button>
+            <button onclick="toggleTheme()" class="secondary" title="Toggle Light/Dark Mode">🌓 Theme</button>
+            <button onclick="window.print()" class="secondary" title="Print or Save as Searchable PDF">🖨️ PDF</button>
+            
+            <span style="color: var(--border-color);">|</span>
+            
+            <button onclick="exportStateJSON()" class="secondary" title="Download backup of your data">💾 Save State</button>
+            <label class="btn-style secondary" title="Import a backup file">
+                📂 Load State
+                <input type="file" id="importJsonFile" accept=".json" class="hidden-file-input" onchange="importStateJSON(event)">
+            </label>
+            
+            <span style="color: var(--border-color);">|</span>
+
             <button onclick="exportToMarkdown()">Export .MD</button>
             <button onclick="exportToHTML()">Export .HTML</button>
         </div>
@@ -221,20 +252,99 @@
     let cheatsheets = [];
     let currentAttachedImageBase64 = null;
 
+    // --- INITIALIZATION & AUTO-SAVE ---
     window.onload = function() {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
 
+        // Load auto-saved data from local storage
+        loadLocalState();
+
         setTimeout(() => {
-            let userTitle = prompt("Enter a title for your cheatsheet file:", "My Awesome Cheatsheet");
-            if (userTitle) {
-                globalTitle = userTitle.trim();
-                document.getElementById('page-title').innerText = globalTitle;
-                document.title = globalTitle;
+            let savedTitle = localStorage.getItem('cheatsheet_title');
+            if(!savedTitle) {
+                let userTitle = prompt("Enter a title for your cheatsheet workspace:", "My Awesome Cheatsheet");
+                if (userTitle) {
+                    globalTitle = userTitle.trim();
+                    localStorage.setItem('cheatsheet_title', globalTitle);
+                }
+            } else {
+                globalTitle = savedTitle;
             }
+            document.getElementById('page-title').innerText = globalTitle;
+            document.title = globalTitle;
         }, 100);
     };
 
+    function saveLocalState() {
+        localStorage.setItem('my_cheatsheet_data', JSON.stringify(cheatsheets));
+    }
+
+    function loadLocalState() {
+        const data = localStorage.getItem('my_cheatsheet_data');
+        if (data) {
+            try {
+                cheatsheets = JSON.parse(data);
+                updateHeaderOptions();
+                renderCheatsheets();
+            } catch(e) {
+                console.error("Failed to parse local save data.");
+            }
+        }
+    }
+
+    // --- IMPORT / EXPORT JSON STATE ---
+    function exportStateJSON() {
+        if (cheatsheets.length === 0) return alert("Your cheatsheet is empty! Nothing to save.");
+        
+        // Include both the title and the data in the save file
+        const backupData = {
+            title: globalTitle,
+            data: cheatsheets
+        };
+        
+        const dataStr = JSON.stringify(backupData, null, 2);
+        triggerDownload(dataStr, "application/json", getExportFilename("json"));
+    }
+
+    function importStateJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                
+                // Validate if it's the new object format or old raw array format
+                if (importedData.data && Array.isArray(importedData.data)) {
+                    cheatsheets = importedData.data;
+                    if(importedData.title) {
+                        globalTitle = importedData.title;
+                        localStorage.setItem('cheatsheet_title', globalTitle);
+                        document.getElementById('page-title').innerText = globalTitle;
+                        document.title = globalTitle;
+                    }
+                } else if (Array.isArray(importedData)) {
+                    cheatsheets = importedData; // fallback for basic array
+                } else {
+                    throw new Error("Invalid format");
+                }
+                
+                saveLocalState();
+                updateHeaderOptions();
+                renderCheatsheets();
+                alert("Workspace loaded successfully!");
+            } catch (err) {
+                alert("Error reading file. Make sure it is a valid Cheatsheet JSON save file.");
+                console.error(err);
+            }
+            event.target.value = ''; // Reset input so the same file can be uploaded again if needed
+        };
+        reader.readAsText(file);
+    }
+
+    // --- UTILITIES ---
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme');
         const target = current === 'light' ? 'dark' : 'light';
@@ -283,12 +393,10 @@
         return text.replace(/#/g, '').replace(/\*/g, '').trim();
     }
 
-    // Populate Datalist with unique headers
     function updateHeaderOptions() {
         const datalist = document.getElementById('existingHeaders');
         datalist.innerHTML = '';
         const uniqueHeaders = [...new Set(cheatsheets.map(item => item.header))].filter(Boolean);
-        
         uniqueHeaders.forEach(header => {
             const option = document.createElement('option');
             option.value = header;
@@ -296,6 +404,7 @@
         });
     }
 
+    // --- CORE CRUD LOGIC ---
     function addOrUpdateEntry() {
         const header = document.getElementById('headerInput').value.trim();
         const tags = document.getElementById('tagInput').value.trim();
@@ -326,6 +435,7 @@
             cheatsheets.push(entry);
         }
 
+        saveLocalState(); // Auto-save
         clearInputs();
         updateHeaderOptions();
         renderCheatsheets();
@@ -358,17 +468,17 @@
     function deleteEntry(id) {
         if(confirm("Are you sure you want to delete this snippet?")) {
             cheatsheets = cheatsheets.filter(item => item.id !== id);
+            saveLocalState(); // Auto-save
             updateHeaderOptions();
             renderCheatsheets();
         }
     }
 
-    // Core Generation Engine
+    // --- HTML GENERATION ---
     function generateCheatsheetCardsHTML(isExport = false) {
         const groupOrder = [];
         const groups = {};
 
-        // Group purely by Header string. Tags are NO LONGER aggregated here.
         cheatsheets.forEach(item => {
             const h = item.header;
             if (!groups[h]) {
@@ -383,17 +493,14 @@
 
         groupOrder.forEach(headerText => {
             const group = groups[headerText];
-
             let cardHTML = `<div class="card" id="${group.id}">
                 <div class="card-header-text">${parseMarkdown(headerText)}</div>
             `;
-
             tocData.push({ id: group.id, title: cleanHeaderText(headerText) });
 
             group.items.forEach(item => {
                 cardHTML += `<div class="snippet-container">`;
                 
-                // Process Snippet Tags
                 let snippetTagsHTML = '';
                 if (item.tags) {
                     const tagArray = item.tags.split(',').map(t => t.trim()).filter(Boolean);
@@ -404,7 +511,6 @@
                     }
                 }
 
-                // Render Snippet Top Bar (Tags on left, Actions on right)
                 cardHTML += `<div class="snippet-top-bar">`;
                 cardHTML += snippetTagsHTML; 
                 
@@ -417,8 +523,6 @@
                     `;
                 }
                 cardHTML += `</div>`;
-
-                // Content Grid
                 cardHTML += `<div class="card-content-grid">`;
 
                 if (item.code) {
@@ -452,10 +556,8 @@
                 if (item.explanation) {
                     cardHTML += `<div class="explanation-block">${parseMarkdown(item.explanation)}</div>`;
                 }
-
                 cardHTML += `</div>`; 
             });
-
             cardHTML += `</div>`;
             finalHTML += cardHTML;
         });
@@ -495,11 +597,9 @@
     }
 
     function clearInputs() {
-        // Obey the Pin checkbox logic
         if (!document.getElementById('pinHeader').checked) {
             document.getElementById('headerInput').value = '';
         }
-        
         document.getElementById('tagInput').value = '';
         document.getElementById('codeInput').value = '';
         document.getElementById('outputInput').value = '';
@@ -508,6 +608,7 @@
         clearImageUpload();
     }
 
+    // --- DOCUMENT EXPORT LOGIC ---
     function getExportFilename(extension) {
         const safeName = globalTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
         return `${safeName}.${extension}`;
@@ -602,13 +703,7 @@
 
     function escapeHTML(str) {
         return str.replace(/[&<>'"]/g, 
-            tag => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                "'": '&#39;',
-                '"': '&quot;'
-            }[tag] || tag)
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
         );
     }
 </script>
