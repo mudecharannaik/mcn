@@ -288,16 +288,13 @@
             width: 4px;
             height: 4px;
         }
-
         #toc-sidebar::-webkit-scrollbar-track {
             background: transparent;
         }
-
         #toc-sidebar::-webkit-scrollbar-thumb {
             background: var(--border-color);
             border-radius: 4px;
         }
-
         #toc-sidebar::-webkit-scrollbar-thumb:hover {
             background: var(--text-accent);
         }
@@ -313,17 +310,14 @@
             .masonry-grid {
                 column-count: 1;
             }
-
             .container {
                 padding-right: 20px;
             }
-
             #toc-sidebar {
                 right: 8px;
                 width: 150px;
                 padding: 10px 8px;
             }
-
             #toc-toggle-main {
                 right: 8px;
                 width: 30px;
@@ -368,23 +362,18 @@
         .card-header-text h1 {
             font-size: 1.6rem;
         }
-
         .card-header-text h2 {
             font-size: 1.4rem;
         }
-
         .card-header-text h3 {
             font-size: 1.2rem;
         }
-
         .card-header-text h4 {
             font-size: 1.1rem;
         }
-
         .card-header-text h5 {
             font-size: 1.0rem;
         }
-
         .card-header-text h6 {
             font-size: 0.9rem;
             color: #8b949e;
@@ -531,6 +520,24 @@
             line-height: 1.5;
         }
 
+        /* Table styling inside explanation */
+        .explanation-block table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+        .explanation-block th,
+        .explanation-block td {
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            text-align: left;
+        }
+        .explanation-block th {
+            background-color: var(--tag-bg);
+            color: var(--text-accent);
+        }
+
         /* ===== INPUT PANEL ===== */
         .input-panel {
             background-color: var(--card-bg);
@@ -620,7 +627,6 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-
             #toc-sidebar,
             #toc-toggle-main,
             .input-panel,
@@ -630,34 +636,29 @@
             #ipynbConverterSection {
                 display: none !important;
             }
-
             .container {
                 padding: 0 !important;
                 max-width: 100% !important;
                 width: 100% !important;
             }
-
             .card {
                 page-break-inside: auto !important;
                 break-inside: auto !important;
             }
-
             .snippet-container {
                 page-break-inside: auto !important;
                 break-inside: auto !important;
             }
-
             .code-block {
                 page-break-inside: auto !important;
                 break-inside: auto !important;
             }
-
             .masonry-grid {
                 column-count: 1 !important;
             }
         }
 
-        /* ===== IPYNB CONVERTER (shared theme) ===== */
+        /* ===== IPYNB / MD CONVERTER (shared theme) ===== */
         #ipynbConverterSection {
             margin-bottom: 25px;
         }
@@ -817,19 +818,15 @@
         .json-key {
             color: #89b4fa;
         }
-
         .json-string {
             color: #a6e3a1;
         }
-
         .json-number {
             color: #fab387;
         }
-
         .json-null {
             color: #f38ba8;
         }
-
         .json-bracket {
             color: #f9e2af;
         }
@@ -923,40 +920,32 @@
             .upload-zone {
                 padding: 32px 16px;
             }
-
             .upload-zone .upload-icon {
                 font-size: 2.5rem;
             }
-
             .upload-zone h3 {
                 font-size: 1rem;
             }
-
             .ipynb-json-wrapper {
                 max-height: 40vh;
             }
-
             .ipynb-json-wrapper pre {
                 font-size: 0.75rem;
                 padding: 16px 12px;
             }
-
             .ipynb-actions {
                 gap: 6px;
                 padding: 12px;
             }
-
             .ipynb-actions button {
                 padding: 8px 14px;
                 font-size: 0.8rem;
             }
-
             .ipynb-status-bar {
                 font-size: 0.78rem;
                 gap: 6px;
                 padding: 10px 14px;
             }
-
             .ipynb-status-bar .stats {
                 margin-left: 0;
                 gap: 10px;
@@ -992,16 +981,16 @@
             </div>
         </div>
 
-        <!-- ===== IPYNB CONVERTER SECTION ===== -->
+        <!-- ===== IPYNB / MD CONVERTER SECTION ===== -->
         <div id="ipynbConverterSection">
             <div class="ipynb-card">
                 <!-- Upload Zone -->
-                <div class="upload-zone" id="uploadZone" title="Click to browse or drag & drop a .ipynb file">
+                <div class="upload-zone" id="uploadZone" title="Click to browse or drag & drop a .ipynb or .md file">
                     <span class="upload-icon">📓</span>
-                    <h3>Drop your <code>.ipynb</code> file here</h3>
+                    <h3>Drop your <code>.ipynb</code> or <code>.md</code> file here</h3>
                     <p>or click to browse — then <strong>import</strong> into your cheatsheet</p>
-                    <span class="supported-formats">.ipynb → JSON → Cheatsheet</span>
-                    <input type="file" id="fileInput" accept=".ipynb">
+                    <span class="supported-formats">.ipynb &amp; .md supported</span>
+                    <input type="file" id="fileInput" accept=".ipynb,.md,.markdown">
                 </div>
 
                 <!-- Status Bar -->
@@ -1009,8 +998,8 @@
                     <span class="dot" id="ipynbStatusDot"></span>
                     <span class="file-name" id="ipynbStatusFileName">—</span>
                     <span class="stats">
-                        <span>Cells: <strong id="ipynbStatCells">0</strong></span>
-                        <span>Code cells: <strong id="ipynbStatCodeCells">0</strong></span>
+                        <span>Cells / Sections: <strong id="ipynbStatCells">0</strong></span>
+                        <span>Code blocks: <strong id="ipynbStatCodeCells">0</strong></span>
                         <span>Items: <strong id="ipynbStatItems">0</strong></span>
                     </span>
                 </div>
@@ -1018,20 +1007,15 @@
                 <!-- Results -->
                 <div class="ipynb-results-section" id="ipynbResultsSection">
                     <div class="ipynb-json-wrapper" id="ipynbJsonWrapper">
-                        <pre
-                            id="ipynbJsonOutput"><span class="ipynb-empty-state"><span class="icon">📄</span>JSON output will appear here</span></pre>
+                        <pre id="ipynbJsonOutput"><span class="ipynb-empty-state"><span class="icon">📄</span>JSON output will appear here</span></pre>
                     </div>
                     <div class="ipynb-actions">
-                        <button class="btn-import" id="btnImportToCheatsheet"
-                            title="Add all parsed items to your cheatsheet">
+                        <button class="btn-import" id="btnImportToCheatsheet" title="Add all parsed items to your cheatsheet">
                             <span>📥</span> Import to Cheatsheet
                         </button>
-                        <button class="btn-style secondary" id="ipynbBtnCopy" title="Copy JSON to clipboard">📋 Copy
-                            JSON</button>
-                        <button class="btn-style secondary" id="ipynbBtnDownload" title="Download as .json file">💾
-                            Download</button>
-                        <button class="btn-style secondary" id="ipynbBtnClear" title="Clear and upload another file">🔄
-                            Clear</button>
+                        <button class="btn-style secondary" id="ipynbBtnCopy" title="Copy JSON to clipboard">📋 Copy JSON</button>
+                        <button class="btn-style secondary" id="ipynbBtnDownload" title="Download as .json file">💾 Download</button>
+                        <button class="btn-style secondary" id="ipynbBtnClear" title="Clear and upload another file">🔄 Clear</button>
                     </div>
                 </div>
             </div>
@@ -1075,8 +1059,7 @@
                     <div class="file-upload-wrapper">
                         <input type="file" id="imageFileInput" accept="image/*">
                         <img id="imagePreview" src="" alt="Preview">
-                        <button class="danger" id="clearImageBtn" style="display:none;"
-                            onclick="clearImageUpload()">Clear</button>
+                        <button class="danger" id="clearImageBtn" style="display:none;" onclick="clearImageUpload()">Clear</button>
                     </div>
                 </div>
                 <div style="flex: 2;">
@@ -1107,7 +1090,7 @@
 
     <script>
         // ============================================================
-        //  CHEATSHEET ENGINE
+        //  CHEATSHEET ENGINE — NO LOCAL STORAGE (FRESH ON EVERY LOAD)
         // ============================================================
 
         let globalTitle = "My Cheatsheet";
@@ -1115,87 +1098,111 @@
         let currentAttachedImageBase64 = null;
 
         // --- INIT ---
-        window.onload = function () {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            loadLocalState();
-            setTimeout(() => {
-                let savedTitle = localStorage.getItem('cheatsheet_title');
-                if (!savedTitle) {
-                    let userTitle = prompt("Enter a title for your cheatsheet workspace:", "My Awesome Cheatsheet");
-                    if (userTitle) {
-                        globalTitle = userTitle.trim();
-                        localStorage.setItem('cheatsheet_title', globalTitle);
-                    }
-                } else {
-                    globalTitle = savedTitle;
-                }
-                document.getElementById('page-title').innerText = globalTitle;
-                document.title = globalTitle;
-            }, 100);
-            initTOC();
-        };
+        window.onload = function() {
+            // Always start with dark theme (no persistence)
+            document.documentElement.setAttribute('data-theme', 'dark');
 
-        function saveLocalState() {
-            localStorage.setItem('my_cheatsheet_data', JSON.stringify(cheatsheets));
-        }
-
-        function loadLocalState() {
-            const data = localStorage.getItem('my_cheatsheet_data');
-            if (data) {
-                try {
-                    cheatsheets = JSON.parse(data);
-                    updateHeaderOptions();
-                    renderCheatsheets();
-                } catch (e) {
-                    console.error("Failed to parse local save data.");
-                }
-            }
-        }
-
-        function clearWorkspace() {
-            cheatsheets = [];
-            currentAttachedImageBase64 = null;
-            localStorage.removeItem('my_cheatsheet_data');
-            localStorage.removeItem('cheatsheet_title');
+            // Default title, no saved state
             globalTitle = "My Cheatsheet";
             document.getElementById('page-title').innerText = globalTitle;
             document.title = globalTitle;
-            clearInputs();
-            updateHeaderOptions();
-            renderCheatsheets();
-            setTimeout(() => {
-                let userTitle = prompt("Workspace cleared! Enter a title for your NEW workspace:", "My Awesome Cheatsheet");
-                if (userTitle) {
-                    globalTitle = userTitle.trim();
-                    localStorage.setItem('cheatsheet_title', globalTitle);
-                    document.getElementById('page-title').innerText = globalTitle;
-                    document.title = globalTitle;
-                }
-            }, 100);
-        }
 
-        // --- THEME ---
+            // Render empty cheatsheet
+            renderCheatsheets();
+            initTOC();
+        };
+
+        // --- THEME (no localStorage) ---
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme');
             const target = current === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', target);
-            localStorage.setItem('theme', target);
         }
 
         // --- UTILITIES ---
+        function convertTables(text) {
+            // Find markdown table blocks: lines starting and ending with |, with a separator row containing ---
+            const lines = text.split('\n');
+            let result = [];
+            let i = 0;
+            while (i < lines.length) {
+                let line = lines[i];
+                // Check if this line could start a table: starts with | and contains at least two pipes
+                if (line.trim().startsWith('|') && (line.match(/\|/g) || []).length >= 3) {
+                    // Look ahead for the separator row (contains ---)
+                    let j = i + 1;
+                    let foundSeparator = false;
+                    while (j < lines.length && lines[j].trim() !== '') {
+                        if (lines[j].trim().startsWith('|') && lines[j].includes('---')) {
+                            foundSeparator = true;
+                            break;
+                        }
+                        j++;
+                    }
+                    if (foundSeparator) {
+                        // We have a table: header row at i, separator at j, data rows follow until a blank line or non-table line
+                        let headerRow = lines[i].trim();
+                        let separatorRow = lines[j].trim();
+                        let dataRows = [];
+                        let k = j + 1;
+                        while (k < lines.length && lines[k].trim() !== '' && lines[k].trim().startsWith('|')) {
+                            dataRows.push(lines[k].trim());
+                            k++;
+                        }
+                        // Build HTML table
+                        let html = '<table><thead><tr>';
+                        let headers = headerRow.split('|').filter(cell => cell !== '');
+                        headers.forEach(h => {
+                            html += `<th>${h.trim()}</th>`;
+                        });
+                        html += '</tr></thead><tbody>';
+                        dataRows.forEach(row => {
+                            let cells = row.split('|').filter(cell => cell !== '');
+                            html += '<tr>';
+                            cells.forEach(c => {
+                                html += `<td>${c.trim()}</td>`;
+                            });
+                            html += '</tr>';
+                        });
+                        html += '</tbody></table>';
+                        result.push(html);
+                        i = k; // skip processed lines
+                        continue;
+                    }
+                }
+                // Not a table, keep line as is
+                result.push(line);
+                i++;
+            }
+            return result.join('\n');
+        }
+
         function parseMarkdown(text) {
             if (!text) return '';
             let html = text;
+
+            // Convert tables first (block level)
+            html = convertTables(html);
+
+            // Headings (convert after tables so they don't interfere)
             html = html.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
             html = html.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
             html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
             html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
             html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
             html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+            // Inline formatting
             html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
             html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
-            if (!html.match(/^<h[1-6]>/)) { html = `<h3>${html}</h3>`; }
+
+            // If no heading, wrap as paragraph? We'll just let it be.
+            if (!html.match(/^<h[1-6]>/)) {
+                // But we don't want to wrap tables or other block elements, so check if it's a table or heading already
+                if (!html.includes('<table') && !html.includes('<h')) {
+                    html = `<h3>${html}</h3>`;
+                }
+            }
             return html;
         }
 
@@ -1221,11 +1228,11 @@
         }
 
         // --- IMAGE ---
-        document.getElementById('imageFileInput').addEventListener('change', function (e) {
+        document.getElementById('imageFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function (event) {
+                reader.onload = function(event) {
                     currentAttachedImageBase64 = event.target.result;
                     document.getElementById('imagePreview').src = currentAttachedImageBase64;
                     document.getElementById('imagePreview').style.display = 'block';
@@ -1274,7 +1281,6 @@
                 cheatsheets.push(entry);
             }
 
-            saveLocalState();
             clearInputs();
             updateHeaderOptions();
             renderCheatsheets();
@@ -1306,7 +1312,6 @@
         function deleteEntry(id) {
             if (confirm("Are you sure you want to delete this snippet?")) {
                 cheatsheets = cheatsheets.filter(item => item.id !== id);
-                saveLocalState();
                 updateHeaderOptions();
                 renderCheatsheets();
                 showToast("🗑️ Deleted.");
@@ -1435,7 +1440,7 @@
             });
         }
 
-        window.copyTextToClipboard = function (btnElement, text) {
+        window.copyTextToClipboard = function(btnElement, text) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalText = btnElement.innerText;
                 btnElement.innerText = "Copied!";
@@ -1478,25 +1483,19 @@
             const backupData = { title: globalTitle, data: cheatsheets };
             const dataStr = JSON.stringify(backupData, null, 2);
             triggerDownload(dataStr, "application/json", getExportFilename("json"));
-            setTimeout(() => {
-                if (confirm("Save file generated! Do you want to wipe this current session and start a new blank cheatsheet?")) {
-                    clearWorkspace();
-                }
-            }, 500);
         }
 
         function importStateJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = function(e) {
                 try {
                     const importedData = JSON.parse(e.target.result);
                     if (importedData.data && Array.isArray(importedData.data)) {
                         cheatsheets = importedData.data;
                         if (importedData.title) {
                             globalTitle = importedData.title;
-                            localStorage.setItem('cheatsheet_title', globalTitle);
                             document.getElementById('page-title').innerText = globalTitle;
                             document.title = globalTitle;
                         }
@@ -1505,7 +1504,6 @@
                     } else {
                         throw new Error("Invalid format");
                     }
-                    saveLocalState();
                     updateHeaderOptions();
                     renderCheatsheets();
                     showToast("✅ Workspace loaded!");
@@ -1581,10 +1579,10 @@
         }
 
         // ============================================================
-        //  IPYNB CONVERTER ENGINE (integrated, uses shared theme)
+        //  IPYNB / MD CONVERTER ENGINE
         // ============================================================
 
-        (function () {
+        (function() {
             const uploadZone = document.getElementById('uploadZone');
             const fileInput = document.getElementById('fileInput');
             const statusBar = document.getElementById('ipynbStatusBar');
@@ -1668,12 +1666,12 @@
                 jsonWrapper.scrollTop = 0;
             }
 
-            function updateStatus(success, fileName, total, codeCells, items) {
+            function updateStatus(success, fileName, total, codeBlocks, items) {
                 statusBar.style.display = 'flex';
                 statusDot.className = 'dot ' + (success ? 'success' : 'error');
                 statusFileName.textContent = fileName || '—';
                 statCells.textContent = total ?? '—';
-                statCodeCells.textContent = codeCells ?? '—';
+                statCodeCells.textContent = codeBlocks ?? '—';
                 statItems.textContent = items ?? '—';
                 resultsSection.classList.add('active');
             }
@@ -1696,7 +1694,7 @@
                 btnImport.style.opacity = '0.5';
             }
 
-            // --- Parser ---
+            // --- Parser for .ipynb (notebook) ---
             function parseNotebook(notebookJson, fileName) {
                 const cells = notebookJson.cells || [];
                 const totalCells = cells.length;
@@ -1756,7 +1754,7 @@
                                 'display_data') {
                                 const data = output.data || {};
                                 if (data['image/png'] && !imageData) imageData = 'data:image/png;base64,' + data[
-                                    'image/png'];
+                                'image/png'];
                                 else if (data['image/jpeg'] && !imageData) imageData = 'data:image/jpeg;base64,' +
                                     data['image/jpeg'];
                                 else if (data['image/svg+xml'] && !imageData) {
@@ -1783,38 +1781,152 @@
                         }
                         outputText = outputText.trim();
                         const id = 'item-' + (baseTimestamp + itemIndex);
-                        dataItems.push({
-                            id, header, tags, code, output: outputText, image: imageData,
-                            explanation: ''
-                        });
+                        dataItems.push({ id, header, tags, code, output: outputText, image: imageData,
+                            explanation: '' });
                         itemIndex++;
                     }
                 }
                 return { title, data: dataItems };
             }
 
-            // --- Handle file ---
+            // --- Parser for .md (markdown) ---
+            function parseMarkdownFile(text, fileName) {
+                const title = fileName.replace(/\.(md|markdown)$/i, '').replace(/[_-]/g, ' ').trim() || 'Untitled';
+                // Remove YAML frontmatter
+                let content = text;
+                if (content.trim().startsWith('---')) {
+                    const end = content.indexOf('---', 3);
+                    if (end !== -1) {
+                        content = content.substring(end + 3);
+                    }
+                }
+
+                const dataItems = [];
+                const baseTimestamp = Date.now();
+
+                // Find all headings
+                const headerRegex = /^(#{1,6})\s+(.*)$/gm;
+                let match;
+                let headers = [];
+                while ((match = headerRegex.exec(content)) !== null) {
+                    headers.push({
+                        level: match[1].length,
+                        text: match[2].trim(),
+                        index: match.index,
+                        endIndex: -1
+                    });
+                }
+
+                // If no headers, treat the whole file as one section
+                if (headers.length === 0) {
+                    headers.push({ level: 1, text: title, index: 0, endIndex: content.length });
+                }
+
+                // Set end indices
+                for (let i = 0; i < headers.length; i++) {
+                    headers[i].endIndex = (i + 1 < headers.length) ? headers[i + 1].index : content.length;
+                }
+
+                // Process each section
+                for (const h of headers) {
+                    const sectionContent = content.substring(h.index + h.text.length + h.level, h.endIndex).trim();
+                    if (!sectionContent) continue;
+
+                    // Extract code blocks: ```lang\ncode\n```
+                    const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/gm;
+                    let codeMatch;
+                    let codeBlocks = [];
+                    while ((codeMatch = codeBlockRegex.exec(sectionContent)) !== null) {
+                        codeBlocks.push({
+                            lang: codeMatch[1],
+                            code: codeMatch[2].trim(),
+                            start: codeMatch.index,
+                            end: codeMatch.index + codeMatch[0].length
+                        });
+                    }
+
+                    const headerText = '#'.repeat(h.level) + ' ' + h.text;
+
+                    if (codeBlocks.length === 0) {
+                        // No code block -> just a note card (may contain tables, already handled by parseMarkdown)
+                        dataItems.push({
+                            id: 'item-' + (baseTimestamp + dataItems.length) + '-' + Math.random().toString(36)
+                                .substr(2, 4),
+                            header: headerText,
+                            tags: '',
+                            code: '',
+                            output: '',
+                            image: null,
+                            explanation: sectionContent
+                        });
+                    } else {
+                        // Create a card for each code block
+                        for (const cb of codeBlocks) {
+                            // Extract surrounding text as explanation
+                            const before = sectionContent.substring(0, cb.start).trim();
+                            const after = sectionContent.substring(cb.end).trim();
+                            const explanation = (before + '\n\n' + after).trim();
+
+                            // Use language as tag if present
+                            const tags = cb.lang ? cb.lang : '';
+
+                            dataItems.push({
+                                id: 'item-' + (baseTimestamp + dataItems.length) + '-' + Math.random()
+                                    .toString(36).substr(2, 4),
+                                header: headerText,
+                                tags: tags,
+                                code: cb.code,
+                                output: '',
+                                image: null,
+                                explanation: explanation
+                            });
+                        }
+                    }
+                }
+
+                return { title, data: dataItems };
+            }
+
+            // --- Handle file (routes to appropriate parser) ---
             function handleFile(file) {
                 if (!file) return;
-                if (!file.name.toLowerCase().endsWith('.ipynb')) {
-                    showToastMessage('⚠️ Please upload a valid .ipynb file');
+                const ext = file.name.toLowerCase();
+                if (!ext.endsWith('.ipynb') && !ext.endsWith('.md') && !ext.endsWith('.markdown')) {
+                    showToastMessage('⚠️ Please upload a valid .ipynb or .md file');
                     return;
                 }
+
                 currentFileName = file.name;
                 const reader = new FileReader();
-                reader.onload = function (e) {
+                reader.onload = function(e) {
                     try {
-                        const nb = JSON.parse(e.target.result);
-                        if (!nb.cells || !Array.isArray(nb.cells)) throw new Error('Missing "cells" array');
-                        const result = parseNotebook(nb, file.name);
+                        let result;
+                        let total = 0;
+                        let codeBlocks = 0;
+
+                        if (ext.endsWith('.ipynb')) {
+                            const notebookJson = JSON.parse(e.target.result);
+                            if (!notebookJson.cells || !Array.isArray(notebookJson.cells)) {
+                                throw new Error('Invalid notebook format: missing "cells" array');
+                            }
+                            result = parseNotebook(notebookJson, file.name);
+                            total = notebookJson.cells.length;
+                            codeBlocks = notebookJson.cells.filter(c => c.cell_type === 'code').length;
+                        } else {
+                            // Markdown
+                            const textContent = e.target.result;
+                            result = parseMarkdownFile(textContent, file.name);
+                            // Approximate stats: total sections = number of cards, code blocks = cards with code
+                            total = result.data.length;
+                            codeBlocks = result.data.filter(d => d.code).length;
+                        }
+
                         currentJson = result;
-                        const total = nb.cells.length;
-                        const codeCells = nb.cells.filter(c => c.cell_type === 'code').length;
-                        updateStatus(true, file.name, total, codeCells, result.data.length);
+                        updateStatus(true, file.name, total, codeBlocks, result.data.length);
                         displayJSON(result);
                         btnImport.disabled = false;
                         btnImport.style.opacity = '1';
-                        showToastMessage('✅ Parsed ' + result.data.length + ' code cells');
+                        showToastMessage('✅ Parsed ' + result.data.length + ' items');
                     } catch (err) {
                         console.error(err);
                         updateStatus(false, file.name, '—', '—', '—');
@@ -1834,45 +1946,32 @@
             }
 
             // --- Events ---
-            uploadZone.addEventListener('click', function (e) { if (e.target !== fileInput) fileInput.click(); });
-            fileInput.addEventListener('change', function (e) { const f = e.target.files[0]; if (f) handleFile(f); });
+            uploadZone.addEventListener('click', function(e) { if (e.target !== fileInput) fileInput.click(); });
+            fileInput.addEventListener('change', function(e) { const f = e.target.files[0]; if (f) handleFile(f); });
 
-            uploadZone.addEventListener('dragover', function (e) {
-                e.preventDefault();
+            uploadZone.addEventListener('dragover', function(e) { e.preventDefault();
                 e.stopPropagation();
-                uploadZone.classList.add('drag-over');
-            });
-            uploadZone.addEventListener('dragleave', function (e) {
-                e.preventDefault();
+                uploadZone.classList.add('drag-over'); });
+            uploadZone.addEventListener('dragleave', function(e) { e.preventDefault();
                 e.stopPropagation();
-                uploadZone.classList.remove('drag-over');
-            });
-            uploadZone.addEventListener('drop', function (e) {
-                e.preventDefault();
+                uploadZone.classList.remove('drag-over'); });
+            uploadZone.addEventListener('drop', function(e) { e.preventDefault();
                 e.stopPropagation();
-                uploadZone.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) handleFile(f);
-            });
+                uploadZone.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
 
-            document.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                e.stopPropagation(); if (!uploadZone.contains(e.target)) uploadZone.classList.add('drag-over');
-            });
-            document.addEventListener('dragleave', function (e) {
-                e.preventDefault();
+            document.addEventListener('dragover', function(e) { e.preventDefault();
+                e.stopPropagation(); if (!uploadZone.contains(e.target)) uploadZone.classList.add('drag-over'); });
+            document.addEventListener('dragleave', function(e) { e.preventDefault();
                 e.stopPropagation(); if (!uploadZone.contains(e.relatedTarget) && e.relatedTarget !== null) uploadZone
-                    .classList.remove('drag-over');
-            });
-            document.addEventListener('drop', function (e) {
-                e.preventDefault();
+                    .classList.remove('drag-over'); });
+            document.addEventListener('drop', function(e) { e.preventDefault();
                 e.stopPropagation();
-                uploadZone.classList.remove('drag-over'); if (!uploadZone.contains(e.target)) {
-                    const f = e.dataTransfer
-                        .files[0]; if (f && f.name.toLowerCase().endsWith('.ipynb')) handleFile(f);
-                }
-            });
+                uploadZone.classList.remove('drag-over'); if (!uploadZone.contains(e.target)) { const f = e.dataTransfer
+                        .files[0]; if (f && (f.name.toLowerCase().endsWith('.ipynb') || f.name.toLowerCase().endsWith(
+                            '.md') || f.name.toLowerCase().endsWith('.markdown'))) handleFile(f); } });
 
             // --- Actions ---
-            btnCopy.addEventListener('click', function () {
+            btnCopy.addEventListener('click', function() {
                 if (!currentJson) return showToastMessage('⚠️ No JSON to copy.');
                 const str = JSON.stringify(currentJson, null, 2);
                 if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1886,22 +1985,20 @@
                     document.body.appendChild(ta);
                     ta.focus();
                     ta.select();
-                    try {
-                        document.execCommand('copy');
-                        showToastMessage('📋 JSON copied!');
-                    } catch (err) { showToastMessage('⚠️ Failed to copy.'); }
+                    try { document.execCommand('copy');
+                        showToastMessage('📋 JSON copied!'); } catch (err) { showToastMessage('⚠️ Failed to copy.'); }
                     document.body.removeChild(ta);
                 }
             });
 
-            btnDownload.addEventListener('click', function () {
+            btnDownload.addEventListener('click', function() {
                 if (!currentJson) return showToastMessage('⚠️ No JSON to download.');
                 const str = JSON.stringify(currentJson, null, 2);
                 const blob = new Blob([str], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                const name = (currentFileName || 'notebook').replace(/\.ipynb$/i, '') + '_output.json';
+                const name = (currentFileName || 'notebook').replace(/\.(ipynb|md|markdown)$/i, '') + '_output.json';
                 a.download = name;
                 document.body.appendChild(a);
                 a.click();
@@ -1910,15 +2007,13 @@
                 showToastMessage('💾 Downloaded as ' + name);
             });
 
-            btnClear.addEventListener('click', function () {
-                resetIPYNB();
-                showToastMessage('🔄 Cleared.');
-            });
+            btnClear.addEventListener('click', function() { resetIPYNB();
+                showToastMessage('🔄 Cleared.'); });
 
             // --- IMPORT TO CHEATSHEET ---
-            btnImport.addEventListener('click', function () {
+            btnImport.addEventListener('click', function() {
                 if (!currentJson || !currentJson.data || currentJson.data.length === 0) {
-                    return showToastMessage('⚠️ No data to import. Parse a notebook first.');
+                    return showToastMessage('⚠️ No data to import. Parse a file first.');
                 }
                 let added = 0;
                 for (const item of currentJson.data) {
@@ -1928,7 +2023,6 @@
                     cheatsheets.push(item);
                     added++;
                 }
-                saveLocalState();
                 updateHeaderOptions();
                 renderCheatsheets();
                 showToastMessage('✅ Imported ' + added + ' items into cheatsheet!');
