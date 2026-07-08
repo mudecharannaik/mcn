@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Cheatsheet</title>
+
     <style>
-        /* Base / Dark Theme Variables */
+        /* ===== SHARED THEME VARIABLES ===== */
         :root {
             --bg-color: #0d1117;
             --card-bg: #161b22;
@@ -21,9 +23,15 @@
             --explain-bg: rgba(88, 166, 255, 0.05);
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            --code-bg: #010409;
+            --code-text: #c9d1d9;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --toc-width: 180px;
         }
 
-        /* Light Theme Variables */
         :root[data-theme="light"] {
             --bg-color: #f6f8fa;
             --card-bg: #ffffff;
@@ -37,6 +45,17 @@
             --tag-bg: rgba(9, 105, 218, 0.1);
             --tag-border: rgba(9, 105, 218, 0.2);
             --explain-bg: rgba(9, 105, 218, 0.05);
+            --code-bg: #f6f8fa;
+            --code-text: #24292f;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ===== GLOBAL RESET ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
@@ -48,628 +67,1375 @@
             box-sizing: border-box;
             scroll-behavior: smooth;
             transition: background-color 0.3s, color 0.3s;
+            line-height: 1.6;
         }
 
-        .container { max-width: 1400px; margin: 0 auto; padding-right: 40px; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-right: calc(var(--toc-width) + 30px);
+        }
 
-        /* Header & Export */
-        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
-        .header-bar h1 { margin: 0; color: var(--text-accent); }
-        .export-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;}
+        /* ===== HEADER ===== */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
 
-        /* Unified Button Styles (Includes label tags used for file uploads) */
-        button, .btn-style { 
-            background-color: var(--btn-primary); 
-            color: white; 
-            border: 1px solid rgba(240,246,252,0.1); 
-            padding: 8px 14px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: 600; 
+        .header-bar h1 {
+            margin: 0;
+            color: var(--text-accent);
+        }
+
+        .export-btns {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button,
+        .btn-style {
+            background-color: var(--btn-primary);
+            color: white;
+            border: 1px solid rgba(240, 246, 252, 0.1);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
             font-size: 13px;
             font-family: inherit;
-            transition: 0.2s; 
+            transition: 0.2s;
             display: inline-block;
             box-sizing: border-box;
         }
-        button:hover, .btn-style:hover { background-color: var(--btn-primary-hover); }
-        
-        button.danger { background-color: transparent; border-color: var(--btn-danger); color: var(--btn-danger); padding: 4px 8px; font-size: 12px;}
-        button.danger:hover { background-color: var(--btn-danger); color: white; }
-        button.edit { background-color: transparent; border-color: var(--text-accent); color: var(--text-accent); padding: 4px 8px; font-size: 12px;}
-        button.edit:hover { background-color: var(--text-accent); color: var(--card-bg); }
-        
-        button.secondary, .btn-style.secondary { background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
-        button.secondary:hover, .btn-style.secondary:hover { background-color: var(--border-color); }
-        
-        /* Utility class to hide actual file inputs but keep the label looking like a button */
-        .hidden-file-input { display: none; }
 
-        /* Table of Contents */
-        #toc-sidebar { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 100; }
-        .toc-dot { width: 10px; height: 10px; background-color: var(--border-color); border-radius: 50%; cursor: pointer; position: relative; transition: background-color 0.2s, transform 0.2s; }
-        .toc-dot:hover { background-color: var(--text-accent); transform: scale(1.3); }
-        .toc-dot .toc-tooltip { visibility: hidden; background-color: var(--card-bg); color: var(--text-main); text-align: right; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); position: absolute; right: 20px; top: 50%; transform: translateY(-50%); white-space: nowrap; font-size: 12px; opacity: 0; transition: opacity 0.2s; }
-        .toc-dot:hover .toc-tooltip { visibility: visible; opacity: 1; }
+        button:hover,
+        .btn-style:hover {
+            background-color: var(--btn-primary-hover);
+        }
 
-        /* Masonry Grid Layout */
-        .masonry-grid { column-count: 2; column-gap: 20px; margin-bottom: 50px; }
-        @media (max-width: 1024px) { .masonry-grid { column-count: 1; } }
+        button.danger {
+            background-color: transparent;
+            border-color: var(--btn-danger);
+            color: var(--btn-danger);
+            padding: 4px 8px;
+            font-size: 12px;
+        }
 
-        /* Cheatsheet Cards */
-        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 20px; display: inline-block; width: 100%; box-sizing: border-box; position: relative; scroll-margin-top: 20px; transition: background-color 0.3s, border-color 0.3s; }
-        
-        .card-header-text { margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
-        .card-header-text h1, .card-header-text h2, .card-header-text h3, .card-header-text h4, .card-header-text h5, .card-header-text h6 { margin: 0; }
-        .card-header-text h1 { font-size: 1.6rem; }
-        .card-header-text h2 { font-size: 1.4rem; }
-        .card-header-text h3 { font-size: 1.2rem; }
-        .card-header-text h4 { font-size: 1.1rem; }
-        .card-header-text h5 { font-size: 1.0rem; }
-        .card-header-text h6 { font-size: 0.9rem; color: #8b949e; }
+        button.danger:hover {
+            background-color: var(--btn-danger);
+            color: white;
+        }
 
-        /* Snippet Container */
-        .snippet-container { padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px dashed var(--border-color); position: relative; }
-        .snippet-container:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0;}
-        
-        /* Snippet Top Bar (Tags & Actions) */
-        .snippet-top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px; flex-wrap: wrap;}
-        .snippet-actions { display: flex; gap: 5px; justify-content: flex-end; }
-        .tags-container { display: flex; flex-wrap: wrap; gap: 5px; }
-        .tag-pill { background-color: var(--tag-bg); color: var(--text-accent); border: 1px solid var(--tag-border); padding: 2px 6px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        button.edit {
+            background-color: transparent;
+            border-color: var(--text-accent);
+            color: var(--text-accent);
+            padding: 4px 8px;
+            font-size: 12px;
+        }
 
-        /* Side-by-Side Grid for Input/Output */
-        .card-content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-        .io-block { display: flex; flex-direction: column; height: 100%; }
-        .code-container { position: relative; flex-grow: 1; display: flex; flex-direction: column; background-color: var(--input-bg); border-radius: 6px; border: 1px solid var(--border-color); transition: background-color 0.3s;}
+        button.edit:hover {
+            background-color: var(--text-accent);
+            color: var(--card-bg);
+        }
 
-        .copy-btn { position: absolute; top: 8px; right: 8px; background-color: var(--border-color); color: var(--text-main); border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; opacity: 0.6; transition: 0.2s; z-index: 5;}
-        .copy-btn:hover { opacity: 1; background-color: var(--text-accent); color: var(--card-bg); }
+        button.secondary,
+        .btn-style.secondary {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
 
-        .code-block { padding: 10px; padding-right: 50px; overflow-x: auto; flex-grow: 1; margin: 0; }
-        .code-block pre { margin: 0; font-family: var(--font-mono); font-size: 13px; white-space: pre-wrap; word-break: break-all;}
-        .block-label { font-size: 12px; color: #8b949e; margin-bottom: 6px; text-transform: uppercase; font-weight: bold;}
+        button.secondary:hover,
+        .btn-style.secondary:hover {
+            background-color: var(--border-color);
+        }
 
-        /* Image styling */
-        .output-image { max-width: 100%; height: auto; display: block; border-radius: 0 0 6px 6px; border-top: 1px dashed var(--border-color); object-fit: contain; }
-        .output-image.only-image { border-top: none; border-radius: 6px; }
+        .hidden-file-input {
+            display: none;
+        }
 
-        /* Explanation Block */
-        .explanation-block { margin-top: 15px; background-color: var(--explain-bg); padding: 12px 15px; border-left: 3px solid var(--text-accent); border-radius: 0 4px 4px 0; font-size: 14px; line-height: 1.5; }
+        /* ===== COMPACT FLOATING TOC (RIGHT SIDE) ===== */
+        #toc-sidebar {
+            position: fixed;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 12px 10px;
+            width: var(--toc-width);
+            max-height: 70vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
 
-        /* Input Area */
-        .input-panel { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 30px; display: flex; flex-direction: column; gap: 15px; }
-        .input-group { display: flex; gap: 15px; flex-wrap: wrap; }
-        .input-group > div { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 5px; }
+        #toc-sidebar.collapsed {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-50%) scale(0.95);
+        }
 
-        label { font-weight: 600; font-size: 14px; color: var(--text-accent); display: flex; justify-content: space-between; align-items: center;}
-        
-        .pin-checkbox { font-size: 12px; font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 4px; color: var(--text-main);}
-        
-        input[type="text"], textarea, input[type="file"] { background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 14px; resize: vertical; }
-        textarea { min-height: 100px; }
-        input[type="text"]:focus, textarea:focus, input[type="file"]:focus { outline: none; border-color: var(--text-accent); }
-        
-        .file-upload-wrapper { display: flex; align-items: center; gap: 10px; }
-        #imagePreview { max-width: 50px; max-height: 50px; display: none; border-radius: 4px; border: 1px solid var(--border-color); }
+        .toc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-        /* PRINT / PDF EXPORT STYLES */
+        .toc-header span {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-accent);
+        }
+
+        .toc-header button {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+        }
+
+        .toc-header button:hover {
+            background: var(--border-color);
+            color: var(--text-accent);
+        }
+
+        #toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #toc-list li {
+            padding: 0;
+            margin: 0;
+        }
+
+        #toc-list a {
+            display: block;
+            text-align: right;
+            font-size: 12px;
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: background 0.2s, color 0.2s;
+            word-break: break-word;
+        }
+
+        #toc-list a:hover {
+            background: var(--border-color);
+            color: var(--text-accent);
+        }
+
+        #toc-toggle-main {
+            position: fixed;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 101;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-accent);
+            box-shadow: var(--shadow);
+            transition: 0.2s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #toc-toggle-main.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #toc-toggle-main:hover {
+            background: var(--border-color);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Scrollbar for TOC */
+        #toc-sidebar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        #toc-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #toc-sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        #toc-sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-accent);
+        }
+
+        /* ===== MASONRY GRID ===== */
+        .masonry-grid {
+            column-count: 2;
+            column-gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        @media (max-width: 1024px) {
+            .masonry-grid {
+                column-count: 1;
+            }
+
+            .container {
+                padding-right: 20px;
+            }
+
+            #toc-sidebar {
+                right: 8px;
+                width: 150px;
+                padding: 10px 8px;
+            }
+
+            #toc-toggle-main {
+                right: 8px;
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+        }
+
+        /* ===== CHEATSHEET CARDS ===== */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            scroll-margin-top: 20px;
+            transition: background-color 0.3s, border-color 0.3s;
+            page-break-inside: auto;
+            break-inside: auto;
+        }
+
+        .card-header-text {
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .card-header-text h1,
+        .card-header-text h2,
+        .card-header-text h3,
+        .card-header-text h4,
+        .card-header-text h5,
+        .card-header-text h6 {
+            margin: 0;
+        }
+
+        .card-header-text h1 {
+            font-size: 1.6rem;
+        }
+
+        .card-header-text h2 {
+            font-size: 1.4rem;
+        }
+
+        .card-header-text h3 {
+            font-size: 1.2rem;
+        }
+
+        .card-header-text h4 {
+            font-size: 1.1rem;
+        }
+
+        .card-header-text h5 {
+            font-size: 1.0rem;
+        }
+
+        .card-header-text h6 {
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+
+        .snippet-container {
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color);
+            position: relative;
+            page-break-inside: auto;
+            break-inside: auto;
+        }
+
+        .snippet-container:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .snippet-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .snippet-actions {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tag-pill {
+            background-color: var(--tag-bg);
+            color: var(--text-accent);
+            border: 1px solid var(--tag-border);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .card-content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .io-block {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .code-container {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--input-bg);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: var(--border-color);
+            color: var(--text-main);
+            border: none;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+            z-index: 5;
+        }
+
+        .copy-btn:hover {
+            opacity: 1;
+            background-color: var(--text-accent);
+            color: var(--card-bg);
+        }
+
+        .code-block {
+            padding: 10px;
+            padding-right: 50px;
+            overflow-x: auto;
+            flex-grow: 1;
+            margin: 0;
+            page-break-inside: auto;
+            break-inside: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .block-label {
+            font-size: 12px;
+            color: #8b949e;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .output-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 0 0 6px 6px;
+            border-top: 1px dashed var(--border-color);
+            object-fit: contain;
+        }
+
+        .output-image.only-image {
+            border-top: none;
+            border-radius: 6px;
+        }
+
+        .explanation-block {
+            margin-top: 15px;
+            background-color: var(--explain-bg);
+            padding: 12px 15px;
+            border-left: 3px solid var(--text-accent);
+            border-radius: 0 4px 4px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ===== INPUT PANEL ===== */
+        .input-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group>div {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pin-checkbox {
+            font-size: 12px;
+            font-weight: normal;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-main);
+        }
+
+        input[type="text"],
+        textarea,
+        input[type="file"] {
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: var(--text-accent);
+        }
+
+        .file-upload-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #imagePreview {
+            max-width: 50px;
+            max-height: 50px;
+            display: none;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* ===== PRINT STYLES ===== */
         @media print {
-            body, html { background-color: #ffffff !important; color: #000000 !important; }
-            .container { padding-right: 0; max-width: 100%; }
-            #toc-sidebar, .input-panel, .export-btns, .snippet-actions, .copy-btn { display: none !important; }
-            .header-bar { border-bottom: 2px solid #000; margin-bottom: 20px; }
-            .header-bar h1 { color: #000 !important; }
-            .masonry-grid { column-count: 2; column-gap: 20px; }
-            .card { background-color: #fff !important; border: 1px solid #ccc !important; break-inside: avoid; page-break-inside: avoid; margin-bottom: 15px; box-shadow: none !important; }
-            .code-container { background-color: #f9f9f9 !important; border: 1px solid #ddd !important; }
-            .explanation-block { background-color: #f0f8ff !important; border-left-color: #0969da !important; color: #000 !important; }
-            .tag-pill { background-color: #eee !important; color: #333 !important; border-color: #ccc !important; }
-            .card-header-text h1, .card-header-text h2, .card-header-text h3 { color: #000 !important; }
-            .card-content-grid { display: flex; flex-direction: row; flex-wrap: wrap; }
-            .io-block { flex: 1; min-width: 200px; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #toc-sidebar,
+            #toc-toggle-main,
+            .input-panel,
+            .export-btns,
+            .copy-btn,
+            .snippet-actions,
+            #ipynbConverterSection {
+                display: none !important;
+            }
+
+            .container {
+                padding: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+
+            .card {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+
+            .snippet-container {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+
+            .code-block {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+
+            .masonry-grid {
+                column-count: 1 !important;
+            }
+        }
+
+        /* ===== IPYNB CONVERTER (shared theme) ===== */
+        #ipynbConverterSection {
+            margin-bottom: 25px;
+        }
+
+        .ipynb-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .upload-zone {
+            padding: 48px 32px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius);
+            margin: 0;
+            background: var(--input-bg);
+        }
+
+        .upload-zone:hover,
+        .upload-zone.drag-over {
+            border-color: var(--text-accent);
+            background: var(--tag-bg);
+        }
+
+        .upload-zone.drag-over {
+            border-color: var(--text-accent);
+            background: var(--tag-bg);
+            transform: scale(1.01);
+        }
+
+        .upload-zone .upload-icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+            display: block;
+            transition: transform 0.2s;
+        }
+
+        .upload-zone:hover .upload-icon {
+            transform: translateY(-4px);
+        }
+
+        .upload-zone h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .upload-zone p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .upload-zone .supported-formats {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 12px;
+            background: var(--border-color);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .ipynb-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            background: var(--input-bg);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+
+        .ipynb-status-bar .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .ipynb-status-bar .dot.success {
+            background: var(--btn-primary);
+        }
+
+        .ipynb-status-bar .dot.error {
+            background: var(--btn-danger);
+        }
+
+        .ipynb-status-bar .file-name {
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-all;
+        }
+
+        .ipynb-status-bar .stats {
+            margin-left: auto;
+            display: flex;
+            gap: 16px;
+            font-size: 0.82rem;
+            flex-wrap: wrap;
+        }
+
+        .ipynb-status-bar .stats strong {
+            color: var(--text-main);
+        }
+
+        .ipynb-results-section {
+            display: none;
+        }
+
+        .ipynb-results-section.active {
+            display: block;
+        }
+
+        .ipynb-json-wrapper {
+            position: relative;
+            max-height: 55vh;
+            overflow-y: auto;
+            background: var(--input-bg);
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+        }
+
+        .ipynb-json-wrapper pre {
+            margin: 0;
+            padding: 24px 20px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: var(--code-text);
+            white-space: pre-wrap;
+            word-break: break-word;
+            tab-size: 2;
+        }
+
+        .ipynb-json-wrapper pre .line {
+            display: block;
+            min-height: 1.4em;
+        }
+
+        .json-key {
+            color: #89b4fa;
+        }
+
+        .json-string {
+            color: #a6e3a1;
+        }
+
+        .json-number {
+            color: #fab387;
+        }
+
+        .json-null {
+            color: #f38ba8;
+        }
+
+        .json-bracket {
+            color: #f9e2af;
+        }
+
+        .ipynb-actions {
+            display: flex;
+            gap: 10px;
+            padding: 16px 20px;
+            background: var(--input-bg);
+            border-top: 1px solid var(--border-color);
+            border-radius: 0 0 var(--radius) var(--radius);
+            flex-wrap: wrap;
+        }
+
+        .btn-import {
+            background: var(--text-accent);
+            color: var(--card-bg);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .btn-import:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
+        }
+
+        .ipynb-empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .ipynb-empty-state .icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card-bg);
+            color: var(--text-main);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .ipynb-json-wrapper::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .ipynb-json-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .ipynb-json-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .ipynb-json-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--text-accent);
+        }
+
+        @media (max-width: 640px) {
+            .upload-zone {
+                padding: 32px 16px;
+            }
+
+            .upload-zone .upload-icon {
+                font-size: 2.5rem;
+            }
+
+            .upload-zone h3 {
+                font-size: 1rem;
+            }
+
+            .ipynb-json-wrapper {
+                max-height: 40vh;
+            }
+
+            .ipynb-json-wrapper pre {
+                font-size: 0.75rem;
+                padding: 16px 12px;
+            }
+
+            .ipynb-actions {
+                gap: 6px;
+                padding: 12px;
+            }
+
+            .ipynb-actions button {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+
+            .ipynb-status-bar {
+                font-size: 0.78rem;
+                gap: 6px;
+                padding: 10px 14px;
+            }
+
+            .ipynb-status-bar .stats {
+                margin-left: 0;
+                gap: 10px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div id="toc-sidebar"></div>
+    <div class="container" id="main-container">
 
-<div class="container">
-    <div class="header-bar">
-        <h1 id="page-title">Cheatsheet Generator</h1>
-        
-        <div class="export-btns">
-            <button onclick="toggleTheme()" class="secondary" title="Toggle Light/Dark Mode">🌓 Theme</button>
-            <button onclick="window.print()" class="secondary" title="Print or Save as Searchable PDF">🖨️ PDF</button>
-            
-            <span style="color: var(--border-color);">|</span>
-            
-            <button onclick="exportStateJSON()" class="secondary" title="Download backup of your data">💾 Save State</button>
-            <label class="btn-style secondary" title="Import a backup file">
-                📂 Load State
-                <input type="file" id="importJsonFile" accept=".json" class="hidden-file-input" onchange="importStateJSON(event)">
-            </label>
-            
-            <span style="color: var(--border-color);">|</span>
+        <!-- ===== HEADER ===== -->
+        <div class="header-bar">
+            <h1 id="page-title">Cheatsheet Generator</h1>
+            <div class="export-btns">
+                <button onclick="toggleTheme()" class="secondary" title="Toggle Light/Dark Mode">🌓 Theme</button>
 
-            <button onclick="exportToMarkdown()">Export .MD</button>
-            <button onclick="exportToHTML()">Export .HTML</button>
-        </div>
-    </div>
+                <span style="color: var(--border-color);">|</span>
 
-    <div class="masonry-grid" id="cheatsheetContainer"></div>
-
-    <div class="input-panel">
-        <div class="input-group">
-            <div>
-                <label>
-                    Header (e.g. ## Topic)
-                    <label class="pin-checkbox"><input type="checkbox" id="pinHeader"> 📌 Pin Header</label>
+                <button onclick="exportStateJSON()" class="secondary" title="Download backup of your data">💾 Save
+                    State</button>
+                <label class="btn-style secondary" title="Import a backup file">
+                    📂 Load State
+                    <input type="file" id="importJsonFile" accept=".json" class="hidden-file-input"
+                        onchange="importStateJSON(event)">
                 </label>
-                <input type="text" id="headerInput" list="existingHeaders" autocomplete="off" placeholder="## Title...">
-                <datalist id="existingHeaders"></datalist>
-            </div>
-            <div>
-                <label>Snippet Tags (Comma separated)</label>
-                <input type="text" id="tagInput" placeholder="e.g. bash, docker, networking">
-            </div>
-        </div>
-        
-        <div class="input-group">
-            <div>
-                <label>Input (Code / Command)</label>
-                <textarea id="codeInput" placeholder="Type your code here..."></textarea>
-            </div>
-            <div>
-                <label>Output (Text Result)</label>
-                <textarea id="outputInput" placeholder="Type the expected text output here..."></textarea>
+
+                <span style="color: var(--border-color);">|</span>
+
+                <button onclick="exportToMarkdown()">Export .MD</button>
+                <button onclick="exportToHTML()">Export .HTML</button>
             </div>
         </div>
 
-        <div class="input-group">
-            <div style="flex: 1;">
-                <label>Output Image / Visualization</label>
-                <div class="file-upload-wrapper">
-                    <input type="file" id="imageFileInput" accept="image/*">
-                    <img id="imagePreview" src="" alt="Preview">
-                    <button class="danger" id="clearImageBtn" style="display:none;" onclick="clearImageUpload()">Clear</button>
+        <!-- ===== IPYNB CONVERTER SECTION ===== -->
+        <div id="ipynbConverterSection">
+            <div class="ipynb-card">
+                <!-- Upload Zone -->
+                <div class="upload-zone" id="uploadZone" title="Click to browse or drag & drop a .ipynb file">
+                    <span class="upload-icon">📓</span>
+                    <h3>Drop your <code>.ipynb</code> file here</h3>
+                    <p>or click to browse — then <strong>import</strong> into your cheatsheet</p>
+                    <span class="supported-formats">.ipynb → JSON → Cheatsheet</span>
+                    <input type="file" id="fileInput" accept=".ipynb">
+                </div>
+
+                <!-- Status Bar -->
+                <div class="ipynb-status-bar" id="ipynbStatusBar" style="display: none;">
+                    <span class="dot" id="ipynbStatusDot"></span>
+                    <span class="file-name" id="ipynbStatusFileName">—</span>
+                    <span class="stats">
+                        <span>Cells: <strong id="ipynbStatCells">0</strong></span>
+                        <span>Code cells: <strong id="ipynbStatCodeCells">0</strong></span>
+                        <span>Items: <strong id="ipynbStatItems">0</strong></span>
+                    </span>
+                </div>
+
+                <!-- Results -->
+                <div class="ipynb-results-section" id="ipynbResultsSection">
+                    <div class="ipynb-json-wrapper" id="ipynbJsonWrapper">
+                        <pre
+                            id="ipynbJsonOutput"><span class="ipynb-empty-state"><span class="icon">📄</span>JSON output will appear here</span></pre>
+                    </div>
+                    <div class="ipynb-actions">
+                        <button class="btn-import" id="btnImportToCheatsheet"
+                            title="Add all parsed items to your cheatsheet">
+                            <span>📥</span> Import to Cheatsheet
+                        </button>
+                        <button class="btn-style secondary" id="ipynbBtnCopy" title="Copy JSON to clipboard">📋 Copy
+                            JSON</button>
+                        <button class="btn-style secondary" id="ipynbBtnDownload" title="Download as .json file">💾
+                            Download</button>
+                        <button class="btn-style secondary" id="ipynbBtnClear" title="Clear and upload another file">🔄
+                            Clear</button>
+                    </div>
                 </div>
             </div>
-            <div style="flex: 2;">
-                <label>Explanation / Notes</label>
-                <textarea id="explanationInput" style="min-height: 60px;" placeholder="Explain what this code does..."></textarea>
-            </div>
         </div>
-        
-        <input type="hidden" id="editId">
-        <button onclick="addOrUpdateEntry()" id="submitBtn">Add to Cheatsheet</button>
+
+        <!-- ===== CHEATSHEET ===== -->
+        <div class="masonry-grid" id="cheatsheetContainer"></div>
+
+        <!-- ===== INPUT PANEL ===== -->
+        <div class="input-panel">
+            <div class="input-group">
+                <div>
+                    <label>
+                        Header (e.g. ## Topic)
+                        <label class="pin-checkbox"><input type="checkbox" id="pinHeader"> 📌 Pin Header</label>
+                    </label>
+                    <input type="text" id="headerInput" list="existingHeaders" autocomplete="off"
+                        placeholder="## Title...">
+                    <datalist id="existingHeaders"></datalist>
+                </div>
+                <div>
+                    <label>Snippet Tags (Comma separated)</label>
+                    <input type="text" id="tagInput" placeholder="e.g. bash, docker, networking">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div>
+                    <label>Input (Code / Command)</label>
+                    <textarea id="codeInput" placeholder="Type your code here..."></textarea>
+                </div>
+                <div>
+                    <label>Output (Text Result)</label>
+                    <textarea id="outputInput" placeholder="Type the expected text output here..."></textarea>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div style="flex: 1;">
+                    <label>Output Image / Visualization</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="imageFileInput" accept="image/*">
+                        <img id="imagePreview" src="" alt="Preview">
+                        <button class="danger" id="clearImageBtn" style="display:none;"
+                            onclick="clearImageUpload()">Clear</button>
+                    </div>
+                </div>
+                <div style="flex: 2;">
+                    <label>Explanation / Notes</label>
+                    <textarea id="explanationInput" style="min-height: 60px;"
+                        placeholder="Explain what this code does..."></textarea>
+                </div>
+            </div>
+
+            <input type="hidden" id="editId">
+            <button onclick="addOrUpdateEntry()" id="submitBtn">Add to Cheatsheet</button>
+        </div>
+
     </div>
-</div>
 
-<script>
-    let globalTitle = "My Cheatsheet";
-    let cheatsheets = [];
-    let currentAttachedImageBase64 = null;
+    <!-- ===== FLOATING TOC & TOGGLE ===== -->
+    <div id="toc-sidebar">
+        <div class="toc-header">
+            <span>📑 TOC</span>
+            <button id="toc-toggle-btn">Hide</button>
+        </div>
+        <ul id="toc-list"></ul>
+    </div>
+    <button id="toc-toggle-main" class="visible" title="Toggle Table of Contents">☰</button>
 
-    // --- INITIALIZATION & AUTO-SAVE ---
-    window.onload = function() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
 
-        // Load auto-saved data from local storage
-        loadLocalState();
+    <script>
+        // ============================================================
+        //  CHEATSHEET ENGINE
+        // ============================================================
 
-        setTimeout(() => {
-            let savedTitle = localStorage.getItem('cheatsheet_title');
-            if(!savedTitle) {
-                let userTitle = prompt("Enter a title for your cheatsheet workspace:", "My Awesome Cheatsheet");
+        let globalTitle = "My Cheatsheet";
+        let cheatsheets = [];
+        let currentAttachedImageBase64 = null;
+
+        // --- INIT ---
+        window.onload = function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            loadLocalState();
+            setTimeout(() => {
+                let savedTitle = localStorage.getItem('cheatsheet_title');
+                if (!savedTitle) {
+                    let userTitle = prompt("Enter a title for your cheatsheet workspace:", "My Awesome Cheatsheet");
+                    if (userTitle) {
+                        globalTitle = userTitle.trim();
+                        localStorage.setItem('cheatsheet_title', globalTitle);
+                    }
+                } else {
+                    globalTitle = savedTitle;
+                }
+                document.getElementById('page-title').innerText = globalTitle;
+                document.title = globalTitle;
+            }, 100);
+            initTOC();
+        };
+
+        function saveLocalState() {
+            localStorage.setItem('my_cheatsheet_data', JSON.stringify(cheatsheets));
+        }
+
+        function loadLocalState() {
+            const data = localStorage.getItem('my_cheatsheet_data');
+            if (data) {
+                try {
+                    cheatsheets = JSON.parse(data);
+                    updateHeaderOptions();
+                    renderCheatsheets();
+                } catch (e) {
+                    console.error("Failed to parse local save data.");
+                }
+            }
+        }
+
+        function clearWorkspace() {
+            cheatsheets = [];
+            currentAttachedImageBase64 = null;
+            localStorage.removeItem('my_cheatsheet_data');
+            localStorage.removeItem('cheatsheet_title');
+            globalTitle = "My Cheatsheet";
+            document.getElementById('page-title').innerText = globalTitle;
+            document.title = globalTitle;
+            clearInputs();
+            updateHeaderOptions();
+            renderCheatsheets();
+            setTimeout(() => {
+                let userTitle = prompt("Workspace cleared! Enter a title for your NEW workspace:", "My Awesome Cheatsheet");
                 if (userTitle) {
                     globalTitle = userTitle.trim();
                     localStorage.setItem('cheatsheet_title', globalTitle);
+                    document.getElementById('page-title').innerText = globalTitle;
+                    document.title = globalTitle;
                 }
-            } else {
-                globalTitle = savedTitle;
-            }
-            document.getElementById('page-title').innerText = globalTitle;
-            document.title = globalTitle;
-        }, 100);
-    };
-
-    function saveLocalState() {
-        localStorage.setItem('my_cheatsheet_data', JSON.stringify(cheatsheets));
-    }
-
-    function loadLocalState() {
-        const data = localStorage.getItem('my_cheatsheet_data');
-        if (data) {
-            try {
-                cheatsheets = JSON.parse(data);
-                updateHeaderOptions();
-                renderCheatsheets();
-            } catch(e) {
-                console.error("Failed to parse local save data.");
-            }
-        }
-    }
-
-    // --- IMPORT / EXPORT JSON STATE ---
-    function exportStateJSON() {
-        if (cheatsheets.length === 0) return alert("Your cheatsheet is empty! Nothing to save.");
-        
-        // Include both the title and the data in the save file
-        const backupData = {
-            title: globalTitle,
-            data: cheatsheets
-        };
-        
-        const dataStr = JSON.stringify(backupData, null, 2);
-        triggerDownload(dataStr, "application/json", getExportFilename("json"));
-    }
-
-    function importStateJSON(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                
-                // Validate if it's the new object format or old raw array format
-                if (importedData.data && Array.isArray(importedData.data)) {
-                    cheatsheets = importedData.data;
-                    if(importedData.title) {
-                        globalTitle = importedData.title;
-                        localStorage.setItem('cheatsheet_title', globalTitle);
-                        document.getElementById('page-title').innerText = globalTitle;
-                        document.title = globalTitle;
-                    }
-                } else if (Array.isArray(importedData)) {
-                    cheatsheets = importedData; // fallback for basic array
-                } else {
-                    throw new Error("Invalid format");
-                }
-                
-                saveLocalState();
-                updateHeaderOptions();
-                renderCheatsheets();
-                alert("Workspace loaded successfully!");
-            } catch (err) {
-                alert("Error reading file. Make sure it is a valid Cheatsheet JSON save file.");
-                console.error(err);
-            }
-            event.target.value = ''; // Reset input so the same file can be uploaded again if needed
-        };
-        reader.readAsText(file);
-    }
-
-    // --- UTILITIES ---
-    function toggleTheme() {
-        const current = document.documentElement.getAttribute('data-theme');
-        const target = current === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', target);
-        localStorage.setItem('theme', target);
-    }
-
-    document.getElementById('imageFileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                currentAttachedImageBase64 = event.target.result;
-                document.getElementById('imagePreview').src = currentAttachedImageBase64;
-                document.getElementById('imagePreview').style.display = 'block';
-                document.getElementById('clearImageBtn').style.display = 'inline-block';
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    function clearImageUpload() {
-        currentAttachedImageBase64 = null;
-        document.getElementById('imageFileInput').value = '';
-        document.getElementById('imagePreview').style.display = 'none';
-        document.getElementById('imagePreview').src = '';
-        document.getElementById('clearImageBtn').style.display = 'none';
-    }
-
-    function parseMarkdown(text) {
-        if (!text) return '';
-        let html = text;
-        html = html.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
-        html = html.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
-        html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
-        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-        html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
-        html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
-        if (!html.match(/^<h[1-6]>/)) { html = `<h3>${html}</h3>`; }
-        return html;
-    }
-
-    function cleanHeaderText(text) {
-        return text.replace(/#/g, '').replace(/\*/g, '').trim();
-    }
-
-    function updateHeaderOptions() {
-        const datalist = document.getElementById('existingHeaders');
-        datalist.innerHTML = '';
-        const uniqueHeaders = [...new Set(cheatsheets.map(item => item.header))].filter(Boolean);
-        uniqueHeaders.forEach(header => {
-            const option = document.createElement('option');
-            option.value = header;
-            datalist.appendChild(option);
-        });
-    }
-
-    // --- CORE CRUD LOGIC ---
-    function addOrUpdateEntry() {
-        const header = document.getElementById('headerInput').value.trim();
-        const tags = document.getElementById('tagInput').value.trim();
-        const code = document.getElementById('codeInput').value.trim();
-        const output = document.getElementById('outputInput').value.trim();
-        const explanation = document.getElementById('explanationInput').value.trim();
-        const editId = document.getElementById('editId').value;
-
-        if (!header && !code && !output && !explanation && !currentAttachedImageBase64) {
-            return alert("Please enter some content.");
+            }, 100);
         }
 
-        const entry = {
-            id: editId ? editId : 'item-' + Date.now().toString(),
-            header: header || 'Untitled Section',
-            tags: tags,
-            code: code,
-            output: output,
-            image: currentAttachedImageBase64,
-            explanation: explanation
-        };
-
-        if (editId) {
-            const index = cheatsheets.findIndex(item => item.id === editId);
-            cheatsheets[index] = entry;
-            document.getElementById('submitBtn').innerText = "Add to Cheatsheet";
-        } else {
-            cheatsheets.push(entry);
-        }
-
-        saveLocalState(); // Auto-save
-        clearInputs();
-        updateHeaderOptions();
-        renderCheatsheets();
-    }
-
-    function editEntry(id) {
-        const entry = cheatsheets.find(item => item.id === id);
-        if (entry) {
-            document.getElementById('headerInput').value = entry.header === 'Untitled Section' ? '' : entry.header;
-            document.getElementById('tagInput').value = entry.tags || '';
-            document.getElementById('codeInput').value = entry.code;
-            document.getElementById('outputInput').value = entry.output;
-            document.getElementById('explanationInput').value = entry.explanation || '';
-            
-            if (entry.image) {
-                currentAttachedImageBase64 = entry.image;
-                document.getElementById('imagePreview').src = currentAttachedImageBase64;
-                document.getElementById('imagePreview').style.display = 'block';
-                document.getElementById('clearImageBtn').style.display = 'inline-block';
-            } else {
-                clearImageUpload();
-            }
-
-            document.getElementById('editId').value = entry.id;
-            document.getElementById('submitBtn').innerText = "Update Cheatsheet";
-            document.querySelector('.input-panel').scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    function deleteEntry(id) {
-        if(confirm("Are you sure you want to delete this snippet?")) {
-            cheatsheets = cheatsheets.filter(item => item.id !== id);
-            saveLocalState(); // Auto-save
-            updateHeaderOptions();
-            renderCheatsheets();
-        }
-    }
-
-    // --- HTML GENERATION ---
-    function generateCheatsheetCardsHTML(isExport = false) {
-        const groupOrder = [];
-        const groups = {};
-
-        cheatsheets.forEach(item => {
-            const h = item.header;
-            if (!groups[h]) {
-                groups[h] = { id: 'group-' + Math.random().toString(36).substr(2, 9), items: [] };
-                groupOrder.push(h);
-            }
-            groups[h].items.push(item);
-        });
-
-        let finalHTML = '';
-        let tocData = [];
-
-        groupOrder.forEach(headerText => {
-            const group = groups[headerText];
-            let cardHTML = `<div class="card" id="${group.id}">
-                <div class="card-header-text">${parseMarkdown(headerText)}</div>
-            `;
-            tocData.push({ id: group.id, title: cleanHeaderText(headerText) });
-
-            group.items.forEach(item => {
-                cardHTML += `<div class="snippet-container">`;
-                
-                let snippetTagsHTML = '';
-                if (item.tags) {
-                    const tagArray = item.tags.split(',').map(t => t.trim()).filter(Boolean);
-                    if (tagArray.length > 0) {
-                        snippetTagsHTML = `<div class="tags-container">` + 
-                            tagArray.map(tag => `<span class="tag-pill">${escapeHTML(tag)}</span>`).join('') + 
-                        `</div>`;
-                    }
-                }
-
-                cardHTML += `<div class="snippet-top-bar">`;
-                cardHTML += snippetTagsHTML; 
-                
-                if (!isExport) {
-                    cardHTML += `
-                        <div class="snippet-actions">
-                            <button class="edit" onclick="editEntry('${item.id}')">Edit</button>
-                            <button class="danger" onclick="deleteEntry('${item.id}')">Delete</button>
-                        </div>
-                    `;
-                }
-                cardHTML += `</div>`;
-                cardHTML += `<div class="card-content-grid">`;
-
-                if (item.code) {
-                    cardHTML += `
-                        <div class="io-block">
-                            <div class="block-label">Input / Code</div>
-                            <div class="code-container">
-                                <button class="copy-btn" onclick="copyTextToClipboard(this, \`${escapeHTML(item.code).replace(/`/g, '\\`')}\`)">Copy</button>
-                                <div class="code-block"><pre>${escapeHTML(item.code)}</pre></div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                if (item.output || item.image) {
-                    cardHTML += `<div class="io-block"><div class="block-label">Output</div><div class="code-container">`;
-                    if (item.output) {
-                        cardHTML += `
-                            <button class="copy-btn" onclick="copyTextToClipboard(this, \`${escapeHTML(item.output).replace(/`/g, '\\`')}\`)">Copy</button>
-                            <div class="code-block"><pre>${escapeHTML(item.output)}</pre></div>
-                        `;
-                    }
-                    if (item.image) {
-                        const imgClass = item.output ? "output-image" : "output-image only-image";
-                        cardHTML += `<img src="${item.image}" class="${imgClass}" alt="Visualization">`;
-                    }
-                    cardHTML += `</div></div>`;
-                }
-                cardHTML += `</div>`; 
-
-                if (item.explanation) {
-                    cardHTML += `<div class="explanation-block">${parseMarkdown(item.explanation)}</div>`;
-                }
-                cardHTML += `</div>`; 
-            });
-            cardHTML += `</div>`;
-            finalHTML += cardHTML;
-        });
-
-        return { html: finalHTML, toc: tocData };
-    }
-
-    function renderCheatsheets() {
-        const container = document.getElementById('cheatsheetContainer');
-        const tocSidebar = document.getElementById('toc-sidebar');
-        
-        const generated = generateCheatsheetCardsHTML(false);
-        container.innerHTML = generated.html;
-
-        tocSidebar.innerHTML = '';
-        generated.toc.forEach(dotData => {
-            const dot = document.createElement('a');
-            dot.href = `#${dotData.id}`;
-            dot.className = 'toc-dot';
-            dot.innerHTML = `<span class="toc-tooltip">${escapeHTML(dotData.title)}</span>`;
-            tocSidebar.appendChild(dot);
-        });
-    }
-
-    window.copyTextToClipboard = function(btnElement, text) {
-        navigator.clipboard.writeText(text).then(() => {
-            const originalText = btnElement.innerText;
-            btnElement.innerText = "Copied!";
-            btnElement.style.backgroundColor = "var(--btn-primary)";
-            btnElement.style.color = "white";
-            setTimeout(() => {
-                btnElement.innerText = originalText;
-                btnElement.style.backgroundColor = "";
-                btnElement.style.color = "";
-            }, 2000);
-        });
-    }
-
-    function clearInputs() {
-        if (!document.getElementById('pinHeader').checked) {
-            document.getElementById('headerInput').value = '';
-        }
-        document.getElementById('tagInput').value = '';
-        document.getElementById('codeInput').value = '';
-        document.getElementById('outputInput').value = '';
-        document.getElementById('explanationInput').value = '';
-        document.getElementById('editId').value = '';
-        clearImageUpload();
-    }
-
-    // --- DOCUMENT EXPORT LOGIC ---
-    function getExportFilename(extension) {
-        const safeName = globalTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        return `${safeName}.${extension}`;
-    }
-
-    function exportToMarkdown() {
-        if (cheatsheets.length === 0) return alert("Nothing to export!");
-        let mdContent = `# ${globalTitle}\n\n`;
-
-        cheatsheets.forEach(item => {
-            mdContent += `${item.header}\n`;
-            if (item.tags) mdContent += `*Tags: ${item.tags}*\n\n`;
-            if (item.code) mdContent += `**Input:**\n\`\`\`\n${item.code}\n\`\`\`\n\n`;
-            if (item.output) mdContent += `**Output:**\n\`\`\`\n${item.output}\n\`\`\`\n\n`;
-            if (item.image) mdContent += `> *[Visualization image attached - View in HTML export]*\n\n`;
-            if (item.explanation) mdContent += `> **Explanation:** ${item.explanation}\n\n`;
-            mdContent += `---\n\n`;
-        });
-
-        triggerDownload(mdContent, "text/markdown", getExportFilename("md"));
-    }
-
-    function exportToHTML() {
-        if (cheatsheets.length === 0) return alert("Nothing to export!");
-        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-        const generatedContent = generateCheatsheetCardsHTML(true);
-        const styleContent = document.querySelector('style').innerHTML;
-
-        let htmlContent = `<!DOCTYPE html>
-<html lang="en" data-theme="${currentTheme}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${escapeHTML(globalTitle)}</title>
-    <style>${styleContent}</style>
-</head>
-<body>
-    <div class="container" style="max-width: 1200px; padding: 40px 20px;">
-        <div class="header-bar">
-            <h1>${escapeHTML(globalTitle)}</h1>
-            <div class="export-btns">
-                <button onclick="toggleTheme()" class="secondary">🌓 Theme</button>
-                <button onclick="window.print()" class="secondary">🖨️ Print / PDF</button>
-            </div>
-        </div>
-        <div class="masonry-grid">
-            ${generatedContent.html}
-        </div>
-    </div>
-    <script>
-        window.onload = function() {
-            const savedTheme = localStorage.getItem('exported_cheatsheet_theme') || '${currentTheme}';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        };
+        // --- THEME ---
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme');
             const target = current === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', target);
-            localStorage.setItem('exported_cheatsheet_theme', target);
+            localStorage.setItem('theme', target);
         }
-        function copyTextToClipboard(btnElement, text) {
+
+        // --- UTILITIES ---
+        function parseMarkdown(text) {
+            if (!text) return '';
+            let html = text;
+            html = html.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
+            html = html.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
+            html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+            if (!html.match(/^<h[1-6]>/)) { html = `<h3>${html}</h3>`; }
+            return html;
+        }
+
+        function cleanHeaderText(text) {
+            return text.replace(/#/g, '').replace(/\*/g, '').trim();
+        }
+
+        function updateHeaderOptions() {
+            const datalist = document.getElementById('existingHeaders');
+            datalist.innerHTML = '';
+            const uniqueHeaders = [...new Set(cheatsheets.map(item => item.header))].filter(Boolean);
+            uniqueHeaders.forEach(header => {
+                const option = document.createElement('option');
+                option.value = header;
+                datalist.appendChild(option);
+            });
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g,
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        // --- IMAGE ---
+        document.getElementById('imageFileInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    currentAttachedImageBase64 = event.target.result;
+                    document.getElementById('imagePreview').src = currentAttachedImageBase64;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('clearImageBtn').style.display = 'inline-block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function clearImageUpload() {
+            currentAttachedImageBase64 = null;
+            document.getElementById('imageFileInput').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('clearImageBtn').style.display = 'none';
+        }
+
+        // --- CRUD ---
+        function addOrUpdateEntry() {
+            const header = document.getElementById('headerInput').value.trim();
+            const tags = document.getElementById('tagInput').value.trim();
+            const code = document.getElementById('codeInput').value.trim();
+            const output = document.getElementById('outputInput').value.trim();
+            const explanation = document.getElementById('explanationInput').value.trim();
+            const editId = document.getElementById('editId').value;
+
+            if (!header && !code && !output && !explanation && !currentAttachedImageBase64) {
+                return showToast("Please enter some content.");
+            }
+
+            const entry = {
+                id: editId ? editId : 'item-' + Date.now().toString(),
+                header: header || 'Untitled Section',
+                tags: tags,
+                code: code,
+                output: output,
+                image: currentAttachedImageBase64,
+                explanation: explanation
+            };
+
+            if (editId) {
+                const index = cheatsheets.findIndex(item => item.id === editId);
+                cheatsheets[index] = entry;
+                document.getElementById('submitBtn').innerText = "Add to Cheatsheet";
+            } else {
+                cheatsheets.push(entry);
+            }
+
+            saveLocalState();
+            clearInputs();
+            updateHeaderOptions();
+            renderCheatsheets();
+            showToast("✅ Entry " + (editId ? "updated" : "added") + "!");
+        }
+
+        function editEntry(id) {
+            const entry = cheatsheets.find(item => item.id === id);
+            if (entry) {
+                document.getElementById('headerInput').value = entry.header === 'Untitled Section' ? '' : entry.header;
+                document.getElementById('tagInput').value = entry.tags || '';
+                document.getElementById('codeInput').value = entry.code;
+                document.getElementById('outputInput').value = entry.output;
+                document.getElementById('explanationInput').value = entry.explanation || '';
+                if (entry.image) {
+                    currentAttachedImageBase64 = entry.image;
+                    document.getElementById('imagePreview').src = currentAttachedImageBase64;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('clearImageBtn').style.display = 'inline-block';
+                } else {
+                    clearImageUpload();
+                }
+                document.getElementById('editId').value = entry.id;
+                document.getElementById('submitBtn').innerText = "Update Cheatsheet";
+                document.querySelector('.input-panel').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function deleteEntry(id) {
+            if (confirm("Are you sure you want to delete this snippet?")) {
+                cheatsheets = cheatsheets.filter(item => item.id !== id);
+                saveLocalState();
+                updateHeaderOptions();
+                renderCheatsheets();
+                showToast("🗑️ Deleted.");
+            }
+        }
+
+        function clearInputs() {
+            if (!document.getElementById('pinHeader').checked) {
+                document.getElementById('headerInput').value = '';
+            }
+            document.getElementById('tagInput').value = '';
+            document.getElementById('codeInput').value = '';
+            document.getElementById('outputInput').value = '';
+            document.getElementById('explanationInput').value = '';
+            document.getElementById('editId').value = '';
+            clearImageUpload();
+        }
+
+        // --- RENDER ---
+        function generateCheatsheetCardsHTML(isExport = false) {
+            const groupOrder = [];
+            const groups = {};
+
+            cheatsheets.forEach(item => {
+                const h = item.header;
+                if (!groups[h]) {
+                    groups[h] = { id: 'group-' + Math.random().toString(36).substr(2, 9), items: [] };
+                    groupOrder.push(h);
+                }
+                groups[h].items.push(item);
+            });
+
+            let finalHTML = '';
+            let tocData = [];
+
+            groupOrder.forEach(headerText => {
+                const group = groups[headerText];
+                let cardHTML = `<div class="card" id="${group.id}">
+                            <div class="card-header-text">${parseMarkdown(headerText)}</div>
+                        `;
+                tocData.push({ id: group.id, title: headerText });
+
+                group.items.forEach(item => {
+                    cardHTML += `<div class="snippet-container">`;
+
+                    let snippetTagsHTML = '';
+                    if (item.tags) {
+                        const tagArray = item.tags.split(',').map(t => t.trim()).filter(Boolean);
+                        if (tagArray.length > 0) {
+                            snippetTagsHTML = `<div class="tags-container">` +
+                                tagArray.map(tag => `<span class="tag-pill">${escapeHTML(tag)}</span>`).join('') +
+                                `</div>`;
+                        }
+                    }
+
+                    cardHTML += `<div class="snippet-top-bar">`;
+                    cardHTML += snippetTagsHTML;
+
+                    if (!isExport) {
+                        cardHTML += `
+                                <div class="snippet-actions">
+                                    <button class="edit" onclick="editEntry('${item.id}')">Edit</button>
+                                    <button class="danger" onclick="deleteEntry('${item.id}')">Delete</button>
+                                </div>
+                            `;
+                    }
+                    cardHTML += `</div>`;
+                    cardHTML += `<div class="card-content-grid">`;
+
+                    if (item.code) {
+                        cardHTML += `
+                                <div class="io-block">
+                                    <div class="block-label">Input / Code</div>
+                                    <div class="code-container">
+                                        <button class="copy-btn" onclick="copyTextToClipboard(this, \`${escapeHTML(item.code).replace(/`/g, '\\`')}\`)">Copy</button>
+                                        <div class="code-block"><pre>${escapeHTML(item.code)}</pre></div>
+                                    </div>
+                                </div>
+                            `;
+                    }
+
+                    if (item.output || item.image) {
+                        cardHTML +=
+                            `<div class="io-block"><div class="block-label">Output</div><div class="code-container">`;
+                        if (item.output) {
+                            cardHTML += `
+                                    <button class="copy-btn" onclick="copyTextToClipboard(this, \`${escapeHTML(item.output).replace(/`/g, '\\`')}\`)">Copy</button>
+                                    <div class="code-block"><pre>${escapeHTML(item.output)}</pre></div>
+                                `;
+                        }
+                        if (item.image) {
+                            const imgClass = item.output ? "output-image" : "output-image only-image";
+                            cardHTML += `<img src="${item.image}" class="${imgClass}" alt="Visualization">`;
+                        }
+                        cardHTML += `</div></div>`;
+                    }
+                    cardHTML += `</div>`;
+
+                    if (item.explanation) {
+                        cardHTML += `<div class="explanation-block">${parseMarkdown(item.explanation)}</div>`;
+                    }
+                    cardHTML += `</div>`;
+                });
+                cardHTML += `</div>`;
+                finalHTML += cardHTML;
+            });
+
+            return { html: finalHTML, toc: tocData };
+        }
+
+        function renderCheatsheets() {
+            const container = document.getElementById('cheatsheetContainer');
+            const generated = generateCheatsheetCardsHTML(false);
+            container.innerHTML = generated.html;
+
+            // Populate the right-side TOC
+            const tocList = document.getElementById('toc-list');
+            tocList.innerHTML = '';
+            generated.toc.forEach(item => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = `#${item.id}`;
+                a.textContent = cleanHeaderText(item.title) || item.title;
+                li.appendChild(a);
+                tocList.appendChild(li);
+            });
+        }
+
+        window.copyTextToClipboard = function (btnElement, text) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalText = btnElement.innerText;
                 btnElement.innerText = "Copied!";
@@ -682,30 +1448,507 @@
                 }, 2000);
             });
         }
-    <\/script>
-</body>
-</html>`;
-        
-        triggerDownload(htmlContent, "text/html", getExportFilename("html"));
-    }
 
-    function triggerDownload(content, type, filename) {
-        const blob = new Blob([content], { type: type });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
+        // --- TOC TOGGLE ---
+        function initTOC() {
+            const sidebar = document.getElementById('toc-sidebar');
+            const toggleBtn = document.getElementById('toc-toggle-btn');
+            const mainToggle = document.getElementById('toc-toggle-main');
+            let isVisible = true;
 
-    function escapeHTML(str) {
-        return str.replace(/[&<>'"]/g, 
-            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-        );
-    }
-</script>
+            function toggleTOC() {
+                isVisible = !isVisible;
+                sidebar.classList.toggle('collapsed', !isVisible);
+                mainToggle.classList.toggle('visible', !isVisible);
+                toggleBtn.textContent = isVisible ? 'Hide' : 'Show';
+            }
+
+            toggleBtn.addEventListener('click', toggleTOC);
+            mainToggle.addEventListener('click', toggleTOC);
+        }
+
+        // --- EXPORT ---
+        function getExportFilename(extension) {
+            const safeName = globalTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            return `${safeName}.${extension}`;
+        }
+
+        function exportStateJSON() {
+            if (cheatsheets.length === 0) return showToast("Your cheatsheet is empty! Nothing to save.");
+            const backupData = { title: globalTitle, data: cheatsheets };
+            const dataStr = JSON.stringify(backupData, null, 2);
+            triggerDownload(dataStr, "application/json", getExportFilename("json"));
+            setTimeout(() => {
+                if (confirm("Save file generated! Do you want to wipe this current session and start a new blank cheatsheet?")) {
+                    clearWorkspace();
+                }
+            }, 500);
+        }
+
+        function importStateJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData.data && Array.isArray(importedData.data)) {
+                        cheatsheets = importedData.data;
+                        if (importedData.title) {
+                            globalTitle = importedData.title;
+                            localStorage.setItem('cheatsheet_title', globalTitle);
+                            document.getElementById('page-title').innerText = globalTitle;
+                            document.title = globalTitle;
+                        }
+                    } else if (Array.isArray(importedData)) {
+                        cheatsheets = importedData;
+                    } else {
+                        throw new Error("Invalid format");
+                    }
+                    saveLocalState();
+                    updateHeaderOptions();
+                    renderCheatsheets();
+                    showToast("✅ Workspace loaded!");
+                } catch (err) {
+                    showToast("Error reading file. Make sure it is a valid Cheatsheet JSON save file.");
+                    console.error(err);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function exportToMarkdown() {
+            if (cheatsheets.length === 0) return showToast("Nothing to export!");
+            let mdContent = `# ${globalTitle}\n\n`;
+            cheatsheets.forEach(item => {
+                mdContent += `${item.header}\n`;
+                if (item.tags) mdContent += `*Tags: ${item.tags}*\n\n`;
+                if (item.code) mdContent += `**Input:**\n\`\`\`\n${item.code}\n\`\`\`\n\n`;
+                if (item.output) mdContent += `**Output:**\n\`\`\`\n${item.output}\n\`\`\`\n\n`;
+                if (item.image) mdContent += `> *[Visualization image attached - View in HTML export]*\n\n`;
+                if (item.explanation) mdContent += `> **Explanation:** ${item.explanation}\n\n`;
+                mdContent += `---\n\n`;
+            });
+            triggerDownload(mdContent, "text/markdown", getExportFilename("md"));
+        }
+
+        function exportToHTML() {
+            if (cheatsheets.length === 0) return showToast("Nothing to export!");
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const generatedContent = generateCheatsheetCardsHTML(true);
+            const styleContent = document.querySelector('style').innerHTML;
+
+            let tocHTML = '';
+            generatedContent.toc.forEach(item => {
+                const cleaned = cleanHeaderText(item.title) || item.title;
+                tocHTML +=
+                    `<li><a href="#${item.id}">${escapeHTML(cleaned)}</a></li>`;
+            });
+
+            let htmlContent = `<!DOCTYPE html>
+        <html lang="en" data-theme="${currentTheme}">
+        <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${escapeHTML(globalTitle)}</title>
+        <style>${styleContent}</style></head>
+        <body>
+        <div class="container"><div class="header-bar"><h1>${escapeHTML(globalTitle)}</h1><div class="export-btns"><button onclick="toggleTheme()" class="secondary">🌓 Theme</button></div></div>
+        <div class="masonry-grid">${generatedContent.html}</div></div>
+        <div id="toc-sidebar" style="position:fixed;right:15px;top:50%;transform:translateY(-50%);background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;padding:12px 10px;width:180px;max-height:70vh;overflow-y:auto;z-index:100;box-shadow:var(--shadow-lg);">
+        <div class="toc-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border-color);">
+        <span style="font-weight:600;font-size:0.85rem;color:var(--text-accent);">📑 TOC</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;">${tocHTML}</ul>
+        </div>
+        <script>
+            window.onload=function(){const t=localStorage.getItem('exported_cheatsheet_theme')||'${currentTheme}';document.documentElement.setAttribute('data-theme',t);};
+            function toggleTheme(){const c=document.documentElement.getAttribute('data-theme'),t=c==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('exported_cheatsheet_theme',t);}
+            function copyTextToClipboard(b,t){navigator.clipboard.writeText(t).then(()=>{const o=b.innerText;b.innerText="Copied!";b.style.backgroundColor="var(--btn-primary)";b.style.color="white";setTimeout(()=>{b.innerText=o;b.style.backgroundColor="";b.style.color="";},2000);});}
+        <\/script></body></html>`;
+
+            triggerDownload(htmlContent, "text/html", getExportFilename("html"));
+        }
+
+        function triggerDownload(content, type, filename) {
+            const blob = new Blob([content], { type: type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ============================================================
+        //  IPYNB CONVERTER ENGINE (integrated, uses shared theme)
+        // ============================================================
+
+        (function () {
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+            const statusBar = document.getElementById('ipynbStatusBar');
+            const statusDot = document.getElementById('ipynbStatusDot');
+            const statusFileName = document.getElementById('ipynbStatusFileName');
+            const statCells = document.getElementById('ipynbStatCells');
+            const statCodeCells = document.getElementById('ipynbStatCodeCells');
+            const statItems = document.getElementById('ipynbStatItems');
+            const resultsSection = document.getElementById('ipynbResultsSection');
+            const jsonOutput = document.getElementById('ipynbJsonOutput');
+            const jsonWrapper = document.getElementById('ipynbJsonWrapper');
+            const btnCopy = document.getElementById('ipynbBtnCopy');
+            const btnDownload = document.getElementById('ipynbBtnDownload');
+            const btnClear = document.getElementById('ipynbBtnClear');
+            const btnImport = document.getElementById('btnImportToCheatsheet');
+
+            let currentJson = null;
+            let currentFileName = '';
+
+            // --- Helpers ---
+            function showToastMessage(msg) {
+                const toast = document.getElementById('toast');
+                clearTimeout(toast._timer);
+                toast.textContent = msg;
+                toast.classList.add('show');
+                toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
+            }
+
+            function syntaxHighlightJSON(jsonString) {
+                let escaped = jsonString.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                let result = '',
+                    i = 0,
+                    len = escaped.length;
+                while (i < len) {
+                    if (escaped[i] === '"') {
+                        let j = i + 1;
+                        while (j < len) {
+                            if (escaped[j] === '\\') { j += 2; continue; }
+                            if (escaped[j] === '"') break;
+                            j++;
+                        }
+                        const fullMatch = escaped.substring(i, j + 1);
+                        const after = escaped.substring(j + 1).trimStart();
+                        if (after.startsWith(':')) {
+                            result += '<span class="json-key">' + fullMatch + '</span>';
+                        } else {
+                            result += '<span class="json-string">' + fullMatch + '</span>';
+                        }
+                        i = j + 1;
+                        continue;
+                    }
+                    if (escaped.substring(i, i + 4) === 'null' && (i + 4 >= len || /[\s,\]\}\n]/.test(escaped[i + 4]))) {
+                        result += '<span class="json-null">null</span>';
+                        i += 4;
+                        continue;
+                    }
+                    if (/[0-9\-]/.test(escaped[i]) && (i === 0 || /[\s,\[\{\n:]/.test(escaped[i - 1]))) {
+                        let j = i;
+                        while (j < len && /[0-9eE\.\-\+]/.test(escaped[j])) j++;
+                        const num = escaped.substring(i, j);
+                        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(num)) {
+                            result += '<span class="json-number">' + num + '</span>';
+                            i = j;
+                            continue;
+                        }
+                    }
+                    if ('{}[]'.includes(escaped[i])) {
+                        result += '<span class="json-bracket">' + escaped[i] + '</span>';
+                        i++;
+                        continue;
+                    }
+                    result += escaped[i];
+                    i++;
+                }
+                return result.split('\n').map(line => '<span class="line">' + (line || '&nbsp;') + '</span>').join('\n');
+            }
+
+            function displayJSON(obj) {
+                const str = JSON.stringify(obj, null, 2);
+                jsonOutput.innerHTML = syntaxHighlightJSON(str);
+                jsonWrapper.scrollTop = 0;
+            }
+
+            function updateStatus(success, fileName, total, codeCells, items) {
+                statusBar.style.display = 'flex';
+                statusDot.className = 'dot ' + (success ? 'success' : 'error');
+                statusFileName.textContent = fileName || '—';
+                statCells.textContent = total ?? '—';
+                statCodeCells.textContent = codeCells ?? '—';
+                statItems.textContent = items ?? '—';
+                resultsSection.classList.add('active');
+            }
+
+            function resetIPYNB() {
+                currentJson = null;
+                currentFileName = '';
+                statusBar.style.display = 'none';
+                statusDot.className = 'dot';
+                statusFileName.textContent = '—';
+                statCells.textContent = '—';
+                statCodeCells.textContent = '—';
+                statItems.textContent = '—';
+                resultsSection.classList.remove('active');
+                jsonOutput.innerHTML =
+                    '<span class="ipynb-empty-state"><span class="icon">📄</span>JSON output will appear here</span>';
+                jsonWrapper.scrollTop = 0;
+                fileInput.value = '';
+                btnImport.disabled = true;
+                btnImport.style.opacity = '0.5';
+            }
+
+            // --- Parser ---
+            function parseNotebook(notebookJson, fileName) {
+                const cells = notebookJson.cells || [];
+                const totalCells = cells.length;
+                let title = fileName.replace(/\.ipynb$/i, '').replace(/[_-]/g, ' ').trim() || 'Untitled Notebook';
+                for (const cell of cells) {
+                    if (cell.cell_type === 'markdown') {
+                        const src = Array.isArray(cell.source) ? cell.source.join('') : (cell.source || '');
+                        const trimmed = src.trim();
+                        const h1Match = trimmed.match(/^#\s+(.+)/);
+                        if (h1Match) { title = h1Match[1].trim(); break; }
+                    }
+                }
+                let currentHeader = '';
+                const dataItems = [];
+                const baseTimestamp = Date.now();
+                let itemIndex = 0;
+                let codeCellCount = 0;
+
+                for (const cell of cells) {
+                    if (cell.cell_type === 'markdown') {
+                        const src = Array.isArray(cell.source) ? cell.source.join('') : (cell.source || '');
+                        const trimmed = src.trim();
+                        const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)/);
+                        if (headingMatch) {
+                            const level = headingMatch[1].length;
+                            const headingText = headingMatch[2].trim();
+                            currentHeader = '#'.repeat(level) + ' ' + headingText;
+                        }
+                    } else if (cell.cell_type === 'code') {
+                        codeCellCount++;
+                        const src = Array.isArray(cell.source) ? cell.source.join('') : (cell.source || '');
+                        const code = src;
+                        let tags = '';
+                        const lines = code.split('\n');
+                        for (const line of lines) {
+                            const trimmedLine = line.trim();
+                            if (trimmedLine.startsWith('#')) {
+                                const commentText = trimmedLine.replace(/^#\s*/, '').trim();
+                                if (commentText) { tags = commentText; break; }
+                            } else if (trimmedLine !== '') { break; }
+                        }
+                        let header = currentHeader;
+                        if (!header && tags) header = '# ' + tags;
+                        else if (!header) {
+                            const firstLine = lines.find(l => l.trim() !== '') || '';
+                            const cleanLine = firstLine.trim().replace(/^#\s*/, '');
+                            header = '# ' + (cleanLine || 'Code');
+                        }
+                        let outputText = '';
+                        let imageData = null;
+                        const outputs = cell.outputs || [];
+                        for (const output of outputs) {
+                            if (output.output_type === 'stream') {
+                                const text = Array.isArray(output.text) ? output.text.join('') : (output.text || '');
+                                outputText += text;
+                            } else if (output.output_type === 'execute_result' || output.output_type ===
+                                'display_data') {
+                                const data = output.data || {};
+                                if (data['image/png'] && !imageData) imageData = 'data:image/png;base64,' + data[
+                                    'image/png'];
+                                else if (data['image/jpeg'] && !imageData) imageData = 'data:image/jpeg;base64,' +
+                                    data['image/jpeg'];
+                                else if (data['image/svg+xml'] && !imageData) {
+                                    const svg = Array.isArray(data['image/svg+xml']) ? data['image/svg+xml'].join(
+                                        '') : data['image/svg+xml'];
+                                    imageData = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(
+                                        svg)));
+                                }
+                                if (data['text/plain']) {
+                                    const textOut = Array.isArray(data['text/plain']) ? data['text/plain'].join(
+                                        '') : data['text/plain'];
+                                    if (outputText && !outputText.endsWith('\n')) outputText += '\n';
+                                    outputText += textOut;
+                                }
+                            } else if (output.output_type === 'error') {
+                                const ename = output.ename || 'Error';
+                                const evalue = output.evalue || '';
+                                if (outputText && !outputText.endsWith('\n')) outputText += '\n';
+                                outputText += ename + ': ' + evalue;
+                                if (output.traceback && Array.isArray(output.traceback)) {
+                                    outputText += '\n' + output.traceback.join('\n');
+                                }
+                            }
+                        }
+                        outputText = outputText.trim();
+                        const id = 'item-' + (baseTimestamp + itemIndex);
+                        dataItems.push({
+                            id, header, tags, code, output: outputText, image: imageData,
+                            explanation: ''
+                        });
+                        itemIndex++;
+                    }
+                }
+                return { title, data: dataItems };
+            }
+
+            // --- Handle file ---
+            function handleFile(file) {
+                if (!file) return;
+                if (!file.name.toLowerCase().endsWith('.ipynb')) {
+                    showToastMessage('⚠️ Please upload a valid .ipynb file');
+                    return;
+                }
+                currentFileName = file.name;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const nb = JSON.parse(e.target.result);
+                        if (!nb.cells || !Array.isArray(nb.cells)) throw new Error('Missing "cells" array');
+                        const result = parseNotebook(nb, file.name);
+                        currentJson = result;
+                        const total = nb.cells.length;
+                        const codeCells = nb.cells.filter(c => c.cell_type === 'code').length;
+                        updateStatus(true, file.name, total, codeCells, result.data.length);
+                        displayJSON(result);
+                        btnImport.disabled = false;
+                        btnImport.style.opacity = '1';
+                        showToastMessage('✅ Parsed ' + result.data.length + ' code cells');
+                    } catch (err) {
+                        console.error(err);
+                        updateStatus(false, file.name, '—', '—', '—');
+                        resultsSection.classList.add('active');
+                        jsonOutput.innerHTML =
+                            '<span style="color:#f38ba8;font-weight:600;">❌ Error:</span> <span style="color:#f9e2af;">' +
+                            escapeHTML(err.message) + '</span>';
+                        jsonWrapper.scrollTop = 0;
+                        currentJson = null;
+                        btnImport.disabled = true;
+                        btnImport.style.opacity = '0.5';
+                        showToastMessage('❌ Failed to parse file');
+                    }
+                };
+                reader.onerror = () => showToastMessage('❌ Error reading file');
+                reader.readAsText(file);
+            }
+
+            // --- Events ---
+            uploadZone.addEventListener('click', function (e) { if (e.target !== fileInput) fileInput.click(); });
+            fileInput.addEventListener('change', function (e) { const f = e.target.files[0]; if (f) handleFile(f); });
+
+            uploadZone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.add('drag-over');
+            });
+            uploadZone.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.remove('drag-over');
+            });
+            uploadZone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f) handleFile(f);
+            });
+
+            document.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                e.stopPropagation(); if (!uploadZone.contains(e.target)) uploadZone.classList.add('drag-over');
+            });
+            document.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                e.stopPropagation(); if (!uploadZone.contains(e.relatedTarget) && e.relatedTarget !== null) uploadZone
+                    .classList.remove('drag-over');
+            });
+            document.addEventListener('drop', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.remove('drag-over'); if (!uploadZone.contains(e.target)) {
+                    const f = e.dataTransfer
+                        .files[0]; if (f && f.name.toLowerCase().endsWith('.ipynb')) handleFile(f);
+                }
+            });
+
+            // --- Actions ---
+            btnCopy.addEventListener('click', function () {
+                if (!currentJson) return showToastMessage('⚠️ No JSON to copy.');
+                const str = JSON.stringify(currentJson, null, 2);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(str).then(() => showToastMessage('📋 JSON copied!'));
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = str;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    ta.style.top = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    try {
+                        document.execCommand('copy');
+                        showToastMessage('📋 JSON copied!');
+                    } catch (err) { showToastMessage('⚠️ Failed to copy.'); }
+                    document.body.removeChild(ta);
+                }
+            });
+
+            btnDownload.addEventListener('click', function () {
+                if (!currentJson) return showToastMessage('⚠️ No JSON to download.');
+                const str = JSON.stringify(currentJson, null, 2);
+                const blob = new Blob([str], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const name = (currentFileName || 'notebook').replace(/\.ipynb$/i, '') + '_output.json';
+                a.download = name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToastMessage('💾 Downloaded as ' + name);
+            });
+
+            btnClear.addEventListener('click', function () {
+                resetIPYNB();
+                showToastMessage('🔄 Cleared.');
+            });
+
+            // --- IMPORT TO CHEATSHEET ---
+            btnImport.addEventListener('click', function () {
+                if (!currentJson || !currentJson.data || currentJson.data.length === 0) {
+                    return showToastMessage('⚠️ No data to import. Parse a notebook first.');
+                }
+                let added = 0;
+                for (const item of currentJson.data) {
+                    if (cheatsheets.some(ex => ex.id === item.id)) {
+                        item.id = 'item-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+                    }
+                    cheatsheets.push(item);
+                    added++;
+                }
+                saveLocalState();
+                updateHeaderOptions();
+                renderCheatsheets();
+                showToastMessage('✅ Imported ' + added + ' items into cheatsheet!');
+            });
+
+            resetIPYNB();
+        })();
+
+        // ============================================================
+        //  GLOBAL TOAST
+        // ============================================================
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            clearTimeout(toast._timer);
+            toast.textContent = msg;
+            toast.classList.add('show');
+            toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
+        }
+    </script>
+
 </body>
+
 </html>
