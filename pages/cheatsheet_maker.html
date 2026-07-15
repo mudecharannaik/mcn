@@ -1,0 +1,2756 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cheatsheet_maker — Data Science Cheatsheet Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ["Space Grotesk", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --bg: #09090b;
+        --surface: #131316;
+        --card: #19191e;
+        --card-hover: #1f1f26;
+        --border: #27272e;
+        --border-light: #333340;
+        --text: #e4e4e7;
+        --text-sec: #a1a1aa;
+        --muted: #71717a;
+        --accent: #e89030;
+        --accent-hover: #f0a040;
+        --accent-dim: rgba(232, 144, 48, 0.08);
+        --code-bg: #0c0c0f;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --left-w: 256px;
+        --right-w: 264px;
+      }
+      * {
+        box-sizing: border-box;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Space Grotesk", sans-serif;
+        margin: 0;
+        overflow-x: hidden;
+      }
+      .app-layout {
+        display: flex;
+        min-height: 100vh;
+        position: relative;
+      }
+      .left-panel {
+        width: var(--left-w);
+        min-width: var(--left-w);
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        transition:
+          margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.25s ease;
+        z-index: 40;
+        overflow: hidden;
+      }
+      .left-panel.closed {
+        margin-left: calc(var(--left-w) * -1);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .right-panel {
+        width: var(--right-w);
+        min-width: var(--right-w);
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        transition:
+          margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.25s ease;
+        z-index: 40;
+        overflow: hidden;
+      }
+      .right-panel.closed {
+        margin-right: calc(var(--right-w) * -1);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .main-area {
+        flex: 1;
+        min-width: 0;
+        padding: 24px 32px 80px;
+        transition: margin 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .left-toggle {
+        position: fixed;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        z-index: 45;
+        width: 22px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 0 8px 8px 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: none;
+        color: var(--muted);
+        font-size: 11px;
+        transition:
+          left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+          background 0.15s,
+          color 0.15s;
+      }
+      .left-toggle:hover {
+        background: var(--card);
+        color: var(--accent);
+      }
+      .left-toggle.shifted {
+        left: var(--left-w);
+      }
+      .right-toggle {
+        position: fixed;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        z-index: 45;
+        width: 22px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 8px 0 0 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-right: none;
+        color: var(--muted);
+        font-size: 11px;
+        transition:
+          right 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+          background 0.15s,
+          color 0.15s;
+      }
+      .right-toggle:hover {
+        background: var(--card);
+        color: var(--accent);
+      }
+      .right-toggle.shifted {
+        right: var(--right-w);
+      }
+      .sidebar-head {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .sidebar-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px 12px;
+      }
+      .cat-btn {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 6px 11px;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: 1px solid transparent;
+        font-size: 13px;
+        color: var(--text-sec);
+      }
+      .cat-btn:hover {
+        background: var(--accent-dim);
+        color: var(--text);
+      }
+      .cat-btn.active {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .cat-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .toc-item {
+        display: block;
+        padding: 4px 9px;
+        border-radius: 5px;
+        font-size: 11.5px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.15s;
+        border-left: 2px solid transparent;
+        text-decoration: none;
+        line-height: 1.5;
+      }
+      .toc-item:hover {
+        color: var(--text);
+        background: var(--accent-dim);
+        border-left-color: var(--accent);
+      }
+      .toc-item.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: var(--accent-dim);
+        font-weight: 600;
+      }
+      .toc-level-1 {
+        padding-left: 10px;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--text-sec);
+      }
+      .toc-level-2 {
+        padding-left: 22px;
+      }
+      .toc-level-3 {
+        padding-left: 34px;
+        font-size: 11px;
+      }
+      .toc-level-4 {
+        padding-left: 46px;
+        font-size: 10.5px;
+        opacity: 0.75;
+      }
+      .toc-cat-label {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--muted);
+        padding: 10px 9px 3px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .snippet-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 22px;
+        transition: all 0.2s;
+        position: relative;
+        animation: fadeSlideIn 0.35s ease both;
+        scroll-margin-top: 24px;
+      }
+      .snippet-card:hover {
+        border-color: var(--border-light);
+        background: var(--card-hover);
+      }
+      .snippet-card:hover .card-actions {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .card-actions {
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: all 0.2s;
+        display: flex;
+        gap: 2px;
+      }
+      .act-btn {
+        width: 29px;
+        height: 29px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .act-btn:hover {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .act-btn.danger:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+      }
+      .act-btn.move-btn:hover {
+        background: rgba(232, 144, 48, 0.12);
+        color: var(--accent);
+      }
+      .h1-header {
+        font-size: 21px;
+        font-weight: 800;
+        padding-left: 14px;
+        border-left: 3px solid var(--accent);
+      }
+      .h2-header {
+        font-size: 18px;
+        font-weight: 700;
+        padding-left: 14px;
+        border-left: 2.5px solid var(--accent);
+        opacity: 0.93;
+      }
+      .h3-header {
+        font-size: 15px;
+        font-weight: 600;
+        padding-left: 14px;
+        border-left: 2px solid var(--accent);
+        opacity: 0.85;
+      }
+      .h4-header {
+        font-size: 13.5px;
+        font-weight: 600;
+        padding-left: 14px;
+        border-left: 1.5px solid var(--accent);
+        opacity: 0.78;
+      }
+      .group-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        background: var(--accent-dim);
+        color: var(--accent);
+        border: 1px solid rgba(232, 144, 48, 0.2);
+        margin-right: 8px;
+        flex-shrink: 0;
+      }
+      .code-block {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 13px 15px;
+        overflow-x: auto;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        line-height: 1.7;
+        margin-top: 9px;
+        position: relative;
+        white-space: pre;
+        color: var(--text);
+      }
+      .code-block .line-num {
+        color: var(--muted);
+        user-select: none;
+        display: inline-block;
+        width: 26px;
+        text-align: right;
+        margin-right: 12px;
+        opacity: 0.4;
+        font-size: 10.5px;
+      }
+      .tag-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: 1px solid var(--border);
+        color: var(--text-sec);
+        background: var(--surface);
+      }
+      .tag-pill:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .tag-pill.active {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .cat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 9.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 50;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .modal-overlay.show {
+        display: flex;
+      }
+      .modal-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 640px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 26px 28px;
+        animation: fadeSlideIn 0.25s ease;
+      }
+      .form-input {
+        width: 100%;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: var(--text);
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .form-input:focus {
+        border-color: var(--accent);
+      }
+      .form-input::placeholder {
+        color: var(--muted);
+      }
+      textarea.form-input {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        line-height: 1.6;
+        resize: vertical;
+        min-height: 100px;
+      }
+      select.form-input {
+        cursor: pointer;
+      }
+      .h-level-btn {
+        padding: 6px 16px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 13px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text-sec);
+        transition: all 0.15s;
+        font-family: "Space Grotesk", sans-serif;
+      }
+      .h-level-btn:hover {
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      .h-level-btn.active {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .btn-primary {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        border: none;
+        background: var(--accent);
+        color: #000;
+        transition: all 0.15s;
+        font-family: "Space Grotesk", sans-serif;
+      }
+      .btn-primary:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+      }
+      .btn-ghost {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-sec);
+        transition: all 0.15s;
+        font-family: "Space Grotesk", sans-serif;
+      }
+      .btn-ghost:hover {
+        border-color: var(--text-sec);
+        color: var(--text);
+      }
+      .btn-danger {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        border: none;
+        background: var(--danger);
+        color: #fff;
+        transition: all 0.15s;
+        font-family: "Space Grotesk", sans-serif;
+      }
+      .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+      }
+      .toast {
+        padding: 10px 16px;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        animation: toastIn 0.3s ease;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      .toast.success {
+        background: #14532d;
+        border: 1px solid #22c55e;
+        color: #86efac;
+      }
+      .toast.error {
+        background: #450a0a;
+        border: 1px solid #ef4444;
+        color: #fca5a5;
+      }
+      .toast.info {
+        background: #1e1b0f;
+        border: 1px solid var(--accent);
+        color: #fcd88a;
+      }
+      .glow-line {
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent),
+          transparent
+        );
+        opacity: 0.22;
+        margin: 7px 0;
+      }
+      .stat-num {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 9.5px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 1px;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--muted);
+      }
+      .empty-state i {
+        font-size: 44px;
+        margin-bottom: 14px;
+        opacity: 0.22;
+      }
+      .search-box {
+        position: relative;
+      }
+      .search-box input {
+        padding-left: 36px;
+      }
+      .search-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .export-wrap {
+        position: relative;
+      }
+      .export-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 6px;
+        width: 220px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 5px;
+        z-index: 60;
+        display: none;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      }
+      .export-menu.show {
+        display: block;
+        animation: fadeSlideIn 0.2s ease;
+      }
+      .export-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--text-sec);
+        transition: all 0.12s;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-family: "Space Grotesk", sans-serif;
+      }
+      .export-item:hover {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .export-item i {
+        width: 18px;
+        text-align: center;
+        font-size: 13px;
+      }
+      .export-item .item-desc {
+        font-size: 10px;
+        color: var(--muted);
+        display: block;
+        margin-top: 1px;
+      }
+      .clear-btn {
+        width: 100%;
+        padding: 7px;
+        border-radius: 7px;
+        font-size: 12px;
+        cursor: pointer;
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        background: rgba(239, 68, 68, 0.06);
+        color: #f87171;
+        font-weight: 500;
+        transition: all 0.15s;
+        font-family: "Space Grotesk", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .clear-btn:hover {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.4);
+      }
+      .custom-cat-section {
+        max-height: 0;
+        overflow: hidden;
+        transition:
+          max-height 0.25s ease,
+          opacity 0.2s ease;
+        opacity: 0;
+      }
+      .custom-cat-section.show {
+        max-height: 80px;
+        opacity: 1;
+      }
+      .custom-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        color: var(--text-sec);
+        background: var(--card);
+        transition: all 0.15s;
+      }
+      .custom-chip:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .custom-chip.selected {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      @keyframes fadeSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateX(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @media (max-width: 900px) {
+        .left-panel {
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 50;
+          box-shadow: 8px 0 30px rgba(0, 0, 0, 0.5);
+        }
+        .left-panel.closed {
+          margin-left: calc(var(--left-w) * -1);
+        }
+        .right-panel {
+          position: fixed;
+          right: 0;
+          top: 0;
+          z-index: 50;
+          box-shadow: -8px 0 30px rgba(0, 0, 0, 0.5);
+        }
+        .right-panel.closed {
+          margin-right: calc(var(--right-w) * -1);
+        }
+        .main-area {
+          padding: 14px 14px 80px;
+        }
+        .left-toggle.shifted {
+          left: 0;
+        }
+        .right-toggle.shifted {
+          right: 0;
+        }
+        .panel-overlay {
+          display: none;
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 44;
+        }
+        .panel-overlay.show {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="panel-overlay"
+      id="panelOverlay"
+      onclick="closeAllPanels()"
+    ></div>
+    <div class="app-layout">
+      <!-- LEFT PANEL -->
+      <aside class="left-panel" id="leftPanel">
+        <div class="sidebar-head">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-7 h-7 rounded-lg flex items-center justify-center"
+              style="background: var(--accent)"
+            >
+              <i class="fas fa-bolt text-black text-[10px]"></i>
+            </div>
+            <div>
+              <div class="font-extrabold text-sm tracking-tight">
+                Cheatsheet_maker
+              </div>
+              <div
+                class="text-[8px] uppercase tracking-widest"
+                style="color: var(--muted)"
+              >
+                Cheatsheet Builder
+              </div>
+            </div>
+          </div>
+          <button onclick="toggleLeft()" class="act-btn" title="Close">
+            <i class="fas fa-chevron-left text-[9px]"></i>
+          </button>
+        </div>
+        <div class="sidebar-body">
+          <div class="mb-1">
+            <div
+              class="text-[8.5px] uppercase tracking-widest mb-1 px-1.5"
+              style="color: var(--muted)"
+            >
+              Categories
+            </div>
+            <div id="catList" class="flex flex-col gap-0.5"></div>
+          </div>
+          <div class="glow-line"></div>
+          <div class="mb-1 mt-2">
+            <div
+              class="text-[8.5px] uppercase tracking-widest mb-1 px-1.5"
+              style="color: var(--muted)"
+            >
+              Popular Tags
+            </div>
+            <div id="tagCloud" class="flex flex-wrap gap-1 px-0.5"></div>
+          </div>
+          <div class="glow-line"></div>
+          <div class="mt-2 px-1.5">
+            <div
+              class="text-[8.5px] uppercase tracking-widest mb-2"
+              style="color: var(--muted)"
+            >
+              Overview
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <div class="stat-num" id="statTotal">0</div>
+                <div class="stat-label">Snippets</div>
+              </div>
+              <div>
+                <div class="stat-num" id="statCats">0</div>
+                <div class="stat-label">Categories</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="p-3 border-t border-[var(--border)] flex-shrink-0 flex flex-col gap-2"
+        >
+          <button
+            onclick="openModal()"
+            class="w-full btn-primary flex items-center justify-center gap-2 text-sm"
+          >
+            <i class="fas fa-plus text-[10px]"></i> New Snippet
+          </button>
+          <button onclick="openClearModal()" class="clear-btn">
+            <i class="fas fa-trash-can text-[10px]"></i> Clear All Data
+          </button>
+        </div>
+      </aside>
+
+      <div class="left-toggle" id="leftToggle" onclick="toggleLeft()">
+        <i class="fas fa-chevron-right" id="leftToggleIcon"></i>
+      </div>
+
+      <!-- MAIN -->
+      <main class="main-area" id="mainArea">
+        <div class="flex items-center gap-3 mb-5 flex-wrap">
+          <div class="search-box flex-1 max-w-md">
+            <i class="fas fa-search"></i
+            ><input
+              type="text"
+              id="searchInput"
+              class="form-input"
+              placeholder="Search snippets..."
+              oninput="handleSearch(this.value)"
+            />
+          </div>
+          <div class="flex items-center gap-2 ml-auto">
+            <div class="export-wrap" id="exportWrap">
+              <button
+                class="act-btn"
+                style="
+                  width: auto;
+                  padding: 0 10px;
+                  gap: 5px;
+                  font-size: 11px;
+                  color: var(--muted);
+                "
+                onclick="toggleExportMenu()"
+                title="Export"
+              >
+                <i class="fas fa-arrow-up-from-bracket"></i
+                ><span class="hidden sm:inline">Export</span>
+              </button>
+              <div class="export-menu" id="exportMenu">
+                <button class="export-item" onclick="exportAs('json')">
+                  <i class="fas fa-brackets-curly" style="color: #fbbf24"></i>
+                  <div>
+                    JSON<span class="item-desc">Full data, re-importable</span>
+                  </div>
+                </button>
+                <button class="export-item" onclick="exportAs('html')">
+                  <i class="fab fa-html5" style="color: #f97316"></i>
+                  <div>
+                    HTML (Dark)<span class="item-desc"
+                      >Same theme, standalone</span
+                    >
+                  </div>
+                </button>
+                <button class="export-item" onclick="exportAs('markdown')">
+                  <i class="fab fa-markdown" style="color: #94a3b8"></i>
+                  <div>
+                    Markdown<span class="item-desc"
+                      >Plain text with formatting</span
+                    >
+                  </div>
+                </button>
+                <button class="export-item" onclick="exportAs('pdf')">
+                  <i class="fas fa-file-pdf" style="color: #ef4444"></i>
+                  <div>
+                    PDF <span class="item-desc">Same theme, print-ready</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+            <label
+              class="act-btn"
+              title="Import JSON"
+              style="
+                width: auto;
+                padding: 0 10px;
+                gap: 5px;
+                font-size: 11px;
+                color: var(--muted);
+                cursor: pointer;
+              "
+              ><i class="fas fa-arrow-down-to-bracket"></i
+              ><span class="hidden sm:inline">Import</span
+              ><input
+                type="file"
+                accept=".json"
+                onchange="importData(event)"
+                hidden
+            /></label>
+            <button
+              onclick="openModal()"
+              class="btn-primary flex items-center gap-2 text-sm"
+            >
+              <i class="fas fa-plus text-[10px]"></i> Add
+            </button>
+          </div>
+        </div>
+        <div
+          id="activeFilters"
+          class="flex flex-wrap gap-2 mb-4"
+          style="display: none"
+        ></div>
+        <div id="snippetsContainer"></div>
+      </main>
+
+      <div class="right-toggle" id="rightToggle" onclick="toggleRight()">
+        <i class="fas fa-chevron-left" id="rightToggleIcon"></i>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <aside class="right-panel closed" id="rightPanel">
+        <div class="sidebar-head">
+          <div class="flex items-center gap-2">
+            <i
+              class="fas fa-list-ul text-[10px]"
+              style="color: var(--accent)"
+            ></i
+            ><span class="font-bold text-sm">Contents</span>
+          </div>
+          <button onclick="toggleRight()" class="act-btn" title="Close">
+            <i class="fas fa-chevron-right text-[9px]"></i>
+          </button>
+        </div>
+        <div class="sidebar-body" id="tocBody"></div>
+      </aside>
+    </div>
+
+    <!-- ADD/EDIT MODAL -->
+    <div class="modal-overlay" id="modal">
+      <div class="modal-box">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-lg font-bold" id="modalTitle">New Snippet</h2>
+          <button onclick="closeModal()" class="act-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="snippetForm" onsubmit="handleSave(event)">
+          <input type="hidden" id="editId" value="" />
+          <div class="mb-3">
+            <label
+              class="block text-[10px] uppercase tracking-wider mb-1.5"
+              style="color: var(--muted)"
+              >Category</label
+            >
+            <select
+              id="formCat"
+              class="form-input"
+              required
+              onchange="onCategoryChange()"
+            >
+              <option value="">Select category...</option>
+            </select>
+          </div>
+          <!-- Custom category name (shown when "Other" is selected) -->
+          <div class="custom-cat-section mb-3" id="customCatSection">
+            <label
+              class="block text-[10px] uppercase tracking-wider mb-1.5"
+              style="color: var(--muted)"
+              >Custom Category Name</label
+            >
+            <input
+              type="text"
+              id="formCustomCat"
+              class="form-input"
+              placeholder="e.g. Docker, Kubernetes, AWS..."
+            />
+            <div
+              id="customCatChips"
+              class="flex flex-wrap gap-1.5 mt-2"
+              style="display: none"
+            ></div>
+          </div>
+          <div class="mb-3">
+            <label
+              class="block text-[10px] uppercase tracking-wider mb-1.5"
+              style="color: var(--muted)"
+              >Header Level</label
+            >
+            <div class="flex gap-2" id="hLevelGroup">
+              <button
+                type="button"
+                class="h-level-btn"
+                data-level="1"
+                onclick="setHLevel(1)"
+              >
+                H1</button
+              ><button
+                type="button"
+                class="h-level-btn"
+                data-level="2"
+                onclick="setHLevel(2)"
+              >
+                H2</button
+              ><button
+                type="button"
+                class="h-level-btn"
+                data-level="3"
+                onclick="setHLevel(3)"
+              >
+                H3</button
+              ><button
+                type="button"
+                class="h-level-btn"
+                data-level="4"
+                onclick="setHLevel(4)"
+              >
+                H4
+              </button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label
+              class="block text-[10px] uppercase tracking-wider mb-1.5"
+              style="color: var(--muted)"
+              >Title</label
+            ><input
+              type="text"
+              id="formTitle"
+              class="form-input"
+              placeholder="Snippet title..."
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label
+              class="block text-[10px] uppercase tracking-wider mb-1.5"
+              style="color: var(--muted)"
+              >Code</label
+            ><textarea
+              id="formCode"
+              class="form-input"
+              placeholder="Paste or type your code here..."
+              rows="8"
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label
+              class="block text-[10px] uppercase tracking-wider mb-1.5"
+              style="color: var(--muted)"
+              >Comment / Notes</label
+            ><textarea
+              id="formComment"
+              class="form-input"
+              placeholder="Add a note or explanation..."
+              rows="3"
+              style="
+                font-family: &quot;Space Grotesk&quot;, sans-serif;
+                font-size: 13px;
+                min-height: 65px;
+              "
+            ></textarea>
+          </div>
+          <div class="mb-5">
+            <label
+              class="block text-[10px] uppercase tracking-wider mb-1.5"
+              style="color: var(--muted)"
+              >Tags
+              <span class="normal-case tracking-normal"
+                >(comma separated)</span
+              ></label
+            ><input
+              type="text"
+              id="formTags"
+              class="form-input"
+              placeholder="e.g. beginner, joins, filtering"
+            />
+          </div>
+          <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeModal()" class="btn-ghost">
+              Cancel</button
+            ><button type="submit" class="btn-primary" id="saveBtn">
+              Save Snippet
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- DELETE MODAL -->
+    <div class="modal-overlay" id="deleteModal">
+      <div class="modal-box" style="max-width: 400px; text-align: center">
+        <div class="mb-3">
+          <i
+            class="fas fa-exclamation-triangle text-2xl"
+            style="color: var(--danger)"
+          ></i>
+        </div>
+        <h3 class="text-base font-bold mb-1.5">Delete Snippet?</h3>
+        <p class="text-sm mb-5" style="color: var(--text-sec)" id="deleteMsg">
+          This action cannot be undone.
+        </p>
+        <div class="flex gap-3 justify-center">
+          <button onclick="closeDeleteModal()" class="btn-ghost">Cancel</button
+          ><button onclick="confirmDelete()" class="btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLEAR ALL DATA MODAL -->
+    <div class="modal-overlay" id="clearModal">
+      <div class="modal-box" style="max-width: 440px; text-align: center">
+        <div class="mb-3">
+          <i class="fas fa-trash-can text-2xl" style="color: var(--danger)"></i>
+        </div>
+        <h3 class="text-base font-bold mb-1.5">Clear All Data?</h3>
+        <p class="text-sm mb-2" style="color: var(--text-sec)" id="clearMsg">
+          This will permanently remove all your snippets.
+        </p>
+        <p class="text-xs mb-5" style="color: var(--muted)">
+          Save your data before clearing to avoid losing your work.
+        </p>
+        <div class="flex flex-col gap-2">
+          <button
+            onclick="exportAndClear()"
+            class="btn-primary w-full flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-download text-xs"></i> Export JSON & Clear
+          </button>
+          <button
+            onclick="confirmClearAll()"
+            class="btn-danger w-full flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-trash text-xs"></i> Clear Without Saving
+          </button>
+          <button onclick="closeClearModal()" class="btn-ghost w-full">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="toasts"
+      class="fixed top-5 right-5 z-[100] flex flex-col gap-2"
+      style="pointer-events: none"
+    ></div>
+
+    <script>
+      /* ============================== CATEGORIES ============================== */
+      const CATEGORIES = [
+        { id: "sql", name: "SQL", icon: "fa-database", color: "#14B8A6" },
+        {
+          id: "python",
+          name: "Python",
+          icon: "fa-python",
+          color: "#FBBF24",
+          iconType: "fab",
+        },
+        { id: "r", name: "R", icon: "fa-chart-line", color: "#F43F5E" },
+        {
+          id: "excel",
+          name: "Excel",
+          icon: "fa-file-excel",
+          color: "#22C55E",
+          iconType: "fab",
+        },
+        {
+          id: "powerbi",
+          name: "Power BI",
+          icon: "fa-chart-pie",
+          color: "#F97316",
+        },
+        { id: "markdown", name: "Markdown", icon: "fa-code", color: "#94A3B8" },
+        { id: "git", name: "Git", icon: "fa-code-branch", color: "#EF4444" },
+        { id: "pandas", name: "Pandas", icon: "fa-table", color: "#06B6D4" },
+        {
+          id: "stats",
+          name: "Statistics",
+          icon: "fa-calculator",
+          color: "#EC4899",
+        },
+        {
+          id: "ml",
+          name: "Machine Learning",
+          icon: "fa-brain",
+          color: "#10B981",
+        },
+        {
+          id: "tableau",
+          name: "Tableau",
+          icon: "fa-chart-area",
+          color: "#8B5CF6",
+        },
+        { id: "other", name: "Other", icon: "fa-tag", color: "#64748B" },
+      ];
+
+      /* Custom category colors — cycles through these for new custom cats */
+      const CUSTOM_COLORS = [
+        "#F472B6",
+        "#38BDF8",
+        "#A78BFA",
+        "#34D399",
+        "#FBBF24",
+        "#FB923C",
+        "#F87171",
+        "#E879F9",
+        "#22D3EE",
+        "#4ADE80",
+      ];
+
+      /* ============================== STATE ============================== */
+      let snippets = [],
+        activeCategory = "all",
+        activeTag = null,
+        searchQuery = "",
+        selectedHLevel = 2,
+        deleteTargetId = null,
+        leftOpen = true,
+        rightOpen = false,
+        activeTocId = null;
+
+      /* ============================== CUSTOM CATEGORY HELPERS ============================== */
+      /* Custom categories are stored in snippets as category='other' + customCatName='Docker'
+   We derive a unique key: 'custom:Docker' for filtering/grouping */
+
+      function getCustomCats() {
+        const names = new Set();
+        snippets.forEach((s) => {
+          if (s.category === "other" && s.customCatName)
+            names.add(s.customCatName);
+        });
+        return [...names].sort();
+      }
+
+      function getCustomCatColor(name) {
+        // Deterministic color based on name hash
+        let hash = 0;
+        for (let i = 0; i < name.length; i++)
+          hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return CUSTOM_COLORS[Math.abs(hash) % CUSTOM_COLORS.length];
+      }
+
+      function getCatDisplay(snippet) {
+        // Returns {id, name, icon, iconType, color} for any snippet
+        if (snippet.category === "other" && snippet.customCatName) {
+          return {
+            id: "custom:" + snippet.customCatName,
+            name: snippet.customCatName,
+            icon: "fa-tag",
+            iconType: "fas",
+            color: getCustomCatColor(snippet.customCatName),
+          };
+        }
+        const cat = CATEGORIES.find((c) => c.id === snippet.category);
+        return cat || CATEGORIES[CATEGORIES.length - 1];
+      }
+
+      function getCatByKey(key) {
+        // key can be 'sql', 'custom:Docker', 'all', etc.
+        if (key === "all")
+          return {
+            id: "all",
+            name: "All",
+            icon: "fa-layer-group",
+            iconType: "fas",
+            color: "var(--accent)",
+          };
+        if (key.startsWith("custom:")) {
+          const name = key.slice(7);
+          return {
+            id: key,
+            name,
+            icon: "fa-tag",
+            iconType: "fas",
+            color: getCustomCatColor(name),
+          };
+        }
+        return (
+          CATEGORIES.find((c) => c.id === key) ||
+          CATEGORIES[CATEGORIES.length - 1]
+        );
+      }
+
+      function snippetCatKey(s) {
+        if (s.category === "other" && s.customCatName)
+          return "custom:" + s.customCatName;
+        return s.category;
+      }
+
+      /* ============================== INIT ============================== */
+      function init() {
+        loadFromStorage();
+        if (!snippets.length) loadSampleData();
+        populateCategorySelect();
+        renderSidebar();
+        renderSnippets();
+        renderTOC();
+        updateStats();
+        applyPanelState();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        document.addEventListener("click", (e) => {
+          const w = document.getElementById("exportWrap");
+          if (w && !w.contains(e.target))
+            document.getElementById("exportMenu").classList.remove("show");
+        });
+        window.addEventListener("beforeunload", (e) => {
+          if (snippets.length > 0) {
+            e.preventDefault();
+            e.returnValue = "";
+          }
+        });
+      }
+      function loadFromStorage() {
+        try {
+          const d = localStorage.getItem("dataref_snippets");
+          if (d) snippets = JSON.parse(d);
+        } catch (e) {
+          snippets = [];
+        }
+        try {
+          const s = localStorage.getItem("dataref_panels");
+          if (s) {
+            const p = JSON.parse(s);
+            leftOpen = p.left !== false;
+            rightOpen = p.right === true;
+          }
+        } catch (e) {}
+      }
+      function saveToStorage() {
+        try {
+          localStorage.setItem("dataref_snippets", JSON.stringify(snippets));
+        } catch (e) {}
+      }
+      function savePanelState() {
+        try {
+          localStorage.setItem(
+            "dataref_panels",
+            JSON.stringify({ left: leftOpen, right: rightOpen }),
+          );
+        } catch (e) {}
+      }
+
+      function populateCategorySelect() {
+        const s = document.getElementById("formCat");
+        s.innerHTML = '<option value="">Select category...</option>';
+        CATEGORIES.forEach((c) => {
+          s.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+        // Add existing custom categories as options
+        const customs = getCustomCats();
+        if (customs.length) {
+          s.innerHTML += "<option disabled>── Custom ──</option>";
+          customs.forEach((name) => {
+            s.innerHTML += `<option value="custom:${esc(name)}">${esc(name)}</option>`;
+          });
+        }
+      }
+
+      /* ============================== FORM: CATEGORY CHANGE ============================== */
+      function onCategoryChange() {
+        const val = document.getElementById("formCat").value;
+        const section = document.getElementById("customCatSection");
+        const input = document.getElementById("formCustomCat");
+        if (val === "other") {
+          section.classList.add("show");
+          input.required = true;
+          input.focus();
+          renderCustomChips();
+        } else {
+          section.classList.remove("show");
+          input.required = false;
+          input.value = "";
+          // If they selected a custom: option, we don't need the name
+          if (val.startsWith("custom:")) {
+            // Pre-fill the name in case they switch to "other"
+            input.value = val.slice(7);
+          }
+        }
+      }
+
+      function renderCustomChips() {
+        const customs = getCustomCats();
+        const container = document.getElementById("customCatChips");
+        if (!customs.length) {
+          container.style.display = "none";
+          return;
+        }
+        container.style.display = "flex";
+        const current = document
+          .getElementById("formCustomCat")
+          .value.trim()
+          .toLowerCase();
+        container.innerHTML =
+          '<span class="text-[9px] uppercase tracking-wider mr-1" style="color:var(--muted);align-self:center">Recent:</span>' +
+          customs
+            .map(
+              (n) =>
+                `<span class="custom-chip ${n.toLowerCase() === current ? "selected" : ""}" onclick="pickCustomCat('${esc(n)}')">${esc(n)}</span>`,
+            )
+            .join("");
+      }
+
+      function pickCustomCat(name) {
+        document.getElementById("formCustomCat").value = name;
+        renderCustomChips();
+      }
+
+      /* ============================== PANELS ============================== */
+      function toggleLeft() {
+        leftOpen = !leftOpen;
+        applyPanelState();
+        savePanelState();
+      }
+      function toggleRight() {
+        rightOpen = !rightOpen;
+        applyPanelState();
+        savePanelState();
+      }
+      function closeAllPanels() {
+        if (window.innerWidth <= 900) {
+          leftOpen = false;
+          rightOpen = false;
+          applyPanelState();
+          savePanelState();
+        }
+      }
+      function applyPanelState() {
+        const lp = document.getElementById("leftPanel"),
+          rp = document.getElementById("rightPanel"),
+          lt = document.getElementById("leftToggle"),
+          rt = document.getElementById("rightToggle"),
+          li = document.getElementById("leftToggleIcon"),
+          ri = document.getElementById("rightToggleIcon"),
+          ov = document.getElementById("panelOverlay");
+        lp.classList.toggle("closed", !leftOpen);
+        rp.classList.toggle("closed", !rightOpen);
+        if (leftOpen) {
+          lt.classList.add("shifted");
+          li.className = "fas fa-chevron-left";
+        } else {
+          lt.classList.remove("shifted");
+          li.className = "fas fa-chevron-right";
+        }
+        if (rightOpen) {
+          rt.classList.add("shifted");
+          ri.className = "fas fa-chevron-right";
+        } else {
+          rt.classList.remove("shifted");
+          ri.className = "fas fa-chevron-left";
+        }
+        if (window.innerWidth <= 900)
+          ov.classList.toggle("show", leftOpen || rightOpen);
+        else ov.classList.remove("show");
+      }
+      window.addEventListener("resize", () => {
+        if (window.innerWidth > 900)
+          document.getElementById("panelOverlay").classList.remove("show");
+      });
+
+      /* ============================== SAMPLE DATA ============================== */
+      function loadSampleData() {
+        snippets = [
+          {
+            id: genId(),
+            category: "sql",
+            headerLevel: 1,
+            title: "SQL Query Fundamentals",
+            code: "-- Basic SELECT\nSELECT column1, column2\nFROM table_name\nWHERE condition = true\nORDER BY column1 DESC\nLIMIT 10;",
+            comment:
+              "Core SELECT statement syntax with filtering and ordering.",
+            tags: ["basics", "select"],
+            createdAt: Date.now() - 50000,
+          },
+          {
+            id: genId(),
+            category: "sql",
+            headerLevel: 2,
+            title: "JOIN Operations",
+            code: "-- Inner Join\nSELECT a.id, a.name, b.order_id\nFROM customers a\nINNER JOIN orders b ON a.id = b.customer_id;\n\n-- Left Join\nSELECT a.*, b.col\nFROM table_a a\nLEFT JOIN table_b b ON a.id = b.a_id;",
+            comment: "JOIN types for combining tables.",
+            tags: ["joins", "intermediate"],
+            createdAt: Date.now() - 40000,
+          },
+          {
+            id: genId(),
+            category: "sql",
+            headerLevel: 3,
+            title: "Window Functions",
+            code: "SELECT name, department, salary,\n  RANK() OVER (\n    PARTITION BY department\n    ORDER BY salary DESC\n  ) AS dept_rank\nFROM employees;",
+            comment: "Window functions calculate across related rows.",
+            tags: ["advanced", "window"],
+            createdAt: Date.now() - 35000,
+          },
+          {
+            id: genId(),
+            category: "sql",
+            headerLevel: 2,
+            title: "Subqueries & CTEs",
+            code: "WITH active_users AS (\n  SELECT * FROM users\n  WHERE status = 'active'\n)\nSELECT * FROM active_users;",
+            comment: "CTEs name subqueries for clarity.",
+            tags: ["cte", "advanced"],
+            createdAt: Date.now() - 34000,
+          },
+          {
+            id: genId(),
+            category: "python",
+            headerLevel: 1,
+            title: "Python Data Essentials",
+            code: '# List comprehension\nsquares = [x**2 for x in range(10)]\n\n# Dict comprehension\nword_len = {w: len(w) for w in ["hello","world"]}\n\n# Lambda\nsorted_items = sorted(items, key=lambda x: x[1])',
+            comment: "Python fundamentals - comprehensions and lambdas.",
+            tags: ["basics", "comprehension"],
+            createdAt: Date.now() - 30000,
+          },
+          {
+            id: genId(),
+            category: "python",
+            headerLevel: 2,
+            title: "File I/O Patterns",
+            code: 'import csv, json\n\n# Read CSV\nwith open("data.csv") as f:\n    rows = list(csv.DictReader(f))\n\n# Write JSON\nwith open("out.json","w") as f:\n    json.dump(data, f, indent=2)',
+            comment: "Common file reading/writing patterns.",
+            tags: ["files", "io"],
+            createdAt: Date.now() - 25000,
+          },
+          {
+            id: genId(),
+            category: "python",
+            headerLevel: 3,
+            title: "Error Handling",
+            code: 'try:\n    result = risky_operation()\nexcept ValueError as e:\n    print(f"Value error: {e}")\nexcept Exception as e:\n    print(f"Unexpected: {e}")\nfinally:\n    cleanup_resources()',
+            comment: "Try/except/finally for robust pipelines.",
+            tags: ["errors"],
+            createdAt: Date.now() - 24000,
+          },
+          {
+            id: genId(),
+            category: "pandas",
+            headerLevel: 1,
+            title: "Pandas Quick Reference",
+            code: 'import pandas as pd\n\ndf = pd.DataFrame({"name": ["Ali","Bob"], "age": [25,30]})\nresult = df[df["age"] > 26]\ngrouped = df.groupby("dept")["salary"].agg(["mean","count"])',
+            comment: "Essential Pandas: creation, filtering, aggregation.",
+            tags: ["dataframe", "groupby"],
+            createdAt: Date.now() - 20000,
+          },
+          {
+            id: genId(),
+            category: "pandas",
+            headerLevel: 2,
+            title: "Merging & Joining",
+            code: 'merged = pd.merge(df1, df2, on="id", how="left")\ncombined = pd.concat([df1, df2], axis=0)\nwide = pd.concat([df1, df2], axis=1)',
+            comment: "Combine DataFrames via merge or concat.",
+            tags: ["merge", "join"],
+            createdAt: Date.now() - 19000,
+          },
+          {
+            id: genId(),
+            category: "excel",
+            headerLevel: 1,
+            title: "Essential Excel Formulas",
+            code: "=VLOOKUP(lookup_val, table_array, col_index, FALSE)\n=INDEX(range, MATCH(lookup, lookup_range, 0))\n=IF(condition, true_val, false_val)\n=COUNTIF(range, criteria)\n=SUMIFS(sum_range, criteria_range, criteria)",
+            comment: "Most-used Excel formulas.",
+            tags: ["formulas", "vlookup"],
+            createdAt: Date.now() - 15000,
+          },
+          {
+            id: genId(),
+            category: "git",
+            headerLevel: 1,
+            title: "Git Workflow Commands",
+            code: 'git checkout -b feature/new-thing\ngit add .\ngit commit -m "describe change"\ngit push origin feature/new-thing\ngit reset --soft HEAD~1',
+            comment: "Day-to-day Git workflow.",
+            tags: ["workflow", "branching"],
+            createdAt: Date.now() - 10000,
+          },
+          {
+            id: genId(),
+            category: "markdown",
+            headerLevel: 1,
+            title: "Markdown Syntax",
+            code: "# Heading 1\n## Heading 2\n### Heading 3\n\n**bold** and *italic*\n\n- Unordered list\n1. Ordered list\n\n[Link](https://url.com)\n![Image](img.png)\n\n`inline code`",
+            comment: "Core Markdown syntax.",
+            tags: ["syntax", "formatting"],
+            createdAt: Date.now() - 5000,
+          },
+          {
+            id: genId(),
+            category: "other",
+            customCatName: "Docker",
+            headerLevel: 2,
+            title: "Docker Commands",
+            code: "docker build -t myapp .\ndocker run -d -p 8080:80 myapp\ndocker-compose up -d\ndocker ps\ndocker logs <container_id>",
+            comment: "Essential Docker commands for daily use.",
+            tags: ["docker", "containers"],
+            createdAt: Date.now() - 4000,
+          },
+          {
+            id: genId(),
+            category: "other",
+            customCatName: "Docker",
+            headerLevel: 3,
+            title: "Docker Compose YAML",
+            code: 'version: "3.8"\nservices:\n  web:\n    build: .\n    ports:\n      - "8080:80"\n  db:\n    image: postgres:15\n    environment:\n      POSTGRES_PASSWORD: secret',
+            comment: "Basic compose file structure.",
+            tags: ["docker", "compose"],
+            createdAt: Date.now() - 3500,
+          },
+          {
+            id: genId(),
+            category: "stats",
+            headerLevel: 2,
+            title: "Hypothesis Testing",
+            code: 'from scipy import stats\n\nstat, p = stats.ttest_1samp(sample, popmean=50)\nstat, p = stats.ttest_ind(group_a, group_b)\nstat, p = stats.chi2_contingency(observed)[:2]\n\nif p < 0.05:\n    print("Reject null hypothesis")',
+            comment: "Common hypothesis tests and p-value interpretation.",
+            tags: ["hypothesis", "scipy"],
+            createdAt: Date.now() - 3000,
+          },
+        ];
+        saveToStorage();
+      }
+
+      /* ============================== UTILS ============================== */
+      function genId() {
+        return (
+          "sn_" +
+          Date.now().toString(36) +
+          Math.random().toString(36).slice(2, 7)
+        );
+      }
+      function esc(s) {
+        if (!s) return "";
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function getFilteredSnippets(cat, tag, query) {
+        let list = [...snippets];
+        if (cat && cat !== "all") {
+          if (cat.startsWith("custom:")) {
+            const name = cat.slice(7);
+            list = list.filter(
+              (s) => s.category === "other" && s.customCatName === name,
+            );
+          } else {
+            list = list.filter(
+              (s) =>
+                s.category === cat &&
+                !(s.category === "other" && s.customCatName),
+            );
+          }
+        }
+        if (tag) list = list.filter((s) => s.tags.includes(tag));
+        if (query) {
+          const q = query.toLowerCase();
+          list = list.filter(
+            (s) =>
+              s.title.toLowerCase().includes(q) ||
+              s.code.toLowerCase().includes(q) ||
+              s.comment.toLowerCase().includes(q) ||
+              s.tags.some((t) => t.toLowerCase().includes(q)) ||
+              (s.customCatName && s.customCatName.toLowerCase().includes(q)),
+          );
+        }
+        return list;
+      }
+
+      /* ============================== GROUPING ============================== */
+      function buildDisplayList(filtered) {
+        const result = [];
+        let i = 0;
+        while (i < filtered.length) {
+          const title = filtered[i].title;
+          let j = i;
+          while (j < filtered.length && filtered[j].title === title) j++;
+          const groupSize = j - i;
+          for (let k = 0; k < groupSize; k++) {
+            result.push({
+              snippet: filtered[i + k],
+              groupIndex: k,
+              groupSize: groupSize,
+            });
+          }
+          i = j;
+        }
+        return result;
+      }
+
+      /* ============================== CODE RENDERING ============================== */
+      function renderCodeBlock(code) {
+        const lines = esc(code).split("\n");
+        let o =
+          '<div class="code-block"><button class="act-btn" style="position:absolute;top:5px;right:5px;opacity:.35;z-index:2" onclick="copyCode(this)" title="Copy"><i class="fas fa-copy"></i></button>';
+        lines.forEach((l, i) => {
+          o += `<div><span class="line-num">${i + 1}</span>${l}</div>`;
+        });
+        return o + "</div>";
+      }
+
+      /* ============================== RENDER SIDEBAR ============================== */
+      function renderSidebar() {
+        const catList = document.getElementById("catList");
+        const allCount = snippets.length;
+        let ch = `<div class="cat-btn ${activeCategory === "all" ? "active" : ""}" onclick="filterCategory('all')"><div class="cat-dot" style="background:var(--accent)"></div><span>All</span><span class="ml-auto text-xs" style="color:var(--muted)">${allCount}</span></div>`;
+
+        // Built-in categories
+        CATEGORIES.filter((c) => c.id !== "other").forEach((c) => {
+          const count = snippets.filter((s) => s.category === c.id).length;
+          if (count > 0 || activeCategory === c.id) {
+            const ic = c.iconType === "fab" ? "fab" : "fas";
+            ch += `<div class="cat-btn ${activeCategory === c.id ? "active" : ""}" onclick="filterCategory('${c.id}')"><i class="${ic} ${c.icon}" style="color:${c.color};font-size:10px;width:13px;text-align:center"></i><span>${c.name}</span><span class="ml-auto text-xs" style="color:var(--muted)">${count}</span></div>`;
+          }
+        });
+
+        // Custom categories
+        const customCats = getCustomCats();
+        customCats.forEach((name) => {
+          const key = "custom:" + name;
+          const color = getCustomCatColor(name);
+          const count = snippets.filter(
+            (s) => s.category === "other" && s.customCatName === name,
+          ).length;
+          ch += `<div class="cat-btn ${activeCategory === key ? "active" : ""}" onclick="filterCategory('${esc(key)}')"><i class="fas fa-tag" style="color:${color};font-size:10px;width:13px;text-align:center"></i><span>${esc(name)}</span><span class="ml-auto text-xs" style="color:var(--muted)">${count}</span></div>`;
+        });
+
+        catList.innerHTML = ch;
+
+        const allTags = {};
+        snippets.forEach((s) =>
+          s.tags.forEach((t) => {
+            allTags[t] = (allTags[t] || 0) + 1;
+          }),
+        );
+        document.getElementById("tagCloud").innerHTML = Object.entries(allTags)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 16)
+          .map(
+            ([t]) =>
+              `<span class="tag-pill ${activeTag === t ? "active" : ""}" onclick="filterTag('${esc(t)}')">${esc(t)}</span>`,
+          )
+          .join("");
+        updateStats();
+      }
+
+      function updateStats() {
+        document.getElementById("statTotal").textContent = snippets.length;
+        const catKeys = new Set();
+        snippets.forEach((s) => catKeys.add(snippetCatKey(s)));
+        document.getElementById("statCats").textContent = catKeys.size;
+      }
+
+      /* ============================== RENDER TOC ============================== */
+      function renderTOC() {
+        const filtered = getFilteredSnippets(
+          activeCategory,
+          activeTag,
+          searchQuery,
+        );
+        const display = buildDisplayList(filtered);
+        const body = document.getElementById("tocBody");
+        if (!display.length) {
+          body.innerHTML =
+            '<div class="text-center py-8" style="color:var(--muted)"><i class="fas fa-list-ul text-lg mb-2 block" style="opacity:.25"></i><div class="text-[10px]">No entries</div></div>';
+          return;
+        }
+        let html = "",
+          lastCatKey = "";
+        display.forEach((d) => {
+          const s = d.snippet;
+          const catKey = snippetCatKey(s);
+          if (catKey !== lastCatKey) {
+            const cat = getCatDisplay(s);
+            const ic = cat.iconType === "fab" ? "fab" : "fas";
+            html += `<div class="toc-cat-label"><i class="${ic} ${cat.icon}" style="color:${cat.color};font-size:9px"></i>${esc(cat.name)}</div>`;
+            lastCatKey = catKey;
+          }
+          const icon = ["", "●", "◆", "▸", "·"][s.headerLevel] || "·";
+          const num = d.groupSize > 1 ? ` ${d.groupIndex + 1}.` : "";
+          html += `<a class="toc-item toc-level-${s.headerLevel} ${activeTocId === s.id ? "active" : ""}" data-toc-id="${s.id}" onclick="scrollToSnippet('${s.id}')">${icon} ${esc(s.title)}${num}</a>`;
+        });
+        body.innerHTML = html;
+      }
+
+      /* ============================== SCROLL SPY ============================== */
+      function onScroll() {
+        const cards = document.querySelectorAll(".snippet-card");
+        let cur = null;
+        cards.forEach((c) => {
+          if (c.getBoundingClientRect().top <= 150) cur = c.dataset.id;
+        });
+        if (cur !== activeTocId) {
+          activeTocId = cur;
+          document
+            .querySelectorAll(".toc-item")
+            .forEach((el) =>
+              el.classList.toggle("active", el.dataset.tocId === activeTocId),
+            );
+        }
+      }
+      function scrollToSnippet(id) {
+        const el = document.querySelector(`.snippet-card[data-id="${id}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          el.style.boxShadow = "0 0 0 2px var(--accent)";
+          setTimeout(() => {
+            el.style.boxShadow = "";
+          }, 1200);
+        }
+      }
+
+      /* ============================== RENDER SNIPPETS ============================== */
+      function renderSnippets() {
+        const container = document.getElementById("snippetsContainer");
+        const filtered = getFilteredSnippets(
+          activeCategory,
+          activeTag,
+          searchQuery,
+        );
+        const display = buildDisplayList(filtered);
+        const filtersEl = document.getElementById("activeFilters");
+        if (activeCategory !== "all" || activeTag || searchQuery) {
+          filtersEl.style.display = "flex";
+          let fh = "";
+          if (activeCategory !== "all") {
+            const cat = getCatByKey(activeCategory);
+            fh += `<span class="tag-pill active" onclick="filterCategory('all')"><i class="fas fa-times mr-1"></i>${esc(cat.name)}</span>`;
+          }
+          if (activeTag)
+            fh += `<span class="tag-pill active" onclick="filterTag(null)"><i class="fas fa-times mr-1"></i>${esc(activeTag)}</span>`;
+          if (searchQuery)
+            fh += `<span class="tag-pill active" onclick="clearSearch()"><i class="fas fa-times mr-1"></i>"${esc(searchQuery)}"</span>`;
+          fh += `<span class="tag-pill" onclick="clearAllFilters()" style="color:var(--danger);border-color:var(--danger)"><i class="fas fa-times mr-1"></i>Clear all</span>`;
+          filtersEl.innerHTML = fh;
+        } else filtersEl.style.display = "none";
+
+        if (!display.length) {
+          container.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open block"></i><div class="text-base font-semibold mb-1" style="color:var(--text-sec)">No snippets found</div><div class="text-sm" style="color:var(--muted)">${snippets.length === 0 ? 'Click "New Snippet" to get started' : "Try adjusting your filters"}</div></div>`;
+          renderTOC();
+          return;
+        }
+
+        const globalIdx = new Map();
+        snippets.forEach((s, i) => globalIdx.set(s.id, i));
+
+        let html = '<div class="flex flex-col gap-3">';
+        display.forEach((d, idx) => {
+          const s = d.snippet,
+            cat = getCatDisplay(s),
+            hClass = `h${s.headerLevel}-header`,
+            ic = cat.iconType === "fab" ? "fab" : "fas",
+            delay = Math.min(idx * 25, 250);
+          const gIdx = globalIdx.get(s.id);
+          const canUp = gIdx > 0,
+            canDown = gIdx < snippets.length - 1;
+          const numBadge =
+            d.groupSize > 1
+              ? `<span class="group-num">${d.groupIndex + 1}</span>`
+              : "";
+          html += `<div class="snippet-card" style="animation-delay:${delay}ms" data-id="${s.id}">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0 ${hClass}" style="color:var(--text);display:flex;align-items:flex-start">${numBadge}<span>${esc(s.title)}</span></div>
+        <div class="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
+          <span class="cat-badge" style="background:${cat.color}15;color:${cat.color};border:1px solid ${cat.color}28"><i class="${ic} ${cat.icon}" style="font-size:8px"></i> ${esc(cat.name)}</span>
+          <div class="card-actions">
+            <button class="act-btn move-btn" onclick="moveSnippet('${s.id}','up')" title="Move up" ${canUp ? "" : 'style="opacity:.2;pointer-events:none"'}><i class="fas fa-chevron-up"></i></button>
+            <button class="act-btn move-btn" onclick="moveSnippet('${s.id}','down')" title="Move down" ${canDown ? "" : 'style="opacity:.2;pointer-events:none"'}><i class="fas fa-chevron-down"></i></button>
+            <button class="act-btn" onclick="copySnippetCode('${s.id}')" title="Copy code"><i class="fas fa-copy"></i></button>
+            <button class="act-btn" onclick="editSnippet('${s.id}')" title="Edit"><i class="fas fa-pen"></i></button>
+            <button class="act-btn danger" onclick="requestDelete('${s.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+      ${s.code ? renderCodeBlock(s.code) : ""}
+      ${s.comment ? `<div class="mt-2 text-sm flex items-start gap-2" style="color:var(--text-sec)"><i class="fas fa-comment-dots mt-0.5" style="color:var(--muted);font-size:10px"></i><span>${esc(s.comment)}</span></div>` : ""}
+      ${s.tags.length ? `<div class="flex flex-wrap gap-1.5 mt-2">${s.tags.map((t) => `<span class="tag-pill" onclick="filterTag('${esc(t)}')">${esc(t)}</span>`).join("")}</div>` : ""}
+    </div>`;
+        });
+        html += "</div>";
+        container.innerHTML = html;
+        renderTOC();
+      }
+
+      /* ============================== FILTERS ============================== */
+      function filterCategory(c) {
+        activeCategory = c;
+        renderSidebar();
+        renderSnippets();
+        if (window.innerWidth <= 900) {
+          leftOpen = false;
+          applyPanelState();
+          savePanelState();
+        }
+      }
+      function filterTag(t) {
+        activeTag = activeTag === t ? null : t;
+        renderSidebar();
+        renderSnippets();
+      }
+      function handleSearch(v) {
+        searchQuery = v.trim();
+        renderSnippets();
+      }
+      function clearSearch() {
+        searchQuery = "";
+        document.getElementById("searchInput").value = "";
+        renderSnippets();
+      }
+      function clearAllFilters() {
+        activeCategory = "all";
+        activeTag = null;
+        searchQuery = "";
+        document.getElementById("searchInput").value = "";
+        renderSidebar();
+        renderSnippets();
+      }
+
+      /* ============================== MOVE UP / DOWN ============================== */
+      function moveSnippet(id, dir) {
+        const idx = snippets.findIndex((s) => s.id === id);
+        if (idx === -1) return;
+        const newIdx = dir === "up" ? idx - 1 : idx + 1;
+        if (newIdx < 0 || newIdx >= snippets.length) return;
+        [snippets[idx], snippets[newIdx]] = [snippets[newIdx], snippets[idx]];
+        saveToStorage();
+        renderSnippets();
+        renderSidebar();
+        setTimeout(() => scrollToSnippet(id), 50);
+      }
+
+      /* ============================== MODAL ============================== */
+      function openModal() {
+        document.getElementById("editId").value = "";
+        document.getElementById("modalTitle").textContent = "New Snippet";
+        document.getElementById("saveBtn").textContent = "Save Snippet";
+        document.getElementById("snippetForm").reset();
+        setHLevel(2);
+        document.getElementById("customCatSection").classList.remove("show");
+        document.getElementById("formCustomCat").required = false;
+        populateCategorySelect();
+        document.getElementById("modal").classList.add("show");
+        setTimeout(() => document.getElementById("formCat").focus(), 100);
+      }
+      function closeModal() {
+        document.getElementById("modal").classList.remove("show");
+      }
+      function setHLevel(l) {
+        selectedHLevel = l;
+        document
+          .querySelectorAll(".h-level-btn")
+          .forEach((b) =>
+            b.classList.toggle("active", parseInt(b.dataset.level) === l),
+          );
+      }
+
+      function handleSave(e) {
+        e.preventDefault();
+        const eid = document.getElementById("editId").value;
+        let cat = document.getElementById("formCat").value;
+        const title = document.getElementById("formTitle").value.trim();
+        const code = document.getElementById("formCode").value;
+        const comment = document.getElementById("formComment").value.trim();
+        const tags = document
+          .getElementById("formTags")
+          .value.split(",")
+          .map((t) => t.trim().toLowerCase())
+          .filter((t) => t);
+
+        // Handle custom category
+        let customCatName = null;
+        if (cat === "other") {
+          customCatName = document.getElementById("formCustomCat").value.trim();
+          if (!customCatName) {
+            showToast("Please enter a custom category name", "error");
+            return;
+          }
+          customCatName =
+            customCatName.charAt(0).toUpperCase() + customCatName.slice(1); // Capitalize
+        } else if (cat.startsWith("custom:")) {
+          customCatName = cat.slice(7);
+          cat = "other";
+        }
+
+        if (!cat) {
+          showToast("Please select a category", "error");
+          return;
+        }
+        if (!title) {
+          showToast("Please enter a title", "error");
+          return;
+        }
+
+        if (eid) {
+          const i = snippets.findIndex((s) => s.id === eid);
+          if (i !== -1) {
+            const oldTitle = snippets[i].title;
+            snippets[i] = {
+              ...snippets[i],
+              category: cat,
+              customCatName,
+              headerLevel: selectedHLevel,
+              title,
+              code,
+              comment,
+              tags,
+            };
+            if (oldTitle !== title) {
+              const removed = snippets.splice(i, 1)[0];
+              insertSnippet(removed);
+            }
+          }
+          showToast("Snippet updated", "success");
+        } else {
+          const newSnippet = {
+            id: genId(),
+            category: cat,
+            customCatName,
+            headerLevel: selectedHLevel,
+            title,
+            code,
+            comment,
+            tags,
+            createdAt: Date.now(),
+          };
+          insertSnippet(newSnippet);
+          showToast("Snippet added", "success");
+        }
+        saveToStorage();
+        closeModal();
+        populateCategorySelect();
+        renderSidebar();
+        renderSnippets();
+      }
+
+      function insertSnippet(snippet) {
+        let lastIdx = -1;
+        for (let i = 0; i < snippets.length; i++) {
+          if (snippets[i].title === snippet.title) lastIdx = i;
+        }
+        if (lastIdx !== -1) {
+          snippets.splice(lastIdx + 1, 0, snippet);
+        } else {
+          snippets.push(snippet);
+        }
+      }
+
+      /* ============================== EDIT / DELETE / COPY ============================== */
+      function editSnippet(id) {
+        const s = snippets.find((x) => x.id === id);
+        if (!s) return;
+        document.getElementById("editId").value = s.id;
+        document.getElementById("modalTitle").textContent = "Edit Snippet";
+        document.getElementById("saveBtn").textContent = "Update Snippet";
+        populateCategorySelect();
+
+        // Set category dropdown
+        if (s.category === "other" && s.customCatName) {
+          const key = "custom:" + s.customCatName;
+          const sel = document.getElementById("formCat");
+          // Check if the custom option exists
+          let found = false;
+          for (let i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === key) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            // Add it
+            const opt = document.createElement("option");
+            opt.value = key;
+            opt.textContent = s.customCatName;
+            sel.appendChild(opt);
+          }
+          sel.value = key;
+          // Also pre-fill the custom name
+          document.getElementById("formCustomCat").value = s.customCatName;
+          document.getElementById("customCatSection").classList.add("show");
+          document.getElementById("formCustomCat").required = true;
+          renderCustomChips();
+        } else {
+          document.getElementById("formCat").value = s.category;
+          document.getElementById("customCatSection").classList.remove("show");
+          document.getElementById("formCustomCat").required = false;
+        }
+
+        document.getElementById("formTitle").value = s.title;
+        document.getElementById("formCode").value = s.code || "";
+        document.getElementById("formComment").value = s.comment || "";
+        document.getElementById("formTags").value = (s.tags || []).join(", ");
+        setHLevel(s.headerLevel);
+        document.getElementById("modal").classList.add("show");
+      }
+
+      function requestDelete(id) {
+        const s = snippets.find((x) => x.id === id);
+        if (!s) return;
+        deleteTargetId = id;
+        document.getElementById("deleteMsg").textContent =
+          `"${s.title}" will be permanently deleted.`;
+        document.getElementById("deleteModal").classList.add("show");
+      }
+      function closeDeleteModal() {
+        document.getElementById("deleteModal").classList.remove("show");
+        deleteTargetId = null;
+      }
+      function confirmDelete() {
+        if (!deleteTargetId) return;
+        snippets = snippets.filter((s) => s.id !== deleteTargetId);
+        saveToStorage();
+        closeDeleteModal();
+        populateCategorySelect();
+        renderSidebar();
+        renderSnippets();
+        showToast("Snippet deleted", "info");
+      }
+      function copySnippetCode(id) {
+        const s = snippets.find((x) => x.id === id);
+        if (!s || !s.code) return;
+        navigator.clipboard
+          .writeText(s.code)
+          .then(() => showToast("Copied to clipboard", "success"))
+          .catch(() => {
+            const t = document.createElement("textarea");
+            t.value = s.code;
+            document.body.appendChild(t);
+            t.select();
+            document.execCommand("copy");
+            document.body.removeChild(t);
+            showToast("Copied", "success");
+          });
+      }
+      function copyCode(btn) {
+        const block = btn.closest(".code-block");
+        let code = "";
+        block.querySelectorAll("div").forEach((l) => {
+          const ln = l.querySelector(".line-num");
+          if (ln) {
+            const c = l.cloneNode(true);
+            const n = c.querySelector(".line-num");
+            if (n) n.remove();
+            code += c.textContent + "\n";
+          }
+        });
+        code = code.trimEnd();
+        navigator.clipboard
+          .writeText(code)
+          .then(() => {
+            showToast("Copied", "success");
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+              btn.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 1200);
+          })
+          .catch(() => showToast("Copy failed", "error"));
+      }
+
+      /* ============================== CLEAR ALL DATA ============================== */
+      function openClearModal() {
+        document.getElementById("clearMsg").textContent =
+          `This will permanently remove all ${snippets.length} snippet${snippets.length !== 1 ? "s" : ""}.`;
+        document.getElementById("clearModal").classList.add("show");
+      }
+      function closeClearModal() {
+        document.getElementById("clearModal").classList.remove("show");
+      }
+      function exportAndClear() {
+        const data = [...snippets];
+        downloadFile(
+          JSON.stringify(data, null, 2),
+          "dataref-cheatsheet-backup.json",
+          "application/json",
+        );
+        snippets = [];
+        saveToStorage();
+        closeClearModal();
+        populateCategorySelect();
+        renderSidebar();
+        renderSnippets();
+        showToast("Data exported and cleared", "success");
+      }
+      function confirmClearAll() {
+        snippets = [];
+        saveToStorage();
+        closeClearModal();
+        populateCategorySelect();
+        renderSidebar();
+        renderSnippets();
+        showToast("All data cleared", "info");
+      }
+
+      /* ============================== EXPORT ============================== */
+      function toggleExportMenu() {
+        document.getElementById("exportMenu").classList.toggle("show");
+      }
+      function exportAs(fmt) {
+        document.getElementById("exportMenu").classList.remove("show");
+        const data = getFilteredSnippets(
+          activeCategory,
+          activeTag,
+          searchQuery,
+        );
+        if (!data.length) {
+          showToast("No snippets to export", "error");
+          return;
+        }
+        if (fmt === "json") return exportJSON(data);
+        if (fmt === "html") return exportHTML(data);
+        if (fmt === "markdown") return exportMarkdown(data);
+        if (fmt === "pdf") return exportPDF(data);
+      }
+      function downloadFile(content, filename, mime) {
+        const b = new Blob([content], { type: mime });
+        const u = URL.createObjectURL(b);
+        const a = document.createElement("a");
+        a.href = u;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(u);
+      }
+
+      /* ---------- Shared dark theme CSS ---------- */
+      function darkThemeCSS(isPDF) {
+        const base = `
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;background:#09090B;color:#E4E4E7;line-height:1.6;padding:40px 32px;max-width:900px;margin:0 auto}
+h1{font-size:26px;font-weight:800;margin-bottom:28px;color:#E4E4E7;letter-spacing:-0.5px;border-bottom:3px solid #E89030;padding-bottom:14px}
+.cat-section{margin-bottom:36px}
+.cat-heading{font-size:18px;font-weight:700;padding:10px 16px;margin-bottom:16px;border-left:4px solid;background:rgba(255,255,255,0.03);border-radius:0 8px 8px 0;display:flex;align-items:center;gap:10px;color:#E4E4E7}
+.cat-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;color:#000;font-weight:700;font-size:12px}
+.entry{background:#19191E;border:1px solid #27272E;border-radius:10px;padding:20px 24px;margin-bottom:14px;${isPDF ? "page-break-inside:avoid;" : ""}}
+.entry-title{color:#E4E4E7;margin-bottom:10px;line-height:1.3;display:flex;align-items:flex-start;gap:8px}
+.level-1{font-size:20px;font-weight:800;padding-left:14px;border-left:3px solid #E89030}
+.level-2{font-size:17px;font-weight:700;padding-left:14px;border-left:2.5px solid #E89030}
+.level-3{font-size:15px;font-weight:600;padding-left:14px;border-left:2px solid #E89030}
+.level-4{font-size:13px;font-weight:600;padding-left:14px;border-left:1.5px solid #E89030}
+.group-num{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(232,144,48,0.08);color:#E89030;border:1px solid rgba(232,144,48,0.2);flex-shrink:0}
+pre{background:#0C0C0F;color:#E4E4E7;padding:16px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono','Courier New',monospace;font-size:12.5px;line-height:1.7;margin:10px 0;white-space:pre-wrap;word-wrap:break-word;border:1px solid #27272E}
+.comment{color:#A1A1AA;font-size:13.5px;margin:10px 0;padding-left:16px;border-left:2px solid #333;display:flex;align-items:flex-start;gap:8px}
+.comment::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#71717A;margin-top:8px;flex-shrink:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{background:rgba(232,144,48,0.08);color:#E89030;padding:3px 11px;border-radius:16px;font-size:11px;font-weight:500;border:1px solid rgba(232,144,48,0.2)}
+.snippet-count{color:#71717A;font-size:12px;margin-bottom:24px}`;
+        if (isPDF)
+          return (
+            base +
+            `\n@page{margin:15mm 12mm}\n@media print{body{padding:20px}h1{page-break-before:avoid}.entry{page-break-inside:avoid}.cat-section{page-break-inside:auto}}`
+          );
+        return base;
+      }
+
+      function buildExportBody(data) {
+        const display = buildDisplayList(data);
+        const grouped = {};
+        display.forEach((d) => {
+          const k = snippetCatKey(d.snippet);
+          if (!grouped[k]) grouped[k] = [];
+          grouped[k].push(d);
+        });
+        let body = "";
+        Object.keys(grouped).forEach((catKey) => {
+          const cat = getCatByKey(catKey);
+          body += `<div class="cat-section"><div class="cat-heading" style="border-color:${cat.color}"><span class="cat-icon" style="background:${cat.color}">${esc(cat.name).charAt(0)}</span>${esc(cat.name)}</div>\n`;
+          grouped[catKey].forEach((d) => {
+            const s = d.snippet,
+              hTag = "h" + (s.headerLevel + 1);
+            const numBadge =
+              d.groupSize > 1
+                ? `<span class="group-num">${d.groupIndex + 1}</span>`
+                : "";
+            body += `<div class="entry"><${hTag} class="entry-title level-${s.headerLevel}">${numBadge}${esc(s.title)}</${hTag}>\n`;
+            if (s.code) body += `<pre>${esc(s.code)}</pre>\n`;
+            if (s.comment)
+              body += `<div class="comment">${esc(s.comment)}</div>\n`;
+            if (s.tags.length)
+              body += `<div class="tags">${s.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>\n`;
+            body += `</div>\n`;
+          });
+          body += `</div>\n`;
+        });
+        return body;
+      }
+
+      /* ---------- JSON ---------- */
+      function exportJSON(data) {
+        downloadFile(
+          JSON.stringify(data, null, 2),
+          "dataref-cheatsheet.json",
+          "application/json",
+        );
+        showToast(`Exported ${data.length} snippets as JSON`, "success");
+      }
+
+      /* ---------- MARKDOWN ---------- */
+      function exportMarkdown(data) {
+        let md = "# DataRef Cheatsheet\n\n";
+        const display = buildDisplayList(data);
+        const grouped = {};
+        display.forEach((d) => {
+          const k = snippetCatKey(d.snippet);
+          if (!grouped[k]) grouped[k] = [];
+          grouped[k].push(d);
+        });
+        const lm = {
+          sql: "sql",
+          python: "python",
+          r: "r",
+          excel: "excel",
+          powerbi: "dax",
+          markdown: "markdown",
+          git: "git",
+          pandas: "python",
+          stats: "python",
+          ml: "python",
+          tableau: "",
+          other: "",
+        };
+        Object.keys(grouped).forEach((catKey) => {
+          const cat = getCatByKey(catKey);
+          md += `---\n\n## ${cat.name}\n\n`;
+          grouped[catKey].forEach((d) => {
+            const s = d.snippet;
+            const num = d.groupSize > 1 ? ` ${d.groupIndex + 1}.` : "";
+            md += `${"#".repeat(s.headerLevel + 1)} ${s.title}${num}\n\n`;
+            if (s.code)
+              md += `\`\`\`${lm[s.category] || ""}\n${s.code}\n\`\`\`\n\n`;
+            if (s.comment) md += `> ${s.comment}\n\n`;
+            if (s.tags.length)
+              md += `**Tags:** ${s.tags.map((t) => "`" + t + "`").join(", ")}\n\n`;
+          });
+        });
+        downloadFile(md, "-cheatsheet_maker.md", "text/markdown");
+        showToast(`Exported ${data.length} snippets as Markdown`, "success");
+      }
+
+      /* ---------- Helper for interactive HTML export ---------- */
+      function getCustomCatColorMap(data) {
+        const map = {};
+        data.forEach(function (s) {
+          if (
+            s.category === "other" &&
+            s.customCatName &&
+            !map[s.customCatName]
+          ) {
+            let hash = 0;
+            for (let i = 0; i < s.customCatName.length; i++)
+              hash = s.customCatName.charCodeAt(i) + ((hash << 5) - hash);
+            map[s.customCatName] =
+              CUSTOM_COLORS[Math.abs(hash) % CUSTOM_COLORS.length];
+          }
+        });
+        return map;
+      }
+
+      function getCatKeyMap(data) {
+        return data.map(function (s) {
+          return s.category === "other" && s.customCatName
+            ? "custom:" + s.customCatName
+            : s.category;
+        });
+      }
+
+      function buildExportBodyInteractive(data) {
+        var html = "";
+        data.forEach(function (s, i) {
+          var cc =
+            getCustomCatColorMap(data)[s.customCatName] ||
+            getCatDisplay(s).color;
+          var cn = getCatDisplay(s).name;
+          var num = i + 1;
+          html +=
+            '<div class="entry" data-id="' +
+            s.id +
+            '" style="animation:fadeSlideIn .35s ease both">' +
+            '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px">' +
+            '<div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0">' +
+            '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(232,144,48,0.08);color:#E89030;border:1px solid rgba(232,144,48,0.2);flex-shrink:0">' +
+            num +
+            "</span>" +
+            '<h2 style="font-size:18px;font-weight:700;padding-left:14px;border-left:2.5px solid #E89030;margin:0;color:#E4E4E7">' +
+            esc(s.title) +
+            "</h2>" +
+            "</div>" +
+            '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">' +
+            '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:' +
+            cc +
+            "15;color:" +
+            cc +
+            ";border:1px solid " +
+            cc +
+            '28">' +
+            esc(cn) +
+            "</span>" +
+            '<div class="entry-actions" style="position:static;opacity:1;transform:none">' +
+            '<button class="ea-btn move" onclick="moveExpSnippet(' +
+            i +
+            ',-1)" title="Move up"' +
+            (i === 0 ? ' style="opacity:.2;pointer-events:none"' : "") +
+            '><i class="fas fa-chevron-up"></i></button>' +
+            '<button class="ea-btn move" onclick="moveExpSnippet(' +
+            i +
+            ',1)" title="Move down"' +
+            (i === data.length - 1
+              ? ' style="opacity:.2;pointer-events:none"'
+              : "") +
+            '><i class="fas fa-chevron-down"></i></button>' +
+            '<button class="ea-btn" onclick="copyExpCode(' +
+            i +
+            ')" title="Copy code"><i class="fas fa-copy"></i></button>' +
+            '<button class="ea-btn" onclick="editExpSnippet(' +
+            i +
+            ')" title="Edit"><i class="fas fa-pen"></i></button>' +
+            '<button class="ea-btn danger" onclick="requestExpDelete(' +
+            i +
+            ')" title="Delete"><i class="fas fa-trash"></i></button>' +
+            "</div></div></div>" +
+            (s.code
+              ? '<div style="position:relative"><pre>' +
+                esc(s.code) +
+                '</pre><button class="copy-code-btn" onclick="copyExpCode(' +
+                i +
+                ')" title="Copy"><i class="fas fa-copy"></i></button></div>'
+              : "") +
+            (s.comment
+              ? '<div style="color:#A1A1AA;font-size:13.5px;margin:10px 0;padding-left:16px;border-left:2px solid #333;display:flex;align-items:flex-start;gap:8px"><span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:#71717A;margin-top:8px;flex-shrink:0"></span>' +
+                esc(s.comment) +
+                "</div>"
+              : "") +
+            (s.tags && s.tags.length
+              ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' +
+                s.tags
+                  .map(function (t) {
+                    return (
+                      '<span style="background:rgba(232,144,48,0.08);color:#E89030;padding:3px 11px;border-radius:16px;font-size:11px;font-weight:500;border:1px solid rgba(232,144,48,0.2)">' +
+                      esc(t) +
+                      "</span>"
+                    );
+                  })
+                  .join("") +
+                "</div>"
+              : "") +
+            "</div>";
+        });
+        return html;
+      }
+
+      /* ---------- HTML (DARK) — interactive, with copy/edit/delete/move ---------- */
+      function exportHTML(data) {
+        // Build body with interactive action buttons
+        const body = buildExportBodyInteractive(data);
+        const snippetJSON = esc(JSON.stringify(data));
+        const customCatInfo = JSON.stringify(getCatKeyMap(data));
+        let exportTitle = prompt(
+          "Enter a title for the cheatsheet:",
+          "DataRef Cheatsheet",
+        );
+        if (exportTitle === null) return; // user cancelled
+        if (!exportTitle.trim()) exportTitle = "DataRef Cheatsheet";
+        const safeTitle = esc(exportTitle.trim());
+        const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${safeTitle}</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>${darkThemeCSS(false)}
+.entry{position:relative;padding:18px 22px}
+.entry:hover{border-color:#333340;background:#1f1f26}
+.entry:hover .entry-actions{opacity:1;transform:translateY(0)}
+.entry-actions{position:absolute;top:14px;right:16px;opacity:0;transform:translateY(-4px);transition:all .2s;display:flex;gap:2px}
+.ea-btn{width:29px;height:29px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;border:none;background:transparent;color:#71717A;font-size:12px}
+.ea-btn:hover{background:rgba(232,144,48,0.08);color:#E89030}
+.ea-btn.danger:hover{background:rgba(239,68,68,0.1);color:#EF4444}
+.ea-btn.move:hover{background:rgba(232,144,48,0.12);color:#E89030}
+.code-wrap{position:relative}
+.copy-code-btn{position:absolute;top:5px;right:5px;opacity:.35;z-index:2;width:29px;height:29px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:transparent;color:#71717A;font-size:12px;transition:all .15s}
+.copy-code-btn:hover{opacity:1;background:rgba(232,144,48,0.08);color:#E89030}
+.toast-cont{position:fixed;top:15px;right:15px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{padding:10px 16px;border-radius:9px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px;animation:toastIn .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:auto}
+.toast.success{background:#14532d;border:1px solid #22c55e;color:#86efac}
+.toast.error{background:#450a0a;border:1px solid #ef4444;color:#fca5a5}
+.toast.info{background:#1e1b0f;border:1px solid #E89030;color:#fcd88a}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal-box{background:#131316;border:1px solid #27272E;border-radius:16px;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;padding:24px 26px;animation:fadeSlideIn .25s ease}
+.modal-box h3{color:#E4E4E7;font-size:16px;font-weight:700;margin-bottom:6px}
+.modal-box p{color:#A1A1AA;font-size:13px;margin-bottom:18px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.modal-actions .btn{padding:7px 18px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;border:none;font-family:'Space Grotesk',sans-serif;transition:all .15s}
+.modal-actions .btn.cancel{background:transparent;border:1px solid #27272E;color:#A1A1AA}
+.modal-actions .btn.cancel:hover{border-color:#A1A1AA;color:#E4E4E7}
+.modal-actions .btn.danger{background:#EF4444;color:#fff}
+.modal-actions .btn.danger:hover{background:#dc2626;transform:translateY(-1px)}
+.modal-actions .btn.primary{background:#E89030;color:#000}
+.modal-actions .btn.primary:hover{background:#f0a040;transform:translateY(-1px)}
+.empty-state{text-align:center;padding:60px 20px;color:#71717A}
+.empty-state i{font-size:36px;opacity:.18;margin-bottom:10px}
+</style>
+</head><body>
+<div class="toast-cont" id="expToastCont"></div>
+<div class="modal-overlay" id="expDelModal">
+  <div class="modal-box" style="text-align:center;max-width:380px">
+    <div style="margin-bottom:10px"><i class="fas fa-exclamation-triangle" style="color:#EF4444;font-size:22px"></i></div>
+    <h3>Delete Snippet?</h3>
+    <p id="expDelMsg">This cannot be undone.</p>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn cancel" onclick="closeExpDelModal()">Cancel</button>
+      <button class="btn danger" onclick="confirmExpDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="expEditModal">
+  <div class="modal-box">
+    <h3 id="expEditTitle">Edit Snippet</h3>
+    <div style="margin-bottom:12px">
+      <label style="display:block;color:#71717A;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Title</label>
+      <input type="text" id="expEditTitleInput" style="width:100%;background:#19191E;border:1px solid #27272E;border-radius:8px;padding:8px 12px;color:#E4E4E7;font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none" placeholder="Snippet title">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;color:#71717A;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Code</label>
+      <textarea id="expEditCodeInput" rows="5" style="width:100%;background:#19191E;border:1px solid #27272E;border-radius:8px;padding:8px 12px;color:#E4E4E7;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;outline:none;resize:vertical;min-height:80px"></textarea>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;color:#71717A;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Comment / Notes</label>
+      <textarea id="expEditCommentInput" rows="2" style="width:100%;background:#19191E;border:1px solid #27272E;border-radius:8px;padding:8px 12px;color:#E4E4E7;font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;resize:vertical;min-height:50px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeExpEditModal()">Cancel</button>
+      <button class="btn primary" onclick="confirmExpEdit()">Save</button>
+    </div>
+  </div>
+</div>
+<h1>${safeTitle}</h1>
+<p class="snippet-count">${data.length} snippets across ${new Set(data.map((s) => snippetCatKey(s))).size} categories</p>
+<div id="expEntries">${body}</div>
+<script>
+var EXP_DATA = ${JSON.stringify(data)};
+var EXP_CAT_COLORS = ${JSON.stringify(getCustomCatColorMap(data))};
+var EXP_DEL_ID = null;
+var EXP_EDIT_ID = null;
+
+function genId(){return 'sn_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+function esc(s){if(!s)return '';return s.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"').replace(/'/g,'&#39;')}
+
+function getCatKey(s){return s.category==='other'&&s.customCatName?'custom:'+s.customCatName:s.category}
+
+function getCatColor(s){if(s.category==='other'&&s.customCatName&&EXP_CAT_COLORS[s.customCatName])return EXP_CAT_COLORS[s.customCatName];var m={sql:'#14B8A6',python:'#FBBF24',r:'#F43F5E',excel:'#22C55E',powerbi:'#F97316',markdown:'#94A3B8',git:'#EF4444',pandas:'#06B6D4',stats:'#EC4899',ml:'#10B981',tableau:'#8B5CF6',other:'#64748B'};return m[s.category]||'#64748B'}
+
+function getCatName(s){if(s.category==='other'&&s.customCatName)return s.customCatName;var m={sql:'SQL',python:'Python',r:'R',excel:'Excel',powerbi:'Power BI',markdown:'Markdown',git:'Git',pandas:'Pandas',stats:'Statistics',ml:'Machine Learning',tableau:'Tableau',other:'Other'};return m[s.category]||'Other'}
+
+function getCatIcon(s){if(s.category==='other'&&s.customCatName)return 'fa-tag fas';return{faDatabase:'fas fa-database',python:'fab fa-python',chartBar:'fas fa-chart-bar',fileExcel:'fab fa-file-excel',chartPie:'fas fa-chart-pie',code:'fas fa-code',codeBranch:'fas fa-code-branch',table:'fas fa-table',calculator:'fas fa-calculator',brain:'fas fa-brain',chartArea:'fas fa-chart-area',tag:'fas fa-tag'}['']||'fas fa-tag'}
+
+function renderEntries(){var data=EXP_DATA;if(!data.length){document.getElementById('expEntries').innerHTML='<div class="empty-state"><i class="fas fa-folder-open"></i><div style="font-weight:600;margin-bottom:4px;color:#A1A1AA">No snippets</div></div>';return}
+var html='';data.forEach(function(s,i){var cc=getCatColor(s),cn=getCatName(s);var num=i+1;html+='<div class="entry" data-id="'+s.id+'" style="animation:fadeSlideIn .35s ease both">'
++'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px">'
++'<div style="display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0">'
++'<span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(232,144,48,0.08);color:#E89030;border:1px solid rgba(232,144,48,0.2);flex-shrink:0">'+num+'</span>'
++'<h2 style="font-size:18px;font-weight:700;padding-left:14px;border-left:2.5px solid #E89030;margin:0;color:#E4E4E7">'+esc(s.title)+'</h2>'
++'</div>'
++'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
++'<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:'+cc+'15;color:'+cc+';border:1px solid '+cc+'28">'+esc(cn)+'</span>'
++'<div class="entry-actions" style="position:static;opacity:1;transform:none">'
++'<button class="ea-btn move" onclick="moveExpSnippet('+i+',-1)" title="Move up" '+(i===0?'style="opacity:.2;pointer-events:none"':'')+'><i class="fas fa-chevron-up"></i></button>'
++'<button class="ea-btn move" onclick="moveExpSnippet('+i+',1)" title="Move down" '+(i===data.length-1?'style="opacity:.2;pointer-events:none"':'')+'><i class="fas fa-chevron-down"></i></button>'
++'<button class="ea-btn" onclick="copyExpCode('+i+')" title="Copy code"><i class="fas fa-copy"></i></button>'
++'<button class="ea-btn" onclick="editExpSnippet('+i+')" title="Edit"><i class="fas fa-pen"></i></button>'
++'<button class="ea-btn danger" onclick="requestExpDelete('+i+')" title="Delete"><i class="fas fa-trash"></i></button>'
++'</div></div></div>'
++((s.code)?'<div style="position:relative"><pre>'+esc(s.code)+'</pre><button class="copy-code-btn" onclick="copyExpCode('+i+')" title="Copy"><i class="fas fa-copy"></i></button></div>':'')
++((s.comment)?'<div style="color:#A1A1AA;font-size:13.5px;margin:10px 0;padding-left:16px;border-left:2px solid #333;display:flex;align-items:flex-start;gap:8px"><span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:#71717A;margin-top:8px;flex-shrink:0"></span>'+esc(s.comment)+'</div>':'')
++((s.tags&&s.tags.length)?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+s.tags.map(function(t){return '<span style="background:rgba(232,144,48,0.08);color:#E89030;padding:3px 11px;border-radius:16px;font-size:11px;font-weight:500;border:1px solid rgba(232,144,48,0.2)">'+esc(t)+'</span>'}).join('')+'</div>':'')
++'</div>'});
+document.getElementById('expEntries').innerHTML=html}
+
+function moveExpSnippet(idx,delta){var n=idx+delta;if(n<0||n>=EXP_DATA.length)return;var tmp=EXP_DATA[idx];EXP_DATA[idx]=EXP_DATA[n];EXP_DATA[n]=tmp;renderEntries()}
+
+function copyExpCode(idx){var s=EXP_DATA[idx];if(!s||!s.code)return;navigator.clipboard.writeText(s.code).then(function(){showExpToast('Copied to clipboard','success')}).catch(function(){var t=document.createElement('textarea');t.value=s.code;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showExpToast('Copied','success')})}
+
+function requestExpDelete(idx){EXP_DEL_ID=idx;var s=EXP_DATA[idx];document.getElementById('expDelMsg').textContent=s?'"'+s.title+'" will be permanently deleted.':'This cannot be undone.';document.getElementById('expDelModal').classList.add('show')}
+
+function closeExpDelModal(){document.getElementById('expDelModal').classList.remove('show');EXP_DEL_ID=null}
+
+function confirmExpDelete(){if(EXP_DEL_ID===null)return;EXP_DATA.splice(EXP_DEL_ID,1);EXP_DEL_ID=null;closeExpDelModal();renderEntries();showExpToast('Snippet deleted','info')}
+
+function editExpSnippet(idx){EXP_EDIT_ID=idx;var s=EXP_DATA[idx];document.getElementById('expEditTitle').textContent='Edit Snippet';document.getElementById('expEditTitleInput').value=s.title||'';document.getElementById('expEditCodeInput').value=s.code||'';document.getElementById('expEditCommentInput').value=s.comment||'';document.getElementById('expEditModal').classList.add('show')}
+
+function closeExpEditModal(){document.getElementById('expEditModal').classList.remove('show');EXP_EDIT_ID=null}
+
+function confirmExpEdit(){if(EXP_EDIT_ID===null)return;var s=EXP_DATA[EXP_EDIT_ID];s.title=document.getElementById('expEditTitleInput').value.trim()||s.title;s.code=document.getElementById('expEditCodeInput').value;s.comment=document.getElementById('expEditCommentInput').value.trim();closeExpEditModal();renderEntries();showExpToast('Snippet updated','success')}
+
+function showExpToast(msg,type){var c=document.getElementById('expToastCont'),t=document.createElement('div');t.className='toast '+type;var icons={success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'};t.innerHTML='<i class="fas '+(icons[type]||icons.info)+'"></i> '+msg;c.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transform='translateX(40px)';t.style.transition='all .3s';setTimeout(function(){t.remove()},300)},2800)}
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeExpDelModal();closeExpEditModal()}})
+
+renderEntries();
+<\/script>
+</body></html>`;
+        downloadFile(html, "dataref-cheatsheet.html", "text/html");
+        showToast(
+          `Exported ${data.length} snippets as HTML (Dark, interactive)`,
+          "success",
+        );
+      }
+
+      /* ---------- PDF (DARK) ---------- */
+      function exportPDF(data) {
+        const body = buildExportBody(data);
+        const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DataRef Cheatsheet - PDF</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>${darkThemeCSS(true)}</style>
+</head><body>
+<h1>DataRef Cheatsheet</h1>
+<p class="snippet-count">${data.length} snippets across ${new Set(data.map((s) => snippetCatKey(s))).size} categories</p>
+ ${body}
+<script>window.onload=function(){setTimeout(function(){window.print()},600)}<\/script>
+</body></html>`;
+        const w = window.open("", "_blank", "width=900,height=700");
+        w.document.write(html);
+        w.document.close();
+        showToast("PDF ready - use print dialog to save", "info");
+      }
+
+      /* ============================== IMPORT ============================== */
+      function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!Array.isArray(data)) throw 0;
+            const ids = new Set(snippets.map((s) => s.id));
+            let added = 0;
+            data.forEach((s) => {
+              if (!ids.has(s.id)) {
+                insertSnippet(s);
+                added++;
+              }
+            });
+            saveToStorage();
+            populateCategorySelect();
+            renderSidebar();
+            renderSnippets();
+            showToast(
+              `Imported ${added} snippet${added !== 1 ? "s" : ""}`,
+              "success",
+            );
+          } catch (e) {
+            showToast("Import failed: invalid JSON", "error");
+          }
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+      }
+
+      /* ============================== TOAST ============================== */
+      function showToast(msg, type = "info") {
+        const c = document.getElementById("toasts"),
+          t = document.createElement("div");
+        t.className = `toast ${type}`;
+        const icons = {
+          success: "fa-check-circle",
+          error: "fa-exclamation-circle",
+          info: "fa-info-circle",
+        };
+        t.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${msg}`;
+        t.style.pointerEvents = "auto";
+        c.appendChild(t);
+        setTimeout(() => {
+          t.style.opacity = "0";
+          t.style.transform = "translateX(40px)";
+          t.style.transition = "all .3s";
+          setTimeout(() => t.remove(), 300);
+        }, 2800);
+      }
+
+      /* ============================== KEYBOARD ============================== */
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeModal();
+          closeDeleteModal();
+          closeClearModal();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+          e.preventDefault();
+          openModal();
+        }
+      });
+
+      init();
+    </script>
+  </body>
+</html>
