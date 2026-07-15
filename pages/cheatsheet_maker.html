@@ -671,6 +671,15 @@
         display: block;
         margin-top: 1px;
       }
+      .main-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: var(--bg);
+        padding-top: 24px;
+        padding-bottom: 8px;
+        margin-top: -24px;
+      }
       .clear-btn {
         width: 100%;
         padding: 7px;
@@ -883,97 +892,101 @@
 
       <!-- MAIN -->
       <main class="main-area" id="mainArea">
-        <div class="flex items-center gap-3 mb-5 flex-wrap">
-          <div class="search-box flex-1 max-w-md">
-            <i class="fas fa-search"></i
-            ><input
-              type="text"
-              id="searchInput"
-              class="form-input"
-              placeholder="Search snippets..."
-              oninput="handleSearch(this.value)"
-            />
-          </div>
-          <div class="flex items-center gap-2 ml-auto">
-            <div class="export-wrap" id="exportWrap">
-              <button
+        <div class="main-toolbar">
+          <div class="flex items-center gap-3 mb-5 flex-wrap">
+            <div class="search-box flex-1 max-w-md">
+              <i class="fas fa-search"></i
+              ><input
+                type="text"
+                id="searchInput"
+                class="form-input"
+                placeholder="Search snippets..."
+                oninput="handleSearch(this.value)"
+              />
+            </div>
+            <div class="flex items-center gap-2 ml-auto">
+              <div class="export-wrap" id="exportWrap">
+                <button
+                  class="act-btn"
+                  style="
+                    width: auto;
+                    padding: 0 10px;
+                    gap: 5px;
+                    font-size: 11px;
+                    color: var(--muted);
+                  "
+                  onclick="toggleExportMenu()"
+                  title="Export"
+                >
+                  <i class="fas fa-arrow-up-from-bracket"></i
+                  ><span class="hidden sm:inline">Export</span>
+                </button>
+                <div class="export-menu" id="exportMenu">
+                  <button class="export-item" onclick="exportAs('json')">
+                    <i class="fas fa-brackets-curly" style="color: #fbbf24"></i>
+                    <div>
+                      JSON<span class="item-desc"
+                        >Full data, re-importable</span
+                      >
+                    </div>
+                  </button>
+                  <button class="export-item" onclick="exportAs('html')">
+                    <i class="fab fa-html5" style="color: #f97316"></i>
+                    <div>
+                      HTML (Dark)<span class="item-desc"
+                        >Same theme, standalone</span
+                      >
+                    </div>
+                  </button>
+                  <button class="export-item" onclick="exportAs('markdown')">
+                    <i class="fab fa-markdown" style="color: #94a3b8"></i>
+                    <div>
+                      Markdown<span class="item-desc"
+                        >Plain text with formatting</span
+                      >
+                    </div>
+                  </button>
+                  <button class="export-item" onclick="exportAs('pdf')">
+                    <i class="fas fa-file-pdf" style="color: #ef4444"></i>
+                    <div>
+                      PDF <span class="item-desc">Same theme, print-ready</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+              <label
                 class="act-btn"
+                title="Import JSON"
                 style="
                   width: auto;
                   padding: 0 10px;
                   gap: 5px;
                   font-size: 11px;
                   color: var(--muted);
+                  cursor: pointer;
                 "
-                onclick="toggleExportMenu()"
-                title="Export"
+                ><i class="fas fa-arrow-down-to-bracket"></i
+                ><span class="hidden sm:inline">Import</span
+                ><input
+                  type="file"
+                  accept=".json"
+                  onchange="importData(event)"
+                  hidden
+              /></label>
+              <button
+                onclick="openModal()"
+                class="btn-primary flex items-center gap-2 text-sm"
               >
-                <i class="fas fa-arrow-up-from-bracket"></i
-                ><span class="hidden sm:inline">Export</span>
+                <i class="fas fa-plus text-[10px]"></i> Add
               </button>
-              <div class="export-menu" id="exportMenu">
-                <button class="export-item" onclick="exportAs('json')">
-                  <i class="fas fa-brackets-curly" style="color: #fbbf24"></i>
-                  <div>
-                    JSON<span class="item-desc">Full data, re-importable</span>
-                  </div>
-                </button>
-                <button class="export-item" onclick="exportAs('html')">
-                  <i class="fab fa-html5" style="color: #f97316"></i>
-                  <div>
-                    HTML (Dark)<span class="item-desc"
-                      >Same theme, standalone</span
-                    >
-                  </div>
-                </button>
-                <button class="export-item" onclick="exportAs('markdown')">
-                  <i class="fab fa-markdown" style="color: #94a3b8"></i>
-                  <div>
-                    Markdown<span class="item-desc"
-                      >Plain text with formatting</span
-                    >
-                  </div>
-                </button>
-                <button class="export-item" onclick="exportAs('pdf')">
-                  <i class="fas fa-file-pdf" style="color: #ef4444"></i>
-                  <div>
-                    PDF <span class="item-desc">Same theme, print-ready</span>
-                  </div>
-                </button>
-              </div>
             </div>
-            <label
-              class="act-btn"
-              title="Import JSON"
-              style="
-                width: auto;
-                padding: 0 10px;
-                gap: 5px;
-                font-size: 11px;
-                color: var(--muted);
-                cursor: pointer;
-              "
-              ><i class="fas fa-arrow-down-to-bracket"></i
-              ><span class="hidden sm:inline">Import</span
-              ><input
-                type="file"
-                accept=".json"
-                onchange="importData(event)"
-                hidden
-            /></label>
-            <button
-              onclick="openModal()"
-              class="btn-primary flex items-center gap-2 text-sm"
-            >
-              <i class="fas fa-plus text-[10px]"></i> Add
-            </button>
           </div>
+          <div
+            id="activeFilters"
+            class="flex flex-wrap gap-2 mb-4"
+            style="display: none"
+          ></div>
         </div>
-        <div
-          id="activeFilters"
-          class="flex flex-wrap gap-2 mb-4"
-          style="display: none"
-        ></div>
         <div id="snippetsContainer"></div>
       </main>
 
@@ -1998,7 +2011,7 @@
         document.getElementById("modalTitle").textContent = "New Snippet";
         document.getElementById("saveBtn").textContent = "Save Snippet";
         document.getElementById("snippetForm").reset();
-        setHLevel(2);
+        setHLevel(selectedHLevel);
         document.getElementById("customCatSection").classList.remove("show");
         document.getElementById("formCustomCat").required = false;
         populateCategorySelect();
