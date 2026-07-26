@@ -732,32 +732,69 @@
                     } else if (cell.cell_type === 'code') {
                         const code = Array.isArray(cell.source) ? cell.source.join('') : cell.source;
                         mdString += `\`\`\`${defaultLang}\n${code}\n\`\`\`\n\n`;
+
                         if (cell.outputs && cell.outputs.length > 0) {
                             cell.outputs.forEach(out => {
-                                if (out.text) {
-                                    const text = Array.isArray(out.text) ? out.text.join('') : out.text;
-                                    mdString += `> *Output:*\n\`\`\`plaintext\n${text}\n\`\`\`\n\n`;
+
+                                // ── STREAM output (stdout / stderr) ──
+                                if (out.output_type === 'stream') {
+                                    if (out.text) {
+                                        const text = Array.isArray(out.text) ? out.text.join('') : out.text;
+                                        mdString += `> *Output:*\n\`\`\`plaintext\n${text}\n\`\`\`\n\n`;
+                                    }
                                 }
-                                if (out.data) {
-                                    for (const key of Object.keys(out.data)) {
-                                        if (key.startsWith('image/')) {
-                                            const base64 = Array.isArray(out.data[key]) ? out.data[key].join('') : out.data[key];
-                                            const cleanBase64 = base64.replace(/\n/g, '');
-                                            if (key.includes('svg')) mdString += `> *Visualization:*\n\n${cleanBase64}\n\n`;
-                                            else mdString += `> *Visualization:*\n\n![Plot](data:${key};base64,${cleanBase64})\n\n`;
-                                        }
-                                        else if (key === 'text/html') {
-                                            const htmlStr = Array.isArray(out.data[key]) ? out.data[key].join('') : out.data[key];
-                                            mdString += `> *Data Table:*\n\n${htmlStr}\n\n`;
+
+                                // ── EXECUTE_RESULT & DISPLAY_DATA ──
+                                // These store their text in out.data['text/plain'],
+                                // NOT in out.text — this was the missing piece!
+                                else if (out.output_type === 'execute_result' || out.output_type === 'display_data') {
+                                    if (out.data) {
+                                        // Prioritize: image → HTML → plain text
+                                        let hasImage = false;
+                                        let hasHtml = false;
+
+                                        for (const key of Object.keys(out.data)) {
+                                            if (key.startsWith('image/')) {
+                                                hasImage = true;
+                                                const base64 = Array.isArray(out.data[key]) ? out.data[key].join('') : out.data[key];
+                                                const cleanBase64 = base64.replace(/\n/g, '');
+                                                if (key.includes('svg')) {
+                                                    mdString += `> *Visualization:*\n\n${cleanBase64}\n\n`;
+                                                } else {
+                                                    mdString += `> *Visualization:*\n\n![Plot](data:${key};base64,${cleanBase64})\n\n`;
+                                                }
+                                            }
+                                            else if (key === 'text/html') {
+                                                hasHtml = true;
+                                                const htmlStr = Array.isArray(out.data[key]) ? out.data[key].join('') : out.data[key];
+                                                mdString += `> *Data Table:*\n\n${htmlStr}\n\n`;
+                                            }
+                                            else if (key === 'text/plain') {
+                                                // ── THIS IS THE KEY FIX ──
+                                                // execute_result stores its output here, not in out.text
+                                                const text = Array.isArray(out.data[key]) ? out.data[key].join('') : out.data[key];
+                                                mdString += `> *Output:*\n\`\`\`plaintext\n${text}\n\`\`\`\n\n`;
+                                            }
                                         }
                                     }
                                 }
+
+                                // ── ERROR output ──
+                                else if (out.output_type === 'error') {
+                                    const errorName = out.ename || 'Error';
+                                    const errorValue = out.evalue || '';
+                                    const traceback = out.traceback ? out.traceback.join('\n') : '';
+                                    mdString += `> *Error (${errorName}):*\n\`\`\`plaintext\n${errorValue}\n${traceback}\n\`\`\`\n\n`;
+                                }
+
                             });
                         }
                     }
                 }
                 return mdString;
-            } catch (error) { return `> ⚠️ **Error:** Failed to parse Jupyter Notebook content.\n\n`; }
+            } catch (error) {
+                return `> ⚠️ **Error:** Failed to parse Jupyter Notebook content.\n\n`;
+            }
         }
 
         async function handleFiles(e) {
