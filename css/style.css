@@ -595,3 +595,40 @@ p {
         flex-direction: column; 
     }
 }
+
+/* ==========================================
+   11. PROJECTS: HORIZONTAL ROWS (NO GAPS)
+   ========================================== */
+
+/* Desktop: About | Experience | Education on top, Projects full-width below */
+@media (min-width: 1025px) {
+    .portfolio-grid {
+        grid-template-columns: 1fr 1.35fr 1fr;
+        gap: 2.5rem;
+    }
+
+    .col-about      { grid-column: 1;      grid-row: 1; }
+    .col-experience { grid-column: 2;      grid-row: 1; }
+    .col-education  { grid-column: 3;      grid-row: 1; }
+    .col-projects   { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* Horizontal project groups: equal-height cards, no empty cells */
+.projects-row {
+    display: grid;
+    gap: 1.5rem;
+    align-items: stretch;
+}
+
+.projects-row.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.projects-row.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Cards inside a row drop the extra bottom margin -> removes the double gap */
+.projects-row .timeline-item-detailed { margin-bottom: 0; }
+
+/* Tablet & mobile: stack the groups so no empty cells / gaps remain */
+@media (max-width: 1024px) {
+    .projects-row.cols-2,
+    .projects-row.cols-3 { grid-template-columns: 1fr; }
+}
+
